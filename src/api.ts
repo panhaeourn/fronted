@@ -1,28 +1,64 @@
-const API_BASE = import.meta.env.VITE_API_URL;
+export const API_BASE = (
+  import.meta.env.VITE_API_URL ?? "http://localhost:8080"
+).replace(/\/$/, "");
 
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  if (!API_BASE) {
-    throw new Error("VITE_API_URL is not set");
+  const headers: Record<string, string> = {
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
+  const isFormData = options.body instanceof FormData;
+
+  if (!isFormData) {
+    const hasContentType = Object.keys(headers).some(
+      (k) => k.toLowerCase() === "content-type"
+    );
+
+    if (!hasContentType) {
+      headers["Content-Type"] = "application/json";
+    }
   }
 
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
+    headers,
+    credentials: "include",
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`${res.status} ${res.statusText}: ${text}`);
+  const text = await res.text().catch(() => "");
+  let json: any = null;
+
+  if (text) {
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = null;
+    }
   }
 
-  const ct = res.headers.get("content-type") || "";
-  if (!ct.includes("application/json")) return (null as unknown) as T;
+  if (!res.ok) {
+    let msg = `${res.status} ${res.statusText}`;
 
-  return (await res.json()) as T;
+    if (json) {
+      msg =
+        json.message ||
+        json.error ||
+        json?.status?.message ||
+        JSON.stringify(json);
+
+      const code = json?.status?.code;
+      if (code && msg && !String(msg).includes(String(code))) {
+        msg = `${code}: ${msg}`;
+      }
+    } else if (text) {
+      msg = text;
+    }
+
+    throw new Error(msg);
+  }
+
+  return json as T;
 }
