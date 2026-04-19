@@ -1,25 +1,52 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/auth-context";
 
 export default function OAuthSuccess() {
   const nav = useNavigate();
   const { refreshMe } = useAuth();
+  const [message, setMessage] = useState("Please wait a moment.");
 
   useEffect(() => {
     let cancelled = false;
+    let attempt = 0;
+    let timer: number | undefined;
 
-    void refreshMe()
-      .then((me) => {
-        if (cancelled) return;
-        nav(me ? "/" : "/login", { replace: true });
-      })
-      .catch(() => {
-        if (!cancelled) nav("/login", { replace: true });
+    const tryLoadUser = async () => {
+      attempt += 1;
+
+      const me = await refreshMe({ silent: true }).catch(() => null);
+      if (cancelled) return;
+
+      if (me) {
+        nav("/", { replace: true });
+        return;
+      }
+
+      if (attempt < 8) {
+        setMessage("Finalizing your Google sign-in...");
+        timer = window.setTimeout(() => {
+          void tryLoadUser();
+        }, 700);
+        return;
+      }
+
+      nav("/login", {
+        replace: true,
+        state: {
+          oauthError:
+            "We couldn't finish Google sign-in on this browser. Please try Chrome/Safari directly.",
+        },
       });
+    };
+
+    void tryLoadUser();
 
     return () => {
       cancelled = true;
+      if (timer) {
+        window.clearTimeout(timer);
+      }
     };
   }, [nav, refreshMe]);
 
@@ -49,7 +76,7 @@ export default function OAuthSuccess() {
         }}
       >
         <h2 style={{ margin: 0, fontSize: 28 }}>Signing you in</h2>
-        <p style={{ margin: "10px 0 0", color: "#9ab0d3" }}>Please wait a moment.</p>
+        <p style={{ margin: "10px 0 0", color: "#9ab0d3" }}>{message}</p>
       </div>
     </div>
   );
