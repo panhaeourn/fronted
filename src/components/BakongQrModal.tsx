@@ -35,6 +35,7 @@ export default function BakongQrModal({
 
   const pollRef = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
+  const pollInFlightRef = useRef(false);
 
   function clearAllTimers() {
     if (pollRef.current) {
@@ -45,6 +46,7 @@ export default function BakongQrModal({
       window.clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    pollInFlightRef.current = false;
   }
 
   function sanitizeStatusMessage(message: string) {
@@ -193,8 +195,13 @@ export default function BakongQrModal({
     }, 1000);
 
     pollRef.current = window.setInterval(async () => {
+      if (pollInFlightRef.current) {
+        return;
+      }
+
       try {
         console.log("Polling payment-status for:", transactionId);
+        pollInFlightRef.current = true;
         setChecking(true);
         setPollMessage("Checking payment automatically...");
 
@@ -237,12 +244,13 @@ export default function BakongQrModal({
         const message = sanitizeStatusMessage(
           getErrorMessage(
             error,
-            "We could not verify the payment yet. Please wait a few seconds and try again."
+            "Payment verification is taking too long. Please wait a moment and try again."
           )
         );
         console.error("payment-status polling error:", message);
         setPollMessage(message);
       } finally {
+        pollInFlightRef.current = false;
         setChecking(false);
       }
     }, 3000);
