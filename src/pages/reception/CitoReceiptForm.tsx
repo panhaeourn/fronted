@@ -204,7 +204,7 @@ export default function CitoReceiptForm() {
       setForm((prev) => ({
         ...prev,
         receiptType: value as ReceiptType,
-        studentCode: value === "MONTHLY" ? prev.studentCode : "",
+        studentCode: "",
         courseName: "",
         bookPrice: "",
         programPrice: "",
@@ -295,11 +295,6 @@ export default function CitoReceiptForm() {
       return;
     }
 
-    if (!form.contactInfo.trim()) {
-      setError("Contact information is required");
-      return;
-    }
-
     if (!form.schedule.trim()) {
       setError("Schedule is required");
       return;
@@ -312,11 +307,6 @@ export default function CitoReceiptForm() {
 
     if (form.receiptType === "MONTHLY" && !form.monthlyPeriod) {
       setError("Monthly period is required");
-      return;
-    }
-
-    if (!form.bookPrice || Number(form.bookPrice) <= 0) {
-      setError("Enter valid book price first");
       return;
     }
 
@@ -335,7 +325,7 @@ export default function CitoReceiptForm() {
 
       const payload = {
         receiptType: form.receiptType,
-        studentCode: form.receiptType === "MONTHLY" ? form.studentCode.trim() : null,
+        studentCode: null,
         courseName: form.courseName.trim(),
         monthlyPeriod: form.receiptType === "MONTHLY" ? form.monthlyPeriod : null,
         studentName: form.studentNameEnglish.trim(),
@@ -347,7 +337,7 @@ export default function CitoReceiptForm() {
         email: form.email,
         address: form.schedule.trim(),
         schedule: form.schedule.trim(),
-        bookPrice: Number(form.bookPrice),
+        bookPrice: Number(form.bookPrice || 0),
         programPrice: Number(form.programPrice),
         totalPrice: Number(form.totalPrice),
         paymentStatus: "Pending",
@@ -416,19 +406,6 @@ export default function CitoReceiptForm() {
                 <option value="MONTHLY">Monthly</option>
               </select>
             </div>
-
-            {form.receiptType === "MONTHLY" && (
-              <div style={fieldBlockStyle}>
-                <label style={labelStyle}>Monthly Student ID</label>
-                <input
-                  name="studentCode"
-                  placeholder="Leave empty to create first monthly student"
-                  value={form.studentCode}
-                  onChange={handleChange}
-                  style={inputStyle}
-                />
-              </div>
-            )}
 
             {form.receiptType === "MONTHLY" && (
               <div style={fieldBlockStyle}>
@@ -579,7 +556,7 @@ export default function CitoReceiptForm() {
             </div>
 
             <div style={fieldBlockStyle}>
-              <label style={labelStyle}>Contact Information</label>
+              <label style={labelStyle}>Contact Information (Optional)</label>
               <input
                 name="contactInfo"
                 placeholder="Phone, Telegram, or email"
@@ -604,13 +581,13 @@ export default function CitoReceiptForm() {
             </div>
 
             <div style={fieldBlockStyle}>
-              <label style={labelStyle}>Book Price (USD)</label>
+              <label style={labelStyle}>Book Price (USD) (Optional)</label>
               <input
                 name="bookPrice"
                 type="number"
                 step="0.01"
                 min="0"
-                placeholder="Enter book price"
+                placeholder="Leave empty for 0.00"
                 value={form.bookPrice}
                 onChange={handleChange}
                 style={inputStyle}

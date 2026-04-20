@@ -26,6 +26,7 @@ export default function BakongQrModal({
   const [transactionId, setTransactionId] = useState("");
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [err, setErr] = useState("");
+  const [pollMessage, setPollMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
 
@@ -53,6 +54,7 @@ export default function BakongQrModal({
     setTransactionId("");
     setRemainingSeconds(0);
     setErr("");
+    setPollMessage("");
 
     (async () => {
       try {
@@ -102,6 +104,7 @@ export default function BakongQrModal({
         setQrImg(img);
         setTransactionId(txId);
         setRemainingSeconds(secs);
+        setPollMessage("Waiting for payment...");
       } catch (error: unknown) {
         if (!cancelled) {
           setErr(getErrorMessage(error, "Failed to generate QR"));
@@ -142,6 +145,7 @@ export default function BakongQrModal({
       try {
         console.log("Polling payment-status for:", transactionId);
         setChecking(true);
+        setPollMessage("Checking payment automatically...");
 
         const res = await apiFetch<BakongPaymentStatusResponse>(
           `/api/bakong/payment-status/${transactionId}`
@@ -159,6 +163,7 @@ export default function BakongQrModal({
         if (paid) {
           clearAllTimers();
           setChecking(false);
+          setPollMessage("Payment confirmed. Unlocking course...");
           onPaid();
           onClose();
           return;
@@ -168,10 +173,20 @@ export default function BakongQrModal({
           clearAllTimers();
           setChecking(false);
           setErr("QR expired. Please click Buy again.");
+          setPollMessage("");
           return;
         }
+
+        setPollMessage(
+          res?.message?.trim() || "Payment received? We are still verifying it."
+        );
       } catch (error: unknown) {
-        console.error("payment-status polling error:", getErrorMessage(error));
+        const message = getErrorMessage(
+          error,
+          "We could not verify the payment yet. Please wait a few seconds and try again."
+        );
+        console.error("payment-status polling error:", message);
+        setPollMessage(message);
       } finally {
         setChecking(false);
       }
@@ -269,13 +284,27 @@ export default function BakongQrModal({
                 flexWrap: "wrap",
               }}
             >
-              <div style={{ fontSize: 34, fontWeight: 800 }}>
+              <div
+                style={{
+                  fontSize: 34,
+                  fontWeight: 800,
+                  color: "#111827",
+                }}
+              >
                 {Number(amount || 0).toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
               </div>
-              <div style={{ fontSize: 20, color: "#374151" }}>USD</div>
+              <div
+                style={{
+                  fontSize: 20,
+                  color: "#374151",
+                  fontWeight: 700,
+                }}
+              >
+                USD
+              </div>
             </div>
 
             <div
@@ -348,7 +377,7 @@ export default function BakongQrModal({
                     color: "#6b7280",
                   }}
                 >
-                  {checking ? "Checking payment automatically..." : "Waiting for payment..."}
+                  {checking ? "Checking payment automatically..." : pollMessage || "Waiting for payment..."}
                 </div>
               </>
             )}
@@ -370,11 +399,12 @@ export default function BakongQrModal({
                   minHeight: 44,
                   padding: "10px 18px",
                   borderRadius: 14,
-                  border: "1px solid var(--app-secondary-border)",
-                  background: "var(--app-secondary-bg)",
-                  color: "var(--app-secondary-text)",
+                  border: "1px solid #cbd5e1",
+                  background: "#f8fafc",
+                  color: "#0f172a",
                   fontWeight: 700,
-                  boxShadow: "var(--app-glow-soft)",
+                  boxShadow: "0 8px 18px rgba(15, 23, 42, 0.08)",
+                  cursor: "pointer",
                 }}
               >
                 Close
