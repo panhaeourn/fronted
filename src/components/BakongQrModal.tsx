@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { apiFetch } from "../api";
+import { useAuth } from "../lib/auth-context";
 import {
   type BakongPaymentStatusResponse,
   type BakongQrResponse,
@@ -22,6 +23,7 @@ export default function BakongQrModal({
   onClose,
   onPaid,
 }: Props) {
+  const { isAdmin } = useAuth();
   const [qrImg, setQrImg] = useState("");
   const [transactionId, setTransactionId] = useState("");
   const [remainingSeconds, setRemainingSeconds] = useState(0);
@@ -29,6 +31,7 @@ export default function BakongQrModal({
   const [pollMessage, setPollMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [manualUnlocking, setManualUnlocking] = useState(false);
 
   const pollRef = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
@@ -62,6 +65,32 @@ export default function BakongQrModal({
     }
 
     return trimmed;
+  }
+
+  async function handleManualUnlock() {
+    if (!transactionId) {
+      setPollMessage("Missing transaction id for manual unlock.");
+      return;
+    }
+
+    try {
+      setManualUnlocking(true);
+      setPollMessage("Admin is unlocking this course...");
+      await apiFetch(`/api/bakong/manual-unlock/${transactionId}`, {
+        method: "POST",
+      });
+      setPollMessage("Course manually unlocked.");
+      onPaid();
+      onClose();
+    } catch (error: unknown) {
+      setPollMessage(
+        sanitizeStatusMessage(
+          getErrorMessage(error, "Manual unlock failed. Please try again.")
+        )
+      );
+    } finally {
+      setManualUnlocking(false);
+    }
   }
 
   useEffect(() => {
@@ -414,8 +443,32 @@ export default function BakongQrModal({
                 display: "flex",
                 gap: 12,
                 justifyContent: "center",
+                flexWrap: "wrap",
               }}
             >
+              {isAdmin && pollMessage.toLowerCase().includes("blocked") && (
+                <button
+                  onClick={() => {
+                    void handleManualUnlock();
+                  }}
+                  disabled={manualUnlocking}
+                  style={{
+                    minHeight: 44,
+                    padding: "10px 18px",
+                    borderRadius: 14,
+                    border: "1px solid rgba(191, 219, 254, 0.28)",
+                    background:
+                      "linear-gradient(135deg, rgba(61, 118, 255, 1), rgba(33, 211, 255, 0.92))",
+                    color: "#ffffff",
+                    fontWeight: 700,
+                    boxShadow: "0 10px 22px rgba(15, 23, 42, 0.16)",
+                    cursor: manualUnlocking ? "wait" : "pointer",
+                  }}
+                >
+                  {manualUnlocking ? "Unlocking..." : "Admin Unlock"}
+                </button>
+              )}
+
               <button
                 onClick={() => {
                   clearAllTimers();
