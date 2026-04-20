@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { apiFetch } from "../../api";
 import GoogleLoginButton from "../../components/GoogleLoginButton.js";
@@ -19,6 +19,14 @@ export default function Login() {
     const state = location.state as { from?: { pathname?: string } } | null;
     return state?.from?.pathname || "/";
   }, [location.state]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const oauthError = params.get("oauthError");
+    if (oauthError) {
+      setMsg(oauthError);
+    }
+  }, [location.search]);
 
   async function login() {
     setMsg("");
