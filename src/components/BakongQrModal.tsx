@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { apiFetch } from "../api";
-import { useAuth } from "../lib/auth-context";
 import {
   type BakongPaymentStatusResponse,
   type BakongQrResponse,
@@ -23,7 +22,6 @@ export default function BakongQrModal({
   onClose,
   onPaid,
 }: Props) {
-  const { isAdmin, isReceptionist } = useAuth();
   const [qrImg, setQrImg] = useState("");
   const [transactionId, setTransactionId] = useState("");
   const [remainingSeconds, setRemainingSeconds] = useState(0);
@@ -31,13 +29,10 @@ export default function BakongQrModal({
   const [pollMessage, setPollMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
-  const [manualUnlocking, setManualUnlocking] = useState(false);
-  const [staffFallbackVisible, setStaffFallbackVisible] = useState(false);
 
   const pollRef = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
   const pollInFlightRef = useRef(false);
-  const verificationDelayCountRef = useRef(0);
 
   async function fetchPaymentStatusWithTimeout(id: string) {
     const controller = new AbortController();
@@ -85,50 +80,6 @@ export default function BakongQrModal({
     return trimmed;
   }
 
-  function resetVerificationDelay() {
-    verificationDelayCountRef.current = 0;
-    setStaffFallbackVisible(false);
-  }
-
-  function markVerificationDelay() {
-    verificationDelayCountRef.current += 1;
-    if (verificationDelayCountRef.current >= 4) {
-      setStaffFallbackVisible(true);
-      setPollMessage(
-        "Automatic verification is delayed. If you already paid, staff can confirm below."
-      );
-      return;
-    }
-
-    setPollMessage("Checking payment automatically...");
-  }
-
-  async function handleManualUnlock() {
-    if (!transactionId) {
-      setPollMessage("Missing transaction id for manual unlock.");
-      return;
-    }
-
-    try {
-      setManualUnlocking(true);
-      setPollMessage("Admin is unlocking this course...");
-      await apiFetch(`/api/bakong/manual-unlock/${transactionId}`, {
-        method: "POST",
-      });
-      setPollMessage("Course manually unlocked.");
-      onPaid();
-      onClose();
-    } catch (error: unknown) {
-      setPollMessage(
-        sanitizeStatusMessage(
-          getErrorMessage(error, "Manual unlock failed. Please try again.")
-        )
-      );
-    } finally {
-      setManualUnlocking(false);
-    }
-  }
-
   useEffect(() => {
     if (!open || !courseId) return;
 
@@ -140,8 +91,6 @@ export default function BakongQrModal({
     setRemainingSeconds(0);
     setErr("");
     setPollMessage("");
-    setStaffFallbackVisible(false);
-    verificationDelayCountRef.current = 0;
 
     (async () => {
       try {
@@ -230,7 +179,7 @@ export default function BakongQrModal({
       });
     }, 1000);
 
-    pollRef.current = window.setInterval(async () => {
+    const pollPaymentStatus = async () => {
       if (pollInFlightRef.current) {
         return;
       }
@@ -254,7 +203,6 @@ export default function BakongQrModal({
 
         if (paid) {
           clearAllTimers();
-          resetVerificationDelay();
           setChecking(false);
           setPollMessage("Payment confirmed. Unlocking course...");
           onPaid();
@@ -264,34 +212,39 @@ export default function BakongQrModal({
 
         if (expired) {
           clearAllTimers();
-          resetVerificationDelay();
           setChecking(false);
           setErr("QR expired. Please click Buy again.");
           setPollMessage("");
           return;
         }
 
-        if (res?.verificationPending) {
-          markVerificationDelay();
+        if (res?.verificationPending || res?.status === "PENDING") {
+          setPollMessage("Checking payment automatically...");
           return;
         }
 
-        resetVerificationDelay();
         setPollMessage("Waiting for payment...");
       } catch (error: unknown) {
-        const message = sanitizeStatusMessage(
-          getErrorMessage(
-            error,
-            "Payment verification is taking too long. Please wait a moment and try again."
+        console.error(
+          "payment-status polling error:",
+          sanitizeStatusMessage(
+            getErrorMessage(
+              error,
+              "Payment verification is taking too long. Please wait a moment and try again."
+            )
           )
         );
-        console.error("payment-status polling error:", message);
-        markVerificationDelay();
+        setPollMessage("Checking payment automatically...");
       } finally {
         pollInFlightRef.current = false;
         setChecking(false);
       }
-    }, 3000);
+    };
+
+    void pollPaymentStatus();
+    pollRef.current = window.setInterval(() => {
+      void pollPaymentStatus();
+    }, 1000);
 
     return () => {
       clearAllTimers();
@@ -487,35 +440,9 @@ export default function BakongQrModal({
               style={{
                 marginTop: 22,
                 display: "flex",
-                gap: 12,
                 justifyContent: "center",
-                flexWrap: "wrap",
               }}
             >
-              {(isAdmin || isReceptionist) &&
-                staffFallbackVisible && (
-                <button
-                  onClick={() => {
-                    void handleManualUnlock();
-                  }}
-                  disabled={manualUnlocking}
-                  style={{
-                    minHeight: 44,
-                    padding: "10px 18px",
-                    borderRadius: 14,
-                    border: "1px solid rgba(191, 219, 254, 0.28)",
-                    background:
-                      "linear-gradient(135deg, rgba(61, 118, 255, 1), rgba(33, 211, 255, 0.92))",
-                    color: "#ffffff",
-                    fontWeight: 700,
-                    boxShadow: "0 10px 22px rgba(15, 23, 42, 0.16)",
-                    cursor: manualUnlocking ? "wait" : "pointer",
-                  }}
-                >
-                  {manualUnlocking ? "Unlocking..." : "Confirm Paid & Unlock"}
-                </button>
-              )}
-
               <button
                 onClick={() => {
                   clearAllTimers();
