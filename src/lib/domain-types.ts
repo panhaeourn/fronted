@@ -114,5 +114,6 @@ export type BakongPaymentStatusResponse = {
   unlocked?: boolean;
   status?: string;
   message?: string;
+  verificationPending?: boolean;
   data?: BakongPaymentStatusPayload;
 };

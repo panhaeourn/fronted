@@ -32,10 +32,12 @@ export default function BakongQrModal({
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
   const [manualUnlocking, setManualUnlocking] = useState(false);
+  const [staffFallbackVisible, setStaffFallbackVisible] = useState(false);
 
   const pollRef = useRef<number | null>(null);
   const timerRef = useRef<number | null>(null);
   const pollInFlightRef = useRef(false);
+  const verificationDelayCountRef = useRef(0);
 
   async function fetchPaymentStatusWithTimeout(id: string) {
     const controller = new AbortController();
@@ -83,14 +85,22 @@ export default function BakongQrModal({
     return trimmed;
   }
 
-  function canShowStaffUnlock(message: string) {
-    const normalized = message.trim().toLowerCase();
-    return (
-      normalized.includes("blocked") ||
-      normalized.includes("unable to verify") ||
-      normalized.includes("temporarily unavailable") ||
-      normalized.includes("denied")
-    );
+  function resetVerificationDelay() {
+    verificationDelayCountRef.current = 0;
+    setStaffFallbackVisible(false);
+  }
+
+  function markVerificationDelay() {
+    verificationDelayCountRef.current += 1;
+    if (verificationDelayCountRef.current >= 4) {
+      setStaffFallbackVisible(true);
+      setPollMessage(
+        "Automatic verification is delayed. If you already paid, staff can confirm below."
+      );
+      return;
+    }
+
+    setPollMessage("Checking payment automatically...");
   }
 
   async function handleManualUnlock() {
@@ -130,6 +140,8 @@ export default function BakongQrModal({
     setRemainingSeconds(0);
     setErr("");
     setPollMessage("");
+    setStaffFallbackVisible(false);
+    verificationDelayCountRef.current = 0;
 
     (async () => {
       try {
@@ -242,6 +254,7 @@ export default function BakongQrModal({
 
         if (paid) {
           clearAllTimers();
+          resetVerificationDelay();
           setChecking(false);
           setPollMessage("Payment confirmed. Unlocking course...");
           onPaid();
@@ -251,17 +264,20 @@ export default function BakongQrModal({
 
         if (expired) {
           clearAllTimers();
+          resetVerificationDelay();
           setChecking(false);
           setErr("QR expired. Please click Buy again.");
           setPollMessage("");
           return;
         }
 
-        setPollMessage(
-          sanitizeStatusMessage(
-            res?.message?.trim() || "Payment received? We are still verifying it."
-          )
-        );
+        if (res?.verificationPending) {
+          markVerificationDelay();
+          return;
+        }
+
+        resetVerificationDelay();
+        setPollMessage("Waiting for payment...");
       } catch (error: unknown) {
         const message = sanitizeStatusMessage(
           getErrorMessage(
@@ -270,7 +286,7 @@ export default function BakongQrModal({
           )
         );
         console.error("payment-status polling error:", message);
-        setPollMessage(message);
+        markVerificationDelay();
       } finally {
         pollInFlightRef.current = false;
         setChecking(false);
@@ -477,7 +493,7 @@ export default function BakongQrModal({
               }}
             >
               {(isAdmin || isReceptionist) &&
-                canShowStaffUnlock(pollMessage) && (
+                staffFallbackVisible && (
                 <button
                   onClick={() => {
                     void handleManualUnlock();
