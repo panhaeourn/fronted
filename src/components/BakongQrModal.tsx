@@ -44,6 +44,26 @@ export default function BakongQrModal({
     }
   }
 
+  function sanitizeStatusMessage(message: string) {
+    const trimmed = message.trim();
+    const normalized = trimmed.toLowerCase();
+
+    if (!trimmed) {
+      return "We could not verify the payment yet. Please wait a few seconds and try again.";
+    }
+
+    if (
+      normalized.includes("<!doctype") ||
+      normalized.includes("<html") ||
+      normalized.includes("cloudfront") ||
+      normalized.includes("request blocked")
+    ) {
+      return "Bakong verification is blocked right now. Please try again in a moment or contact admin.";
+    }
+
+    return trimmed;
+  }
+
   useEffect(() => {
     if (!open || !courseId) return;
 
@@ -107,7 +127,9 @@ export default function BakongQrModal({
         setPollMessage("Waiting for payment...");
       } catch (error: unknown) {
         if (!cancelled) {
-          setErr(getErrorMessage(error, "Failed to generate QR"));
+          setErr(
+            sanitizeStatusMessage(getErrorMessage(error, "Failed to generate QR"))
+          );
         }
       } finally {
         if (!cancelled) {
@@ -178,12 +200,16 @@ export default function BakongQrModal({
         }
 
         setPollMessage(
-          res?.message?.trim() || "Payment received? We are still verifying it."
+          sanitizeStatusMessage(
+            res?.message?.trim() || "Payment received? We are still verifying it."
+          )
         );
       } catch (error: unknown) {
-        const message = getErrorMessage(
-          error,
-          "We could not verify the payment yet. Please wait a few seconds and try again."
+        const message = sanitizeStatusMessage(
+          getErrorMessage(
+            error,
+            "We could not verify the payment yet. Please wait a few seconds and try again."
+          )
         );
         console.error("payment-status polling error:", message);
         setPollMessage(message);
