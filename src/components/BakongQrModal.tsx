@@ -23,7 +23,7 @@ export default function BakongQrModal({
   onClose,
   onPaid,
 }: Props) {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isReceptionist } = useAuth();
   const [qrImg, setQrImg] = useState("");
   const [transactionId, setTransactionId] = useState("");
   const [remainingSeconds, setRemainingSeconds] = useState(0);
@@ -446,7 +446,8 @@ export default function BakongQrModal({
                 flexWrap: "wrap",
               }}
             >
-              {isAdmin && pollMessage.toLowerCase().includes("blocked") && (
+              {(isAdmin || isReceptionist) &&
+                pollMessage.toLowerCase().includes("blocked") && (
                 <button
                   onClick={() => {
                     void handleManualUnlock();
@@ -465,7 +466,7 @@ export default function BakongQrModal({
                     cursor: manualUnlocking ? "wait" : "pointer",
                   }}
                 >
-                  {manualUnlocking ? "Unlocking..." : "Admin Unlock"}
+                  {manualUnlocking ? "Unlocking..." : "Confirm Paid & Unlock"}
                 </button>
               )}
 
