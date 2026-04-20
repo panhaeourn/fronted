@@ -83,6 +83,16 @@ export default function BakongQrModal({
     return trimmed;
   }
 
+  function canShowStaffUnlock(message: string) {
+    const normalized = message.trim().toLowerCase();
+    return (
+      normalized.includes("blocked") ||
+      normalized.includes("unable to verify") ||
+      normalized.includes("temporarily unavailable") ||
+      normalized.includes("denied")
+    );
+  }
+
   async function handleManualUnlock() {
     if (!transactionId) {
       setPollMessage("Missing transaction id for manual unlock.");
@@ -467,7 +477,7 @@ export default function BakongQrModal({
               }}
             >
               {(isAdmin || isReceptionist) &&
-                pollMessage.toLowerCase().includes("blocked") && (
+                canShowStaffUnlock(pollMessage) && (
                 <button
                   onClick={() => {
                     void handleManualUnlock();
