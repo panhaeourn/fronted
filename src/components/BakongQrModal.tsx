@@ -37,6 +37,20 @@ export default function BakongQrModal({
   const timerRef = useRef<number | null>(null);
   const pollInFlightRef = useRef(false);
 
+  async function fetchPaymentStatusWithTimeout(id: string) {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+
+    try {
+      return await apiFetch<BakongPaymentStatusResponse>(
+        `/api/bakong/payment-status/${id}`,
+        { signal: controller.signal }
+      );
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+  }
+
   function clearAllTimers() {
     if (pollRef.current) {
       window.clearInterval(pollRef.current);
@@ -205,9 +219,7 @@ export default function BakongQrModal({
         setChecking(true);
         setPollMessage("Checking payment automatically...");
 
-        const res = await apiFetch<BakongPaymentStatusResponse>(
-          `/api/bakong/payment-status/${transactionId}`
-        );
+        const res = await fetchPaymentStatusWithTimeout(transactionId);
 
         console.log("Bakong payment-status response:", res);
 
