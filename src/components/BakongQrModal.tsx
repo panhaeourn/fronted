@@ -36,7 +36,7 @@ export default function BakongQrModal({
 
   async function fetchPaymentStatusWithTimeout(id: string) {
     const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
 
     try {
       return await apiFetch<BakongPaymentStatusResponse>(
@@ -225,15 +225,18 @@ export default function BakongQrModal({
 
         setPollMessage("Waiting for payment...");
       } catch (error: unknown) {
-        console.error(
-          "payment-status polling error:",
-          sanitizeStatusMessage(
-            getErrorMessage(
-              error,
-              "Payment verification is taking too long. Please wait a moment and try again."
-            )
+        const message = sanitizeStatusMessage(
+          getErrorMessage(
+            error,
+            "Payment verification is taking too long. Please wait a moment and try again."
           )
         );
+
+        if (message.toLowerCase().includes("aborted")) {
+          console.warn("payment-status polling timed out");
+        } else {
+          console.error("payment-status polling error:", message);
+        }
         setPollMessage("Checking payment automatically...");
       } finally {
         pollInFlightRef.current = false;
