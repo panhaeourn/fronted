@@ -399,7 +399,7 @@ export default function BakongQrModal({
               </div>
             )}
 
-            {!loading && err && (
+            {!loading && err && !qrImg && (
               <div
                 style={{
                   marginBottom: 18,
@@ -414,7 +414,7 @@ export default function BakongQrModal({
               </div>
             )}
 
-            {!loading && !err && qrImg && (
+            {!loading && qrImg && (
               <>
                 <div
                   style={{
@@ -432,6 +432,21 @@ export default function BakongQrModal({
                     style={{ width: 260, height: 260, objectFit: "contain" }}
                   />
                 </div>
+
+                {!!err && (
+                  <div
+                    style={{
+                      marginTop: 14,
+                      padding: "14px 16px",
+                      borderRadius: 18,
+                      background: "var(--app-danger-bg)",
+                      color: "var(--app-danger-text)",
+                      textAlign: "center",
+                    }}
+                  >
+                    {err}
+                  </div>
+                )}
 
                 <div
                   style={{
