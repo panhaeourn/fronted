@@ -80,6 +80,12 @@ export default function Login() {
               placeholder={t("auth.passwordPlaceholder")}
             />
 
+            <div style={forgotLinkRowStyle}>
+              <Link to="/forgot-password" style={forgotLinkStyle}>
+                Forgot password?
+              </Link>
+            </div>
+
             <button onClick={login} style={primaryButtonStyle} disabled={submitting}>
               {submitting ? "Signing in..." : t("auth.loginTitle")}
             </button>
@@ -206,6 +212,18 @@ const dividerStyle: React.CSSProperties = {
   color: "var(--app-muted)",
   fontSize: 12,
   letterSpacing: 1.2,
+};
+
+const forgotLinkRowStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "flex-end",
+};
+
+const forgotLinkStyle: React.CSSProperties = {
+  color: "var(--app-accent-soft)",
+  textDecoration: "none",
+  fontSize: 13,
+  fontWeight: 700,
 };
 
 const messageStyle: React.CSSProperties = {

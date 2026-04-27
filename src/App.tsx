@@ -30,6 +30,8 @@ import { useLanguage } from "./lib/language";
 import Home from "./pages/home/Home";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import Courses from "./pages/courses/Courses";
 import OAuthSuccess from "./pages/auth/OAuthSuccess";
 import CourseDetail from "./pages/courses/CourseDetail";
@@ -435,6 +437,8 @@ function AppContent() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/oauth-success" element={<OAuthSuccess />} />
           <Route path="/courses/:id" element={<CourseDetail />} />

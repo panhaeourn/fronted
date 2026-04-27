@@ -80,6 +80,15 @@ export default function BakongQrModal({
     return trimmed;
   }
 
+  function buildVerificationBlockedMessage(message: string, txId: string) {
+    const base = sanitizeStatusMessage(message);
+    if (!txId) {
+      return `${base} Please contact admin or receptionist to confirm and unlock your course.`;
+    }
+
+    return `${base} Please contact admin or receptionist to confirm and unlock your course. Transaction: ${txId}`;
+  }
+
   useEffect(() => {
     if (!open || !courseId) return;
 
@@ -214,6 +223,19 @@ export default function BakongQrModal({
           clearAllTimers();
           setChecking(false);
           setErr("QR expired. Please click Buy again.");
+          setPollMessage("");
+          return;
+        }
+
+        if (res?.verificationBlocked || res?.status === "VERIFY_BLOCKED") {
+          clearAllTimers();
+          setChecking(false);
+          setErr(
+            buildVerificationBlockedMessage(
+              res?.message || "Bakong verification is blocked right now.",
+              res?.transactionId || transactionId
+            )
+          );
           setPollMessage("");
           return;
         }
