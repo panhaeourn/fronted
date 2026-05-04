@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { apiFetch } from "../../api";
+import AlertDialog from "../../components/AlertDialog";
 import type { CourseRecord } from "../../lib/domain-types";
 import { getErrorMessage } from "../../lib/errors";
 import {
@@ -31,6 +32,7 @@ export default function EditCourse() {
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [successOpen, setSuccessOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -81,8 +83,7 @@ export default function EditCourse() {
         }),
       });
 
-      alert("Course updated successfully");
-      navigate("/courses");
+      setSuccessOpen(true);
     } catch (error: unknown) {
       setErr(getErrorMessage(error, "Failed to update course"));
     } finally {
@@ -186,6 +187,17 @@ export default function EditCourse() {
           </div>
         </section>
       </div>
+
+      <AlertDialog
+        open={successOpen}
+        title="Course Updated"
+        message="Your course changes were saved successfully."
+        tone="success"
+        onClose={() => {
+          setSuccessOpen(false);
+          navigate("/courses");
+        }}
+      />
     </div>
   );
 }

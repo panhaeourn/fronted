@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../api";
+import AlertDialog from "../../components/AlertDialog";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import CreateCourseForm from "../../components/CreateCourseForm";
 import BakongQrModal from "../../components/BakongQrModal";
@@ -24,6 +25,12 @@ type MeUser = {
   role: "ADMIN" | "RECEPTIONIST" | "USER";
 };
 
+type AlertState = {
+  title: string;
+  message: string;
+  tone: "success" | "error" | "info";
+};
+
 export default function Courses() {
   const navigate = useNavigate();
 
@@ -39,6 +46,7 @@ export default function Courses() {
   const [payCourseId, setPayCourseId] = useState<number | null>(null);
   const [payAmount, setPayAmount] = useState<number>(0);
   const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
+  const [alertState, setAlertState] = useState<AlertState | null>(null);
 
   async function loadCourses() {
     setErr("");
@@ -82,7 +90,11 @@ export default function Courses() {
   async function handlePaid() {
     closePayment();
     await loadCourses();
-    alert("Payment successful. Course unlocked.");
+    setAlertState({
+      title: "Payment Successful",
+      message: "Your payment was confirmed and the course is now unlocked.",
+      tone: "success",
+    });
   }
 
   async function handleDelete(courseId: number) {
@@ -92,9 +104,17 @@ export default function Courses() {
       });
       removeTeacherPhoto(courseId);
       await loadCourses();
-      alert("Course deleted");
+      setAlertState({
+        title: "Course Deleted",
+        message: "The course was removed from the catalog successfully.",
+        tone: "success",
+      });
     } catch (error: unknown) {
-      alert(getErrorMessage(error, "Failed to delete course"));
+      setAlertState({
+        title: "Delete Failed",
+        message: getErrorMessage(error, "Failed to delete course"),
+        tone: "error",
+      });
     }
   }
 
@@ -492,6 +512,14 @@ export default function Courses() {
           }
           setCourseToDelete(null);
         }}
+      />
+
+      <AlertDialog
+        open={alertState !== null}
+        title={alertState?.title || ""}
+        message={alertState?.message || ""}
+        tone={alertState?.tone || "info"}
+        onClose={() => setAlertState(null)}
       />
     </div>
   );

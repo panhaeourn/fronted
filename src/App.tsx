@@ -71,6 +71,13 @@ function AppContent() {
   const isReceiptPrintPage =
     location.pathname.startsWith("/reception/receipt/") &&
     location.pathname.endsWith("/print");
+  const isAuthLandingPage = [
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+  ].includes(location.pathname);
+  const showSidebar = !isReceiptPrintPage && !isAuthLandingPage;
 
   return (
     <div
@@ -85,7 +92,7 @@ function AppContent() {
           : "var(--app-shell-bg)",
       }}
     >
-      {!isReceiptPrintPage && (
+      {showSidebar && (
         <aside
           style={{
             width: sidebarCollapsed ? 68 : 240,
@@ -411,12 +418,12 @@ function AppContent() {
             isReceiptPrintPage
               ? "#ffffff"
               : "var(--app-main-bg)",
-          boxShadow: isReceiptPrintPage
+          boxShadow: !showSidebar || isReceiptPrintPage
             ? "none"
             : "inset 12px 0 22px rgba(77, 140, 255, 0.04)",
         }}
       >
-        {!isReceiptPrintPage && (
+        {showSidebar && (
           <div
             aria-hidden="true"
             style={{
