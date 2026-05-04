@@ -77,7 +77,8 @@ function AppContent() {
     "/forgot-password",
     "/reset-password",
   ].includes(location.pathname);
-  const showSidebar = !isReceiptPrintPage && !isAuthLandingPage;
+  const isGuestWelcomePage = location.pathname === "/" && !me;
+  const showSidebar = !isReceiptPrintPage && !isAuthLandingPage && !isGuestWelcomePage;
 
   return (
     <div
