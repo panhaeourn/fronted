@@ -30,6 +30,8 @@ export default function ForgotPassword() {
   const [debugResetUrl, setDebugResetUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const recaptchaRef = useRef<RecaptchaVerifier | null>(null);
+  const recaptchaContainerRef = useRef<HTMLDivElement | null>(null);
+  const recaptchaWidgetIdRef = useRef<number | null>(null);
 
   const trimmedIdentifier = identifier.trim();
   const isEmailIdentifier = trimmedIdentifier.includes("@");
@@ -38,8 +40,15 @@ export default function ForgotPassword() {
     return () => {
       recaptchaRef.current?.clear();
       recaptchaRef.current = null;
+      recaptchaWidgetIdRef.current = null;
     };
   }, []);
+
+  function clearRecaptchaContainer() {
+    if (recaptchaContainerRef.current) {
+      recaptchaContainerRef.current.innerHTML = "";
+    }
+  }
 
   async function resetRecaptchaVerifier() {
     const verifier = recaptchaRef.current;
@@ -48,20 +57,23 @@ export default function ForgotPassword() {
     }
 
     try {
-      const widgetId = await verifier.render();
       const grecaptcha = (
         window as typeof window & {
           grecaptcha?: { reset: (widgetId?: number) => void };
         }
       ).grecaptcha;
 
-      grecaptcha?.reset(widgetId);
+      if (recaptchaWidgetIdRef.current !== null) {
+        grecaptcha?.reset(recaptchaWidgetIdRef.current);
+      }
     } catch {
       // Fall back to recreating the verifier below.
     }
 
     verifier.clear();
     recaptchaRef.current = null;
+    recaptchaWidgetIdRef.current = null;
+    clearRecaptchaContainer();
   }
 
   async function getRecaptchaVerifier() {
@@ -72,6 +84,8 @@ export default function ForgotPassword() {
     await ensureFirebaseRecaptchaConfig();
 
     if (!recaptchaRef.current) {
+      clearRecaptchaContainer();
+
       const recaptchaSize =
         typeof window !== "undefined" && window.location.hostname === "localhost"
           ? "normal"
@@ -80,7 +94,7 @@ export default function ForgotPassword() {
       recaptchaRef.current = new RecaptchaVerifier(firebaseAuth, "firebase-recaptcha", {
         size: recaptchaSize,
       });
-      await recaptchaRef.current.render();
+      recaptchaWidgetIdRef.current = await recaptchaRef.current.render();
     }
 
     return recaptchaRef.current;
@@ -232,7 +246,7 @@ export default function ForgotPassword() {
               </Link>
             </div>
 
-            <div id="firebase-recaptcha" />
+            <div id="firebase-recaptcha" ref={recaptchaContainerRef} />
           </div>
         </section>
       </div>
