@@ -171,6 +171,28 @@ export default function ForgotPassword() {
       : "Unable to send the verification code right now.";
   }
 
+  function getSuccessMessage(response: ForgotPasswordResponse) {
+    if (response.channel === "FIREBASE") {
+      return (
+        response.message ||
+        "The registered phone number is ready for Firebase OTP verification."
+      );
+    }
+
+    if (response.channel === "EMAIL") {
+      if (response.debugResetUrl) {
+        return "A local reset link has been prepared for this account.";
+      }
+
+      return "SMS verification is not available for this account yet. Try again with the registered phone number or contact support.";
+    }
+
+    return (
+      response.message ||
+      "If an account with that email or phone number exists, a verification code has been sent."
+    );
+  }
+
   async function submit() {
     setMessage("");
     setDebugResetUrl("");
@@ -213,10 +235,7 @@ export default function ForgotPassword() {
         setResetChannel("EMAIL");
       }
 
-      setMessage(
-        response.message ||
-          "If an account with that email or phone number exists, a verification code has been sent."
-      );
+      setMessage(getSuccessMessage(response));
       setDebugResetUrl(response.debugResetUrl || "");
     } catch (error: unknown) {
       clearFirebaseResetState();
