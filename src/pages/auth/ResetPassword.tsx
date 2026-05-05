@@ -50,6 +50,10 @@ export default function ResetPassword() {
     typeof window !== "undefined"
       ? sessionStorage.getItem(FIREBASE_VERIFICATION_ID_KEY) || ""
       : "";
+  const hasFirebaseResetSession =
+    !!firebaseVerificationId &&
+    !!firebasePhoneNumber &&
+    (!firebaseIdentifier || firebaseIdentifier === trimmedIdentifier);
 
   function clearFirebaseResetState() {
     sessionStorage.removeItem(FIREBASE_IDENTIFIER_KEY);
@@ -61,6 +65,11 @@ export default function ResetPassword() {
     setMessage("");
 
     if (isSmsFlow) {
+      if (isFirebasePhoneAuthConfigured() && !hasFirebaseResetSession) {
+        setMessage("SMS verification is not active for this request. Go back and request a new code first.");
+        return;
+      }
+
       if (!trimmedIdentifier) {
         setMessage("Email or phone number is required.");
         return;
@@ -71,15 +80,6 @@ export default function ResetPassword() {
         return;
       }
 
-      if (
-        isFirebasePhoneAuthConfigured() &&
-        (!firebaseVerificationId ||
-          !firebasePhoneNumber ||
-          (firebaseIdentifier && firebaseIdentifier !== trimmedIdentifier))
-      ) {
-        setMessage("Please request a new verification code first.");
-        return;
-      }
     } else if (!token) {
       setMessage("Reset token is missing. Please use the latest reset link.");
       return;
@@ -150,6 +150,19 @@ export default function ResetPassword() {
           </div>
 
           <div style={stackStyle}>
+            {isSmsFlow && isFirebasePhoneAuthConfigured() && !hasFirebaseResetSession && (
+              <div
+                style={{
+                  ...messageStyle,
+                  color: "var(--app-heading)",
+                  background: "var(--app-panel-bg)",
+                  borderColor: "var(--app-border-soft)",
+                }}
+              >
+                Request a new verification code from the forgot-password page before resetting your password.
+              </div>
+            )}
+
             {isSmsFlow && (
               <>
                 <label style={labelStyle}>Email or phone number</label>
@@ -188,7 +201,11 @@ export default function ResetPassword() {
               style={inputStyle}
             />
 
-            <button onClick={submit} disabled={submitting} style={primaryButtonStyle}>
+            <button
+              onClick={submit}
+              disabled={submitting || (isSmsFlow && isFirebasePhoneAuthConfigured() && !hasFirebaseResetSession)}
+              style={primaryButtonStyle}
+            >
               {submitting ? "Resetting..." : "Reset password"}
             </button>
 

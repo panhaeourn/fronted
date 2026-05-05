@@ -24,11 +24,15 @@ type FirebaseAuthError = Error & {
   code?: string;
 };
 
+type ResetChannel = "FIREBASE" | "EMAIL" | null;
+
 export default function ForgotPassword() {
   const [identifier, setIdentifier] = useState("");
   const [message, setMessage] = useState("");
   const [debugResetUrl, setDebugResetUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resetChannel, setResetChannel] = useState<ResetChannel>(null);
+  const [maskedPhoneNumber, setMaskedPhoneNumber] = useState("");
   const [recaptchaMountKey, setRecaptchaMountKey] = useState(0);
   const recaptchaRef = useRef<RecaptchaVerifier | null>(null);
   const recaptchaContainerRef = useRef<HTMLDivElement | null>(null);
@@ -54,6 +58,12 @@ export default function ForgotPassword() {
   function remountRecaptchaContainer() {
     clearRecaptchaContainer();
     setRecaptchaMountKey((current) => current + 1);
+  }
+
+  function clearFirebaseResetState() {
+    sessionStorage.removeItem(FIREBASE_IDENTIFIER_KEY);
+    sessionStorage.removeItem(FIREBASE_PHONE_KEY);
+    sessionStorage.removeItem(FIREBASE_VERIFICATION_ID_KEY);
   }
 
   async function resetRecaptchaVerifier() {
@@ -164,6 +174,8 @@ export default function ForgotPassword() {
   async function submit() {
     setMessage("");
     setDebugResetUrl("");
+    setResetChannel(null);
+    setMaskedPhoneNumber("");
 
     if (!trimmedIdentifier) {
       setMessage("Email or phone number is required.");
@@ -172,6 +184,7 @@ export default function ForgotPassword() {
 
     try {
       setSubmitting(true);
+      clearFirebaseResetState();
       const response = await apiFetch<ForgotPasswordResponse>("/api/auth/forgot-password", {
         method: "POST",
         body: JSON.stringify(
@@ -194,6 +207,10 @@ export default function ForgotPassword() {
           response.resolvedPhoneNumber,
           confirmationResult
         );
+        setResetChannel("FIREBASE");
+        setMaskedPhoneNumber(response.maskedPhoneNumber || "");
+      } else {
+        setResetChannel("EMAIL");
       }
 
       setMessage(
@@ -202,6 +219,9 @@ export default function ForgotPassword() {
       );
       setDebugResetUrl(response.debugResetUrl || "");
     } catch (error: unknown) {
+      clearFirebaseResetState();
+      setResetChannel(null);
+      setMaskedPhoneNumber("");
       await resetRecaptchaVerifier();
       setMessage(describeFirebaseError(error));
     } finally {
@@ -246,15 +266,27 @@ export default function ForgotPassword() {
               </div>
             )}
 
-            <div style={footerRowStyle}>
-              <span style={footerMutedStyle}>Already received a code?</span>
-              <Link
-                to={`/reset-password?identifier=${encodeURIComponent(trimmedIdentifier)}`}
-                style={footerLinkStyle}
-              >
-                Verify and reset
-              </Link>
-            </div>
+            {resetChannel === "FIREBASE" ? (
+              <div style={footerRowStyle}>
+                <span style={footerMutedStyle}>
+                  {maskedPhoneNumber
+                    ? `Code will be sent to ${maskedPhoneNumber}`
+                    : "Already received a code?"}
+                </span>
+                <Link
+                  to={`/reset-password?identifier=${encodeURIComponent(trimmedIdentifier)}`}
+                  style={footerLinkStyle}
+                >
+                  Verify and reset
+                </Link>
+              </div>
+            ) : (
+              <div style={footerRowStyle}>
+                <span style={footerMutedStyle}>
+                  SMS verification will appear here only after Firebase OTP starts.
+                </span>
+              </div>
+            )}
 
             <div
               key={recaptchaMountKey}
