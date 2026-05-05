@@ -1,29 +1,86 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  PhoneAuthProvider,
+  signInWithCredential,
+  signOut,
+} from "firebase/auth";
 import { apiFetch } from "../../api";
+import { firebaseAuth, isFirebasePhoneAuthConfigured } from "../../lib/firebase";
 
 type ResetPasswordResponse = {
   message?: string;
 };
 
+const FIREBASE_IDENTIFIER_KEY = "password_reset_identifier";
+const FIREBASE_PHONE_KEY = "password_reset_phone";
+const FIREBASE_VERIFICATION_ID_KEY = "password_reset_verification_id";
+
 export default function ResetPassword() {
   const location = useLocation();
   const navigate = useNavigate();
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const token = useMemo(
-    () => new URLSearchParams(location.search).get("token")?.trim() || "",
-    [location.search]
+    () => searchParams.get("token")?.trim() || "",
+    [searchParams]
+  );
+  const initialIdentifier = useMemo(
+    () =>
+      searchParams.get("identifier")?.trim() ||
+      searchParams.get("phone")?.trim() ||
+      "",
+    [searchParams]
   );
 
+  const [identifier, setIdentifier] = useState(initialIdentifier);
+  const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const isSmsFlow = !token;
+  const trimmedIdentifier = identifier.trim();
+  const isEmailIdentifier = trimmedIdentifier.includes("@");
+  const firebaseIdentifier =
+    typeof window !== "undefined" ? sessionStorage.getItem(FIREBASE_IDENTIFIER_KEY) || "" : "";
+  const firebasePhoneNumber =
+    typeof window !== "undefined" ? sessionStorage.getItem(FIREBASE_PHONE_KEY) || "" : "";
+  const firebaseVerificationId =
+    typeof window !== "undefined"
+      ? sessionStorage.getItem(FIREBASE_VERIFICATION_ID_KEY) || ""
+      : "";
+
+  function clearFirebaseResetState() {
+    sessionStorage.removeItem(FIREBASE_IDENTIFIER_KEY);
+    sessionStorage.removeItem(FIREBASE_PHONE_KEY);
+    sessionStorage.removeItem(FIREBASE_VERIFICATION_ID_KEY);
+  }
 
   async function submit() {
     setMessage("");
 
-    if (!token) {
+    if (isSmsFlow) {
+      if (!trimmedIdentifier) {
+        setMessage("Email or phone number is required.");
+        return;
+      }
+
+      if (!code.trim()) {
+        setMessage("Verification code is required.");
+        return;
+      }
+
+      if (
+        isFirebasePhoneAuthConfigured() &&
+        (!firebaseVerificationId ||
+          !firebasePhoneNumber ||
+          (firebaseIdentifier && firebaseIdentifier !== trimmedIdentifier))
+      ) {
+        setMessage("Please request a new verification code first.");
+        return;
+      }
+    } else if (!token) {
       setMessage("Reset token is missing. Please use the latest reset link.");
       return;
     }
@@ -40,15 +97,28 @@ export default function ResetPassword() {
 
     try {
       setSubmitting(true);
+      let firebaseIdToken: string | undefined;
+
+      if (isSmsFlow && isFirebasePhoneAuthConfigured()) {
+        const credential = PhoneAuthProvider.credential(firebaseVerificationId, code.trim());
+        const userCredential = await signInWithCredential(firebaseAuth, credential);
+        firebaseIdToken = await userCredential.user.getIdToken();
+      }
+
       const response = await apiFetch<ResetPasswordResponse>("/api/auth/reset-password", {
         method: "POST",
         body: JSON.stringify({
-          token,
+          token: token || undefined,
+          email: isSmsFlow && isEmailIdentifier ? trimmedIdentifier : undefined,
+          phoneNumber: isSmsFlow && !isEmailIdentifier ? trimmedIdentifier : undefined,
+          firebaseIdToken,
           newPassword: password,
         }),
       });
 
       setSuccess(true);
+      clearFirebaseResetState();
+      await signOut(firebaseAuth).catch(() => undefined);
       setMessage(response.message || "Password reset successful. Redirecting to login...");
       window.setTimeout(() => {
         navigate("/login", { replace: true });
@@ -73,11 +143,33 @@ export default function ResetPassword() {
             <div style={eyebrowStyle}>Account Recovery</div>
             <h2 style={titleStyle}>Reset Password</h2>
             <p style={subtitleStyle}>
-              Choose a new password for your account. Use at least 8 characters.
+              {isSmsFlow
+                ? "Enter the email or phone number you used to request the SMS code, then choose a new password."
+                : "Choose a new password for your account. Use at least 8 characters."}
             </p>
           </div>
 
           <div style={stackStyle}>
+            {isSmsFlow && (
+              <>
+                <label style={labelStyle}>Email or phone number</label>
+                <input
+                  value={identifier}
+                  onChange={(event) => setIdentifier(event.target.value)}
+                  placeholder="you@example.com or +85512345678"
+                  style={inputStyle}
+                />
+
+                <label style={labelStyle}>Verification code</label>
+                <input
+                  value={code}
+                  onChange={(event) => setCode(event.target.value)}
+                  placeholder="6-digit code"
+                  style={inputStyle}
+                />
+              </>
+            )}
+
             <label style={labelStyle}>New password</label>
             <input
               type="password"

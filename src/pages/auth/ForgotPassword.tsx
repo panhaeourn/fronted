@@ -1,24 +1,148 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
+import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "firebase/auth";
 import { apiFetch } from "../../api";
+import {
+  ensureFirebaseRecaptchaConfig,
+  firebaseAuth,
+  isFirebasePhoneAuthConfigured,
+} from "../../lib/firebase";
 
 type ForgotPasswordResponse = {
   message?: string;
   debugResetUrl?: string | null;
+  maskedPhoneNumber?: string | null;
+  channel?: string | null;
+  resolvedPhoneNumber?: string | null;
+};
+
+const FIREBASE_IDENTIFIER_KEY = "password_reset_identifier";
+const FIREBASE_PHONE_KEY = "password_reset_phone";
+const FIREBASE_VERIFICATION_ID_KEY = "password_reset_verification_id";
+
+type FirebaseAuthError = Error & {
+  code?: string;
 };
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [message, setMessage] = useState("");
   const [debugResetUrl, setDebugResetUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const recaptchaRef = useRef<RecaptchaVerifier | null>(null);
+
+  const trimmedIdentifier = identifier.trim();
+  const isEmailIdentifier = trimmedIdentifier.includes("@");
+
+  useEffect(() => {
+    return () => {
+      recaptchaRef.current?.clear();
+      recaptchaRef.current = null;
+    };
+  }, []);
+
+  async function resetRecaptchaVerifier() {
+    const verifier = recaptchaRef.current;
+    if (!verifier) {
+      return;
+    }
+
+    try {
+      const widgetId = await verifier.render();
+      const grecaptcha = (
+        window as typeof window & {
+          grecaptcha?: { reset: (widgetId?: number) => void };
+        }
+      ).grecaptcha;
+
+      grecaptcha?.reset(widgetId);
+    } catch {
+      // Fall back to recreating the verifier below.
+    }
+
+    verifier.clear();
+    recaptchaRef.current = null;
+  }
+
+  async function getRecaptchaVerifier() {
+    if (!isFirebasePhoneAuthConfigured()) {
+      throw new Error("Firebase phone authentication is not configured yet.");
+    }
+
+    await ensureFirebaseRecaptchaConfig();
+
+    if (!recaptchaRef.current) {
+      const recaptchaSize =
+        typeof window !== "undefined" && window.location.hostname === "localhost"
+          ? "normal"
+          : "invisible";
+
+      recaptchaRef.current = new RecaptchaVerifier(firebaseAuth, "firebase-recaptcha", {
+        size: recaptchaSize,
+      });
+      await recaptchaRef.current.render();
+    }
+
+    return recaptchaRef.current;
+  }
+
+  function persistFirebaseResetState(
+    nextIdentifier: string,
+    resolvedPhoneNumber: string,
+    confirmationResult: ConfirmationResult
+  ) {
+    sessionStorage.setItem(FIREBASE_IDENTIFIER_KEY, nextIdentifier);
+    sessionStorage.setItem(FIREBASE_PHONE_KEY, resolvedPhoneNumber);
+    sessionStorage.setItem(FIREBASE_VERIFICATION_ID_KEY, confirmationResult.verificationId);
+  }
+
+  function describeFirebaseError(error: unknown) {
+    const authError = error as FirebaseAuthError;
+    const code = authError?.code || "";
+    const currentOrigin =
+      typeof window === "undefined" ? "" : window.location.origin;
+    const currentHost =
+      typeof window === "undefined" ? "" : window.location.hostname;
+
+    if (
+      code === "auth/invalid-app-credential" ||
+      code === "auth/captcha-check-failed" ||
+      code === "auth/unauthorized-domain"
+    ) {
+      const hostHint = currentOrigin
+        ? ` Current origin: ${currentOrigin}.`
+        : "";
+      const domainHint = currentHost
+        ? ` Make sure ${currentHost} is listed in Firebase Authentication > Settings > Authorized domains.`
+        : "";
+
+      return (
+        "Firebase phone verification could not start." +
+        hostHint +
+        " For local testing, open the app from http://localhost:5173 instead of http://127.0.0.1:5173 if possible." +
+        domainHint
+      );
+    }
+
+    if (code === "auth/operation-not-allowed") {
+      return "Firebase Phone sign-in is disabled. Enable Phone in Firebase Authentication > Sign-in method.";
+    }
+
+    if (code === "auth/invalid-phone-number") {
+      return "The registered phone number is not in a valid international format.";
+    }
+
+    return authError instanceof Error
+      ? authError.message
+      : "Unable to send the verification code right now.";
+  }
 
   async function submit() {
     setMessage("");
     setDebugResetUrl("");
 
-    if (!email.trim()) {
-      setMessage("Email is required.");
+    if (!trimmedIdentifier) {
+      setMessage("Email or phone number is required.");
       return;
     }
 
@@ -26,20 +150,36 @@ export default function ForgotPassword() {
       setSubmitting(true);
       const response = await apiFetch<ForgotPasswordResponse>("/api/auth/forgot-password", {
         method: "POST",
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify(
+          isEmailIdentifier
+            ? { email: trimmedIdentifier }
+            : { phoneNumber: trimmedIdentifier }
+        ),
       });
+
+      if (response.channel === "FIREBASE" && response.resolvedPhoneNumber) {
+        const verifier = await getRecaptchaVerifier();
+        const confirmationResult = await signInWithPhoneNumber(
+          firebaseAuth,
+          response.resolvedPhoneNumber,
+          verifier
+        );
+
+        persistFirebaseResetState(
+          trimmedIdentifier,
+          response.resolvedPhoneNumber,
+          confirmationResult
+        );
+      }
 
       setMessage(
         response.message ||
-          "If an account with that email exists, a reset link has been prepared."
+          "If an account with that email or phone number exists, a verification code has been sent."
       );
       setDebugResetUrl(response.debugResetUrl || "");
     } catch (error: unknown) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to prepare a reset link right now."
-      );
+      await resetRecaptchaVerifier();
+      setMessage(describeFirebaseError(error));
     } finally {
       setSubmitting(false);
     }
@@ -53,21 +193,22 @@ export default function ForgotPassword() {
             <div style={eyebrowStyle}>Account Recovery</div>
             <h2 style={titleStyle}>Forgot Password</h2>
             <p style={subtitleStyle}>
-              Enter your email address and we will prepare a reset link for your account.
+              Enter the email or phone number linked to your account and we will send a
+              verification code by SMS to the registered phone number.
             </p>
           </div>
 
           <div style={stackStyle}>
-            <label style={labelStyle}>Email</label>
+            <label style={labelStyle}>Email or phone number</label>
             <input
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
+              value={identifier}
+              onChange={(event) => setIdentifier(event.target.value)}
+              placeholder="you@example.com or +85512345678"
               style={inputStyle}
             />
 
             <button onClick={submit} disabled={submitting} style={primaryButtonStyle}>
-              {submitting ? "Preparing link..." : "Send reset link"}
+              {submitting ? "Sending code..." : "Send verification code"}
             </button>
 
             {message && <div style={messageStyle}>{message}</div>}
@@ -82,11 +223,16 @@ export default function ForgotPassword() {
             )}
 
             <div style={footerRowStyle}>
-              <span style={footerMutedStyle}>Remembered your password?</span>
-              <Link to="/login" style={footerLinkStyle}>
-                Back to login
+              <span style={footerMutedStyle}>Already received a code?</span>
+              <Link
+                to={`/reset-password?identifier=${encodeURIComponent(trimmedIdentifier)}`}
+                style={footerLinkStyle}
+              >
+                Verify and reset
               </Link>
             </div>
+
+            <div id="firebase-recaptcha" />
           </div>
         </section>
       </div>

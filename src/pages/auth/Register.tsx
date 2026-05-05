@@ -4,6 +4,35 @@ import { apiFetch } from "../../api";
 import { useAuth } from "../../lib/auth-context";
 import { useLanguage } from "../../lib/language";
 
+const CAMBODIA_PREFIX = "+855";
+
+function normalizeCambodiaPhone(rawValue: string) {
+  const trimmed = rawValue.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  const digitsOnly = trimmed.replace(/\D/g, "");
+
+  if (trimmed.startsWith(CAMBODIA_PREFIX)) {
+    const localDigits = digitsOnly.startsWith("855") ? digitsOnly.slice(3) : digitsOnly;
+    return `${CAMBODIA_PREFIX}${localDigits.replace(/^0+/, "")}`;
+  }
+
+  if (digitsOnly.startsWith("855")) {
+    return `${CAMBODIA_PREFIX}${digitsOnly.slice(3).replace(/^0+/, "")}`;
+  }
+
+  return `${CAMBODIA_PREFIX}${digitsOnly.replace(/^0+/, "")}`;
+}
+
+function toCambodiaPhoneInput(rawValue: string) {
+  const normalized = normalizeCambodiaPhone(rawValue);
+  return normalized.startsWith(CAMBODIA_PREFIX)
+    ? normalized.slice(CAMBODIA_PREFIX.length)
+    : rawValue.replace(/\D/g, "");
+}
+
 export default function Register() {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -17,9 +46,15 @@ export default function Register() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    const normalizedPhoneNumber = normalizeCambodiaPhone(phoneNumber);
 
-    if (!username.trim() || !email.trim() || !phoneNumber.trim() || !password.trim()) {
+    if (!username.trim() || !email.trim() || !normalizedPhoneNumber || !password.trim()) {
       setMsg("All fields are required.");
+      return;
+    }
+
+    if (!/^\+855\d{8,9}$/.test(normalizedPhoneNumber)) {
+      setMsg("Phone number must be in Cambodia format like +85587676564.");
       return;
     }
 
@@ -37,7 +72,7 @@ export default function Register() {
         body: JSON.stringify({
           username: username.trim(),
           email: email.trim(),
-          phoneNumber: phoneNumber.trim(),
+          phoneNumber: normalizedPhoneNumber,
           password,
         }),
       });
@@ -82,12 +117,15 @@ export default function Register() {
             />
 
             <label style={labelStyle}>{t("auth.phone")}</label>
-            <input
-              placeholder={t("auth.phonePlaceholder")}
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              style={inputStyle}
-            />
+            <div style={phoneInputWrapStyle}>
+              <div style={phonePrefixStyle}>{CAMBODIA_PREFIX}</div>
+              <input
+                placeholder="87676564"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(toCambodiaPhoneInput(e.target.value))}
+                style={phoneInputStyle}
+              />
+            </div>
 
             <label style={labelStyle}>{t("auth.password")}</label>
             <input
@@ -197,6 +235,33 @@ const inputStyle: React.CSSProperties = {
   color: "var(--app-input-text)",
   boxSizing: "border-box",
   boxShadow: "var(--app-glow-soft)",
+};
+
+const phoneInputWrapStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  borderRadius: 16,
+  border: "1px solid var(--app-input-border)",
+  background: "var(--app-input-bg)",
+  boxShadow: "var(--app-glow-soft)",
+  overflow: "hidden",
+};
+
+const phonePrefixStyle: React.CSSProperties = {
+  padding: "14px 16px",
+  color: "var(--app-heading)",
+  background: "rgba(96, 165, 250, 0.1)",
+  borderRight: "1px solid var(--app-input-border)",
+  fontWeight: 700,
+  letterSpacing: "0.02em",
+};
+
+const phoneInputStyle: React.CSSProperties = {
+  ...inputStyle,
+  border: "none",
+  borderRadius: 0,
+  boxShadow: "none",
+  paddingLeft: 14,
 };
 
 const primaryButtonStyle: React.CSSProperties = {
