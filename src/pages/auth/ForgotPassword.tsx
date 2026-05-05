@@ -29,6 +29,7 @@ export default function ForgotPassword() {
   const [message, setMessage] = useState("");
   const [debugResetUrl, setDebugResetUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [recaptchaMountKey, setRecaptchaMountKey] = useState(0);
   const recaptchaRef = useRef<RecaptchaVerifier | null>(null);
   const recaptchaContainerRef = useRef<HTMLDivElement | null>(null);
   const recaptchaWidgetIdRef = useRef<number | null>(null);
@@ -48,6 +49,11 @@ export default function ForgotPassword() {
     if (recaptchaContainerRef.current) {
       recaptchaContainerRef.current.innerHTML = "";
     }
+  }
+
+  function remountRecaptchaContainer() {
+    clearRecaptchaContainer();
+    setRecaptchaMountKey((current) => current + 1);
   }
 
   async function resetRecaptchaVerifier() {
@@ -73,7 +79,7 @@ export default function ForgotPassword() {
     verifier.clear();
     recaptchaRef.current = null;
     recaptchaWidgetIdRef.current = null;
-    clearRecaptchaContainer();
+    remountRecaptchaContainer();
   }
 
   async function getRecaptchaVerifier() {
@@ -84,6 +90,10 @@ export default function ForgotPassword() {
     await ensureFirebaseRecaptchaConfig();
 
     if (!recaptchaRef.current) {
+      if (!recaptchaContainerRef.current) {
+        throw new Error("reCAPTCHA container is not ready yet. Please try again.");
+      }
+
       clearRecaptchaContainer();
 
       const recaptchaSize =
@@ -91,7 +101,7 @@ export default function ForgotPassword() {
           ? "normal"
           : "invisible";
 
-      recaptchaRef.current = new RecaptchaVerifier(firebaseAuth, "firebase-recaptcha", {
+      recaptchaRef.current = new RecaptchaVerifier(firebaseAuth, recaptchaContainerRef.current, {
         size: recaptchaSize,
       });
       recaptchaWidgetIdRef.current = await recaptchaRef.current.render();
@@ -246,7 +256,11 @@ export default function ForgotPassword() {
               </Link>
             </div>
 
-            <div id="firebase-recaptcha" ref={recaptchaContainerRef} />
+            <div
+              key={recaptchaMountKey}
+              id="firebase-recaptcha"
+              ref={recaptchaContainerRef}
+            />
           </div>
         </section>
       </div>
