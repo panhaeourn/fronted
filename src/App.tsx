@@ -78,7 +78,7 @@ function AppContent() {
     "/reset-password",
   ].includes(location.pathname);
   const isGuestWelcomePage = location.pathname === "/" && !me;
-  const showSidebar = !isReceiptPrintPage && !isAuthLandingPage && !isGuestWelcomePage;
+  const showSidebar = !!me && !isReceiptPrintPage && !isAuthLandingPage && !isGuestWelcomePage;
 
   return (
     <div
@@ -442,14 +442,35 @@ function AppContent() {
           />
         )}
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route
+            path="/"
+            element={
+              <RequireAuth>
+                <Home />
+              </RequireAuth>
+            }
+          />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/courses" element={<Courses />} />
+          <Route
+            path="/courses"
+            element={
+              <RequireAuth>
+                <Courses />
+              </RequireAuth>
+            }
+          />
           <Route path="/oauth-success" element={<OAuthSuccess />} />
-          <Route path="/courses/:id" element={<CourseDetail />} />
+          <Route
+            path="/courses/:id"
+            element={
+              <RequireAuth>
+                <CourseDetail />
+              </RequireAuth>
+            }
+          />
           <Route
             path="/claim-receptionist"
             element={
