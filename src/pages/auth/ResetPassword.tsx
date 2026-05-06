@@ -163,7 +163,7 @@ export default function ResetPassword() {
               </div>
             )}
 
-            {isSmsFlow && (
+            {isSmsFlow && hasFirebaseResetSession && (
               <>
                 <label style={labelStyle}>Email or phone number</label>
                 <input
@@ -181,6 +181,12 @@ export default function ResetPassword() {
                   style={inputStyle}
                 />
               </>
+            )}
+
+            {isSmsFlow && !hasFirebaseResetSession && (
+              <div style={noticeStyle}>
+                No SMS verification session is active for this request yet. Start from the forgot-password page and wait for the OTP step to appear before entering a new password here.
+              </div>
             )}
 
             <label style={labelStyle}>New password</label>
@@ -329,6 +335,15 @@ const messageStyle: CSSProperties = {
   padding: "12px 14px",
   borderRadius: 14,
   border: "1px solid transparent",
+};
+
+const noticeStyle: CSSProperties = {
+  padding: "12px 14px",
+  borderRadius: 14,
+  color: "var(--app-heading)",
+  background: "var(--app-panel-bg)",
+  border: "1px solid var(--app-border-soft)",
+  lineHeight: 1.6,
 };
 
 const footerRowStyle: CSSProperties = {
