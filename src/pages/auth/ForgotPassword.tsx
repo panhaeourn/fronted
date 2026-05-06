@@ -24,7 +24,7 @@ type FirebaseAuthError = Error & {
   code?: string;
 };
 
-type ResetChannel = "FIREBASE" | "EMAIL" | "PHONE_CONFIRM" | null;
+type ResetChannel = "FIREBASE" | "EMAIL" | null;
 
 export default function ForgotPassword() {
   const [identifier, setIdentifier] = useState("");
@@ -179,14 +179,6 @@ export default function ForgotPassword() {
       );
     }
 
-    if (response.channel === "PHONE_CONFIRM") {
-      const phoneHint = response.maskedPhoneNumber
-        ? ` Enter the registered phone number ending in ${response.maskedPhoneNumber.replace(/^\*+/, "")} to continue.`
-        : "";
-
-      return `${response.message || "For security, confirm the registered phone number before SMS verification can start."}${phoneHint}`;
-    }
-
     if (response.channel === "EMAIL") {
       if (response.debugResetUrl) {
         return "A local reset link has been prepared for this account.";
@@ -238,9 +230,6 @@ export default function ForgotPassword() {
           confirmationResult
         );
         setResetChannel("FIREBASE");
-        setMaskedPhoneNumber(response.maskedPhoneNumber || "");
-      } else if (response.channel === "PHONE_CONFIRM") {
-        setResetChannel("PHONE_CONFIRM");
         setMaskedPhoneNumber(response.maskedPhoneNumber || "");
       } else {
         setResetChannel("EMAIL");
@@ -309,14 +298,6 @@ export default function ForgotPassword() {
                 >
                   Verify and reset
                 </Link>
-              </div>
-            ) : resetChannel === "PHONE_CONFIRM" ? (
-              <div style={footerRowStyle}>
-                <span style={footerMutedStyle}>
-                  {maskedPhoneNumber
-                    ? `Continue with the registered phone ending in ${maskedPhoneNumber.replace(/^\*+/, "")}.`
-                    : "Enter the registered phone number to continue."}
-                </span>
               </div>
             ) : (
               <div style={footerRowStyle}>
