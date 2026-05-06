@@ -14,6 +14,7 @@ type ResetPasswordResponse = {
 
 const FIREBASE_IDENTIFIER_KEY = "password_reset_identifier";
 const FIREBASE_PHONE_KEY = "password_reset_phone";
+const FIREBASE_MASKED_PHONE_KEY = "password_reset_masked_phone";
 const FIREBASE_VERIFICATION_ID_KEY = "password_reset_verification_id";
 
 export default function ResetPassword() {
@@ -46,6 +47,8 @@ export default function ResetPassword() {
     typeof window !== "undefined" ? sessionStorage.getItem(FIREBASE_IDENTIFIER_KEY) || "" : "";
   const firebasePhoneNumber =
     typeof window !== "undefined" ? sessionStorage.getItem(FIREBASE_PHONE_KEY) || "" : "";
+  const firebaseMaskedPhoneNumber =
+    typeof window !== "undefined" ? sessionStorage.getItem(FIREBASE_MASKED_PHONE_KEY) || "" : "";
   const firebaseVerificationId =
     typeof window !== "undefined"
       ? sessionStorage.getItem(FIREBASE_VERIFICATION_ID_KEY) || ""
@@ -58,6 +61,7 @@ export default function ResetPassword() {
   function clearFirebaseResetState() {
     sessionStorage.removeItem(FIREBASE_IDENTIFIER_KEY);
     sessionStorage.removeItem(FIREBASE_PHONE_KEY);
+    sessionStorage.removeItem(FIREBASE_MASKED_PHONE_KEY);
     sessionStorage.removeItem(FIREBASE_VERIFICATION_ID_KEY);
   }
 
@@ -143,9 +147,11 @@ export default function ResetPassword() {
             <div style={eyebrowStyle}>Account Recovery</div>
             <h2 style={titleStyle}>Reset Password</h2>
             <p style={subtitleStyle}>
-              {isSmsFlow
-                ? "Enter the email or phone number you used to request the SMS code, then choose a new password."
-                : "Choose a new password for your account. Use at least 8 characters."}
+              {isSmsFlow && hasFirebaseResetSession
+                ? `The OTP was sent to ${firebaseMaskedPhoneNumber || "your registered phone number"}. Enter the code and choose a new password.`
+                : isSmsFlow
+                  ? "Request an SMS code before choosing a new password."
+                  : "Choose a new password for your account. Use at least 8 characters."}
             </p>
           </div>
 

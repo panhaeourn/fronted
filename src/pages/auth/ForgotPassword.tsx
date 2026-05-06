@@ -18,6 +18,7 @@ type ForgotPasswordResponse = {
 
 const FIREBASE_IDENTIFIER_KEY = "password_reset_identifier";
 const FIREBASE_PHONE_KEY = "password_reset_phone";
+const FIREBASE_MASKED_PHONE_KEY = "password_reset_masked_phone";
 const FIREBASE_VERIFICATION_ID_KEY = "password_reset_verification_id";
 
 type FirebaseAuthError = Error & {
@@ -64,6 +65,7 @@ export default function ForgotPassword() {
   function clearFirebaseResetState() {
     sessionStorage.removeItem(FIREBASE_IDENTIFIER_KEY);
     sessionStorage.removeItem(FIREBASE_PHONE_KEY);
+    sessionStorage.removeItem(FIREBASE_MASKED_PHONE_KEY);
     sessionStorage.removeItem(FIREBASE_VERIFICATION_ID_KEY);
   }
 
@@ -124,10 +126,12 @@ export default function ForgotPassword() {
   function persistFirebaseResetState(
     nextIdentifier: string,
     resolvedPhoneNumber: string,
+    maskedPhoneNumber: string,
     confirmationResult: ConfirmationResult
   ) {
     sessionStorage.setItem(FIREBASE_IDENTIFIER_KEY, nextIdentifier);
     sessionStorage.setItem(FIREBASE_PHONE_KEY, resolvedPhoneNumber);
+    sessionStorage.setItem(FIREBASE_MASKED_PHONE_KEY, maskedPhoneNumber);
     sessionStorage.setItem(FIREBASE_VERIFICATION_ID_KEY, confirmationResult.verificationId);
   }
 
@@ -228,6 +232,7 @@ export default function ForgotPassword() {
         persistFirebaseResetState(
           trimmedIdentifier,
           response.resolvedPhoneNumber,
+          response.maskedPhoneNumber || "",
           confirmationResult
         );
         setResetChannel("FIREBASE");
