@@ -93,12 +93,49 @@ function AppContent() {
           : "var(--app-shell-bg)",
       }}
     >
-      {showSidebar && (
+      {showSidebar && sidebarCollapsed && (
+        <button
+          onClick={() => setSidebarCollapsed(false)}
+          style={{
+            ...toggleButtonStyle,
+            position: "absolute",
+            top: 28,
+            left: 20,
+            zIndex: 5,
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            boxShadow:
+              "0 14px 30px rgba(2, 8, 23, 0.28), inset 0 1px 0 rgba(255,255,255,0.08)",
+          }}
+          title={t("app.expandSidebar")}
+          aria-label={t("app.expandSidebar")}
+        >
+          <svg
+            viewBox="0 0 20 20"
+            width="17"
+            height="17"
+            aria-hidden="true"
+            style={{ display: "block", transform: "rotate(180deg)" }}
+          >
+            <path
+              d="M12.5 4.5L7 10l5.5 5.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      )}
+
+      {showSidebar && !sidebarCollapsed && (
         <aside
           style={{
-            width: sidebarCollapsed ? 68 : 240,
+            width: 240,
             background: "var(--app-sidebar-bg)",
-            padding: sidebarCollapsed ? 12 : 20,
+            padding: 20,
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -110,8 +147,8 @@ function AppContent() {
             transition: "width 240ms ease",
             position: "relative",
             zIndex: 2,
-            borderTopRightRadius: sidebarCollapsed ? 20 : 28,
-            borderBottomRightRadius: sidebarCollapsed ? 20 : 28,
+            borderTopRightRadius: 28,
+            borderBottomRightRadius: 28,
             overflow: "hidden",
           }}
         >
@@ -120,42 +157,41 @@ function AppContent() {
               style={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: sidebarCollapsed ? "center" : "space-between",
+                justifyContent: "space-between",
                 marginBottom: 20,
               }}
             >
-              {!sidebarCollapsed && (
-                <div
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  minWidth: 0,
+                }}
+              >
+                <img
+                  src={citoLogo}
+                  alt="CITO"
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    minWidth: 0,
+                    width: 56,
+                    height: 56,
+                    objectFit: "contain",
+                    filter: "drop-shadow(0 0 18px rgba(96, 165, 250, 0.22))",
+                    flexShrink: 0,
                   }}
-                >
-                  <img
-                    src={citoLogo}
-                    alt="CITO"
-                    style={{
-                      width: 56,
-                      height: 56,
-                      objectFit: "contain",
-                      filter: "drop-shadow(0 0 18px rgba(96, 165, 250, 0.22))",
-                      flexShrink: 0,
-                    }}
-                  />
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ color: "var(--app-heading)", margin: 0, fontWeight: 800, fontSize: 24 }}>
-                      CITO
-                    </div>
+                />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ color: "var(--app-heading)", margin: 0, fontWeight: 800, fontSize: 24 }}>
+                    CITO
                   </div>
                 </div>
-              )}
+              </div>
 
               <button
                 onClick={() => setSidebarCollapsed((prev) => !prev)}
                 style={toggleButtonStyle}
-                title={sidebarCollapsed ? t("app.expandSidebar") : t("app.collapseSidebar")}
+                title={t("app.collapseSidebar")}
+                aria-label={t("app.collapseSidebar")}
               >
                 <svg
                   viewBox="0 0 20 20"
@@ -164,7 +200,6 @@ function AppContent() {
                   aria-hidden="true"
                   style={{
                     display: "block",
-                    transform: sidebarCollapsed ? "rotate(180deg)" : "none",
                     transition: "transform 180ms ease",
                   }}
                 >
@@ -180,8 +215,7 @@ function AppContent() {
               </button>
             </div>
 
-              {!sidebarCollapsed && (
-                <>
+            <>
                 <SidebarLink to="/" icon={<DashboardIcon />} label={t("app.dashboard")} />
 
                 {!isAdmin && (
@@ -254,10 +288,9 @@ function AppContent() {
                   </>
                 )}
               </>
-            )}
           </div>
 
-          {me && !sidebarCollapsed && (
+          {me && (
             <div
               style={{
                 padding: 14,
@@ -419,12 +452,12 @@ function AppContent() {
             isReceiptPrintPage
               ? "#ffffff"
               : "var(--app-main-bg)",
-          boxShadow: !showSidebar || isReceiptPrintPage
+          boxShadow: !showSidebar || sidebarCollapsed || isReceiptPrintPage
             ? "none"
             : "inset 12px 0 22px rgba(77, 140, 255, 0.04)",
         }}
       >
-        {showSidebar && (
+        {showSidebar && !sidebarCollapsed && (
           <div
             aria-hidden="true"
             style={{
