@@ -97,13 +97,15 @@ function AppContent() {
         <div
           style={{
             position: "absolute",
-            inset: "0 auto 0 0",
-            width: 72,
+            inset: "16px auto 16px 16px",
+            width: 56,
             zIndex: 4,
             pointerEvents: "none",
             background:
-              "linear-gradient(90deg, rgba(5, 14, 33, 0.74), rgba(5, 14, 33, 0.28) 62%, transparent)",
-            borderRight: "1px solid rgba(147, 197, 253, 0.12)",
+              "linear-gradient(180deg, rgba(8, 20, 46, 0.96), rgba(5, 13, 31, 0.94))",
+            border: "var(--app-sidebar-border)",
+            borderRadius: 22,
+            boxShadow: "var(--app-sidebar-shadow)",
           }}
           aria-hidden="true"
         />
@@ -115,8 +117,8 @@ function AppContent() {
           style={{
             ...toggleButtonStyle,
             position: "absolute",
-            top: 40,
-            left: 18,
+            top: 32,
+            left: 25,
             zIndex: 5,
             width: 38,
             height: 38,
@@ -151,20 +153,21 @@ function AppContent() {
           style={{
             width: 240,
             background: "var(--app-sidebar-bg)",
+            margin: 16,
             padding: 20,
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
             flexShrink: 0,
-            height: "100vh",
+            height: "calc(100vh - 32px)",
             boxSizing: "border-box",
-            borderRight: "var(--app-sidebar-border)",
-            boxShadow: "var(--app-sidebar-shadow)",
+            border: "var(--app-sidebar-border)",
+            boxShadow:
+              "var(--app-sidebar-shadow), 0 22px 48px rgba(2, 8, 23, 0.28)",
             transition: "width 240ms ease",
             position: "relative",
             zIndex: 2,
-            borderTopRightRadius: 28,
-            borderBottomRightRadius: 28,
+            borderRadius: 28,
             overflow: "hidden",
           }}
         >
@@ -464,7 +467,7 @@ function AppContent() {
           padding: isReceiptPrintPage
             ? 0
             : showSidebar && sidebarCollapsed
-              ? "20px 20px 20px 88px"
+              ? "20px 20px 20px 96px"
               : 20,
           overflowY: isReceiptPrintPage ? "visible" : "auto",
           boxSizing: "border-box",
