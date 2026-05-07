@@ -94,19 +94,35 @@ function AppContent() {
       }}
     >
       {showSidebar && sidebarCollapsed && (
+        <div
+          style={{
+            position: "absolute",
+            inset: "0 auto 0 0",
+            width: 72,
+            zIndex: 4,
+            pointerEvents: "none",
+            background:
+              "linear-gradient(90deg, rgba(5, 14, 33, 0.74), rgba(5, 14, 33, 0.28) 62%, transparent)",
+            borderRight: "1px solid rgba(147, 197, 253, 0.12)",
+          }}
+          aria-hidden="true"
+        />
+      )}
+
+      {showSidebar && sidebarCollapsed && (
         <button
           onClick={() => setSidebarCollapsed(false)}
           style={{
             ...toggleButtonStyle,
             position: "absolute",
-            top: 28,
-            left: 20,
+            top: 40,
+            left: 18,
             zIndex: 5,
-            width: 40,
-            height: 40,
+            width: 38,
+            height: 38,
             borderRadius: 12,
             boxShadow:
-              "0 14px 30px rgba(2, 8, 23, 0.28), inset 0 1px 0 rgba(255,255,255,0.08)",
+              "0 14px 30px rgba(2, 8, 23, 0.32), inset 0 1px 0 rgba(255,255,255,0.08)",
           }}
           title={t("app.expandSidebar")}
           aria-label={t("app.expandSidebar")}
@@ -445,7 +461,11 @@ function AppContent() {
           position: "relative",
           height: isReceiptPrintPage ? "auto" : "100vh",
           minHeight: isReceiptPrintPage ? "100vh" : undefined,
-          padding: isReceiptPrintPage ? 0 : 20,
+          padding: isReceiptPrintPage
+            ? 0
+            : showSidebar && sidebarCollapsed
+              ? "20px 20px 20px 88px"
+              : 20,
           overflowY: isReceiptPrintPage ? "visible" : "auto",
           boxSizing: "border-box",
           background:
