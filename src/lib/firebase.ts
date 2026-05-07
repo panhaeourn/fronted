@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth, initializeRecaptchaConfig } from "firebase/auth";
 
 const firebaseConfig = {
@@ -13,7 +13,7 @@ const firebaseConfig = {
 export const isFirebasePhoneAuthConfigured = () =>
   Object.values(firebaseConfig).every((value) => value.trim().length > 0);
 
-const firebaseApp = initializeApp(firebaseConfig);
+const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const firebaseAuth = getAuth(firebaseApp);
 
 let recaptchaConfigPromise: Promise<void> | null = null;

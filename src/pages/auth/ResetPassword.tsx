@@ -43,6 +43,7 @@ export default function ResetPassword() {
   const isSmsFlow = !token;
   const trimmedIdentifier = identifier.trim();
   const isEmailIdentifier = trimmedIdentifier.includes("@");
+  const firebasePhoneAuthConfigured = isFirebasePhoneAuthConfigured();
   const firebaseIdentifier =
     typeof window !== "undefined" ? sessionStorage.getItem(FIREBASE_IDENTIFIER_KEY) || "" : "";
   const firebasePhoneNumber =
@@ -57,6 +58,10 @@ export default function ResetPassword() {
     !!firebaseVerificationId &&
     !!firebasePhoneNumber &&
     (!firebaseIdentifier || firebaseIdentifier === trimmedIdentifier);
+  const smsResetBlocked = isSmsFlow && (!firebasePhoneAuthConfigured || !hasFirebaseResetSession);
+  const smsResetBlockMessage = !firebasePhoneAuthConfigured
+    ? "Firebase phone authentication is not configured for this app yet."
+    : "Request a new verification code from the forgot-password page before resetting your password.";
 
   function clearFirebaseResetState() {
     sessionStorage.removeItem(FIREBASE_IDENTIFIER_KEY);
@@ -69,7 +74,12 @@ export default function ResetPassword() {
     setMessage("");
 
     if (isSmsFlow) {
-      if (isFirebasePhoneAuthConfigured() && !hasFirebaseResetSession) {
+      if (!firebasePhoneAuthConfigured) {
+        setMessage("Firebase phone authentication is not configured for this app yet.");
+        return;
+      }
+
+      if (!hasFirebaseResetSession) {
         setMessage("SMS verification is not active for this request. Go back and request a new code first.");
         return;
       }
@@ -103,7 +113,7 @@ export default function ResetPassword() {
       setSubmitting(true);
       let firebaseIdToken: string | undefined;
 
-      if (isSmsFlow && isFirebasePhoneAuthConfigured()) {
+      if (isSmsFlow) {
         const credential = PhoneAuthProvider.credential(firebaseVerificationId, code.trim());
         const userCredential = await signInWithCredential(firebaseAuth, credential);
         firebaseIdToken = await userCredential.user.getIdToken();
@@ -156,7 +166,7 @@ export default function ResetPassword() {
           </div>
 
           <div style={stackStyle}>
-            {isSmsFlow && isFirebasePhoneAuthConfigured() && !hasFirebaseResetSession && (
+            {smsResetBlocked && (
               <div
                 style={{
                   ...messageStyle,
@@ -165,7 +175,7 @@ export default function ResetPassword() {
                   borderColor: "var(--app-border-soft)",
                 }}
               >
-                Request a new verification code from the forgot-password page before resetting your password.
+                {smsResetBlockMessage}
               </div>
             )}
 
@@ -215,7 +225,7 @@ export default function ResetPassword() {
 
             <button
               onClick={submit}
-              disabled={submitting || (isSmsFlow && isFirebasePhoneAuthConfigured() && !hasFirebaseResetSession)}
+              disabled={submitting || smsResetBlocked}
               style={primaryButtonStyle}
             >
               {submitting ? "Resetting..." : "Reset password"}
