@@ -103,11 +103,10 @@ function AppContent() {
         .filter(Boolean)
         .join(" ")}
       style={{
-        display: "flex",
         position: "relative",
-        height: isReceiptPrintPage ? "auto" : "100vh",
-        minHeight: "100vh",
-        overflow: isReceiptPrintPage ? "visible" : "hidden",
+        height: isReceiptPrintPage ? "auto" : undefined,
+        minHeight: isReceiptPrintPage ? "100vh" : undefined,
+        overflow: isReceiptPrintPage ? "visible" : undefined,
         background: isReceiptPrintPage
           ? "#ffffff"
           : "var(--app-shell-bg)",
@@ -544,7 +543,7 @@ function AppContent() {
         style={{
           flex: 1,
           position: "relative",
-          height: isReceiptPrintPage ? "auto" : "100vh",
+          height: isReceiptPrintPage ? "auto" : "100dvh",
           minHeight: isReceiptPrintPage ? "100vh" : undefined,
           padding: isReceiptPrintPage
             ? 0

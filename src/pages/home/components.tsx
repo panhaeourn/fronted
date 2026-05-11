@@ -55,14 +55,14 @@ import type { DashboardData, Metric, Status } from "./types";
 
 export function GuestHome() {
   return (
-    <div style={dashboardShellStyle}>
-      <div style={headerRowStyle}>
+    <div className="dashboard-shell" style={dashboardShellStyle}>
+      <div className="dashboard-header-row" style={headerRowStyle}>
         <div>
           <h1 style={titleStyle}>Welcome</h1>
         </div>
       </div>
 
-      <section style={{ ...panelStyle, ...welcomePanelStyle }}>
+      <section className="dashboard-panel dashboard-panel--welcome" style={{ ...panelStyle, ...welcomePanelStyle }}>
         <div style={guestBadgeStyle}>Guest Access</div>
         <h2 style={guestHeadingStyle}>Register to See Courses</h2>
         <p style={guestTextStyle}>
@@ -122,25 +122,25 @@ export function DashboardLayout({
   refreshing: boolean;
 }) {
   return (
-    <div style={dashboardShellStyle}>
-      <div style={headerRowStyle}>
+    <div className="dashboard-shell" style={dashboardShellStyle}>
+      <div className="dashboard-header-row" style={headerRowStyle}>
         <div>
           <h1 style={titleStyle}>{data.title}</h1>
         </div>
 
-        <button onClick={onRefresh} disabled={refreshing} style={primaryButtonStyle}>
+        <button className="dashboard-action-button" onClick={onRefresh} disabled={refreshing} style={primaryButtonStyle}>
           {refreshing ? "Refreshing..." : "Refresh Dashboard"}
         </button>
       </div>
 
-      <div style={metricGridStyle}>
+      <div className="dashboard-metric-grid" style={metricGridStyle}>
         {data.metrics.map((item) => (
           <MetricCard key={item.label} {...item} />
         ))}
       </div>
 
-      <div style={threeColumnGridStyle}>
-        <section style={{ ...panelStyle, ...welcomePanelStyle }}>
+      <div className="dashboard-grid dashboard-grid--intro" style={threeColumnGridStyle}>
+        <section className="dashboard-panel dashboard-panel--welcome" style={{ ...panelStyle, ...welcomePanelStyle }}>
           <h3 style={{ margin: 0, fontSize: 24 }}>{data.welcomeTitle}</h3>
           <p style={{ color: "var(--app-subtle-text)", maxWidth: 380 }}>{data.welcomeText}</p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -152,7 +152,7 @@ export function DashboardLayout({
           </div>
         </section>
 
-        <section style={{ ...panelStyle, ...heroChartPanelStyle }}>
+        <section className="dashboard-panel dashboard-panel--chart" style={{ ...panelStyle, ...heroChartPanelStyle }}>
           <h3 style={{ marginTop: 0 }}>{data.chartTitle}</h3>
           <p style={panelSubtitleStyle}>{data.chartSubtitle}</p>
           <LineChart items={data.chartItems} formatter={data.chartFormatter} />
@@ -160,8 +160,8 @@ export function DashboardLayout({
       </div>
 
       {data.moneySummary && (
-        <section style={panelStyle}>
-          <div style={summaryHeaderStyle}>
+        <section className="dashboard-panel" style={panelStyle}>
+          <div className="dashboard-summary-header" style={summaryHeaderStyle}>
             <div style={summaryTitleWrapStyle}>
               <h3 style={{ margin: 0 }}>Student Money Summary</h3>
               <div style={summaryFiltersStyle}>
@@ -180,7 +180,7 @@ export function DashboardLayout({
             </div>
           </div>
 
-          <div style={summaryGridStyle}>
+          <div className="dashboard-summary-grid" style={summaryGridStyle}>
             <div style={homeSummaryMiniCardStyle}>
               <div style={homeSummaryMiniLabelStyle}>Active Days</div>
               <div style={homeSummaryMiniValueStyle}>{data.moneySummary.activeDays}</div>
@@ -197,20 +197,20 @@ export function DashboardLayout({
         </section>
       )}
 
-      <div style={twoColumnWideGridStyle}>
-        <section style={panelStyle}>
+      <div className="dashboard-grid dashboard-grid--wide" style={twoColumnWideGridStyle}>
+        <section className="dashboard-panel" style={panelStyle}>
           <h3 style={{ marginTop: 0 }}>{data.statusTitle}</h3>
           <StatusChart items={data.statuses} />
         </section>
 
-        <section style={panelStyle}>
+        <section className="dashboard-panel" style={panelStyle}>
           <h3 style={{ marginTop: 0 }}>{data.tableOneTitle}</h3>
           <DataTable columns={data.tableOneColumns} rows={data.tableOneRows} />
         </section>
       </div>
 
-      <div style={twoColumnGridStyle}>
-        <section style={panelStyle}>
+      <div className="dashboard-grid dashboard-grid--two" style={twoColumnGridStyle}>
+        <section className="dashboard-panel" style={panelStyle}>
           <h3 style={{ marginTop: 0 }}>{data.secondTitle}</h3>
           <p style={panelSubtitleStyle}>{data.secondSubtitle}</p>
           <BarChart
@@ -220,7 +220,7 @@ export function DashboardLayout({
           />
         </section>
 
-        <section style={panelStyle}>
+        <section className="dashboard-panel" style={panelStyle}>
           <h3 style={{ marginTop: 0 }}>{data.activityTitle}</h3>
           <div style={{ display: "grid", gap: 10 }}>
             {data.activity.length === 0 ? (
@@ -243,8 +243,8 @@ export function DashboardLayout({
         </section>
       </div>
 
-      <div style={twoColumnGridStyle}>
-        <section style={panelStyle}>
+      <div className="dashboard-grid dashboard-grid--two" style={twoColumnGridStyle}>
+        <section className="dashboard-panel" style={panelStyle}>
           <h3 style={{ marginTop: 0 }}>{data.tableTwoTitle}</h3>
           <DataTable columns={data.tableTwoColumns} rows={data.tableTwoRows} />
         </section>
@@ -255,7 +255,7 @@ export function DashboardLayout({
 
 function MetricCard({ label, value, accent }: Metric) {
   return (
-    <div style={metricCardStyle(accent)}>
+    <div className="dashboard-metric-card" style={metricCardStyle(accent)}>
       <div style={metricCardGlowStyle(accent)} />
       <div style={{ color: "var(--app-muted)", fontSize: 13 }}>{label}</div>
       <div style={{ fontSize: 30, fontWeight: 800, marginTop: 8 }}>{value}</div>
@@ -275,7 +275,7 @@ function BarChart({
   const max = Math.max(...items.map((item) => item.value), 1);
 
   return (
-    <div style={chartGridStyle}>
+    <div className="dashboard-bar-chart" style={chartGridStyle}>
       {items.map((item) => {
         const height = Math.max((item.value / max) * 100, item.value > 0 ? 12 : 6);
 
@@ -339,7 +339,7 @@ function LineChart({
   } ${height - paddingBottom} Z`;
 
   return (
-    <div style={lineChartWrapStyle}>
+    <div className="dashboard-line-chart" style={lineChartWrapStyle}>
       <svg viewBox={`0 0 ${width} ${height}`} style={lineChartSvgStyle} preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <linearGradient id="revenueLineStroke" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -420,7 +420,7 @@ function StatusChart({ items }: { items: Status[] }) {
     .segments.join(", ");
 
   return (
-    <div style={donutWrapStyle}>
+    <div className="dashboard-donut" style={donutWrapStyle}>
       <div style={{ ...donutOuterStyle, background: `conic-gradient(${gradient})` }}>
         <div style={donutInnerStyle}>
           <div style={{ color: "var(--app-muted)", fontSize: 12 }}>Total</div>
