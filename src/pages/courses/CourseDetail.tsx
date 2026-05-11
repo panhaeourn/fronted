@@ -98,22 +98,22 @@ export default function CourseDetail() {
   if (!course) return <div style={loadingStyle}>Course not found</div>;
 
   return (
-    <div style={pageStyleWide}>
-      <div style={headerStyle}>
+    <div className="course-detail-page" style={pageStyleWide}>
+      <div className="course-detail-header" style={headerStyle}>
         <div>
-          <h1 style={titleStyleMd}>{course.title}</h1>
-          <div style={subheadStyle}>
+          <h1 className="course-detail-title" style={titleStyleMd}>{course.title}</h1>
+          <div className="course-detail-subhead" style={subheadStyle}>
             Continue your lessons in a cleaner, focused player workspace.
           </div>
         </div>
 
-        <Link to="/courses" style={backLinkStyle}>
+        <Link className="course-detail-back-link" to="/courses" style={backLinkStyle}>
           <span aria-hidden="true">←</span>
           <span>Back to Courses</span>
         </Link>
       </div>
 
-      <div style={statsGridStyle}>
+      <div className="course-detail-stats" style={statsGridStyle}>
         <InfoCard
           label="Price"
           value={`$${Number(course.price || 0).toFixed(0)}`}
@@ -144,9 +144,9 @@ export default function CourseDetail() {
       )}
 
       {course.enrolled && videos.length > 0 && selectedVideo && (
-        <div style={contentGridStyle}>
-          <section style={panelStyle}>
-            <div style={videoFrameStyle}>
+        <div className="course-detail-content" style={contentGridStyle}>
+          <section className="course-detail-player-panel" style={panelStyle}>
+            <div className="course-detail-video-frame" style={videoFrameStyle}>
               <video
                 key={selectedVideo.id}
                 controls
@@ -159,11 +159,11 @@ export default function CourseDetail() {
               </video>
             </div>
 
-            <div style={detailsPanelStyle}>
+            <div className="course-detail-details-panel" style={detailsPanelStyle}>
               <div style={eyebrowStyle}>
                 Lesson {videos.findIndex((video) => video.id === selectedVideo.id) + 1}
               </div>
-              <h2 style={lessonTitleStyle}>
+              <h2 className="course-detail-lesson-title" style={lessonTitleStyle}>
                 {selectedVideo.title || "Untitled Video"}
               </h2>
               <p style={descriptionStyle}>
@@ -172,14 +172,15 @@ export default function CourseDetail() {
             </div>
           </section>
 
-          <aside style={playlistPanelStyle}>
-            <h3 style={playlistTitleStyle}>Course Playlist</h3>
-            <div style={playlistListStyle}>
+          <aside className="course-detail-playlist" style={playlistPanelStyle}>
+            <h3 className="course-detail-playlist-title" style={playlistTitleStyle}>Course Playlist</h3>
+            <div className="course-detail-playlist-list" style={playlistListStyle}>
               {videos.map((video, index) => {
                 const active = selectedVideo.id === video.id;
 
                 return (
                   <button
+                    className="course-detail-playlist-item"
                     key={video.id}
                     onClick={() => setSelectedVideoId(video.id)}
                     style={{
@@ -203,7 +204,7 @@ export default function CourseDetail() {
                         : "none",
                     }}
                   >
-                    <div style={playlistThumbStyle}>
+                    <div className="course-detail-playlist-thumb" style={playlistThumbStyle}>
                       <div
                         style={{
                           ...playlistThumbFallbackStyle,
@@ -216,7 +217,7 @@ export default function CourseDetail() {
                       </div>
                     </div>
 
-                    <div style={playlistTextWrapStyle}>
+                    <div className="course-detail-playlist-text" style={playlistTextWrapStyle}>
                       <div
                         style={{
                           ...playlistLessonStyle,
@@ -232,6 +233,7 @@ export default function CourseDetail() {
                         Lesson {index + 1}
                       </div>
                       <div
+                        className="course-detail-playlist-video-title"
                         style={{
                           ...playlistVideoTitleStyle,
                           color: active
@@ -268,6 +270,7 @@ function InfoCard({
 }) {
   return (
     <div
+      className="course-detail-info-card"
       style={{
         ...infoCardStyle,
         boxShadow: `0 18px 36px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(147, 197, 253, 0.14), 0 0 40px ${toTransparent(
@@ -286,7 +289,7 @@ function InfoCard({
         }}
       />
       <div style={infoLabelTextStyle}>{label}</div>
-      <div style={infoValueTextStyle}>{value}</div>
+      <div className="course-detail-info-value" style={infoValueTextStyle}>{value}</div>
     </div>
   );
 }
