@@ -59,8 +59,8 @@ export default function CourseDetail() {
         if (videoData && videoData.length > 0) {
           setSelectedVideoId(videoData[0].id);
         }
-      } catch (e: any) {
-        setErr(e?.message || "Failed to load course");
+      } catch (e: unknown) {
+        setErr(e instanceof Error ? e.message : "Failed to load course");
       } finally {
         setLoading(false);
       }

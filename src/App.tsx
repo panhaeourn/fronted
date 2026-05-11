@@ -51,23 +51,13 @@ function AppContent() {
   const navigate = useNavigate();
   const { me, signOut, isAdmin, isReceptionist, isUser } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">(() => {
     const saved = localStorage.getItem("app-theme");
     return saved === "light" ? "light" : "dark";
   });
   const location = useLocation();
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("app-theme", theme);
-  }, [theme]);
-
-  async function logout() {
-    await signOut();
-    navigate("/login", { replace: true });
-  }
-
   const isReceiptPrintPage =
     location.pathname.startsWith("/reception/receipt/") &&
     location.pathname.endsWith("/print");
@@ -80,8 +70,38 @@ function AppContent() {
   const isGuestWelcomePage = location.pathname === "/" && !me;
   const showSidebar = !!me && !isReceiptPrintPage && !isAuthLandingPage && !isGuestWelcomePage;
 
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("app-theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (!showSidebar || !mobileNavOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileNavOpen, showSidebar]);
+
+  async function logout() {
+    await signOut();
+    navigate("/login", { replace: true });
+  }
+
   return (
     <div
+      className={[
+        "app-shell",
+        showSidebar ? "app-shell--with-nav" : "app-shell--single",
+        sidebarCollapsed ? "app-shell--collapsed" : "",
+        mobileNavOpen ? "app-shell--mobile-nav-open" : "",
+        isReceiptPrintPage ? "app-shell--print" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       style={{
         display: "flex",
         position: "relative",
@@ -93,8 +113,52 @@ function AppContent() {
           : "var(--app-shell-bg)",
       }}
     >
+      {showSidebar && (
+        <header className="app-mobile-topbar">
+          <button
+            className="app-mobile-menu-button"
+            type="button"
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="Open navigation"
+          >
+            <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+              <path
+                d="M3.5 5.5h13M3.5 10h13M3.5 14.5h13"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+
+          <Link to="/" className="app-mobile-brand" aria-label="CITO dashboard">
+            <img src={citoLogo} alt="" />
+            <span>CITO</span>
+          </Link>
+
+          <Link to="/settings" className="app-mobile-avatar" aria-label="Open profile settings">
+            {me?.picture ? (
+              <img src={me.picture} alt="" />
+            ) : (
+              <span>{(me?.name || me?.email || "U").charAt(0).toUpperCase()}</span>
+            )}
+          </Link>
+        </header>
+      )}
+
+      {showSidebar && mobileNavOpen && (
+        <button
+          className="app-mobile-nav-backdrop"
+          type="button"
+          onClick={() => setMobileNavOpen(false)}
+          aria-label="Close navigation"
+        />
+      )}
+
       {showSidebar && sidebarCollapsed && (
         <div
+          className="app-collapsed-rail"
           style={{
             position: "absolute",
             inset: "16px auto 16px 16px",
@@ -114,6 +178,7 @@ function AppContent() {
       {showSidebar && sidebarCollapsed && (
         <button
           onClick={() => setSidebarCollapsed(false)}
+          className="app-collapsed-toggle"
           style={{
             ...toggleButtonStyle,
             position: "absolute",
@@ -148,8 +213,18 @@ function AppContent() {
         </button>
       )}
 
-      {showSidebar && !sidebarCollapsed && (
+      {showSidebar && (!sidebarCollapsed || mobileNavOpen) && (
         <aside
+          className="app-sidebar"
+          onClickCapture={(event) => {
+            if (
+              mobileNavOpen &&
+              event.target instanceof Element &&
+              event.target.closest("a")
+            ) {
+              setMobileNavOpen(false);
+            }
+          }}
           style={{
             width: 240,
             background: "var(--app-sidebar-bg)",
@@ -207,7 +282,13 @@ function AppContent() {
               </div>
 
               <button
-                onClick={() => setSidebarCollapsed((prev) => !prev)}
+                onClick={() => {
+                  if (window.matchMedia("(max-width: 820px)").matches) {
+                    setMobileNavOpen(false);
+                    return;
+                  }
+                  setSidebarCollapsed((prev) => !prev);
+                }}
                 style={toggleButtonStyle}
                 title={t("app.collapseSidebar")}
                 aria-label={t("app.collapseSidebar")}
@@ -459,6 +540,7 @@ function AppContent() {
       )}
 
       <main
+        className="app-main"
         style={{
           flex: 1,
           position: "relative",
@@ -620,6 +702,14 @@ function AppContent() {
             element={
               <RequireAuth>
                 <Settings me={me} theme={theme} setTheme={setTheme} initialSection="profile" />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <RequireAuth>
+                <Home />
               </RequireAuth>
             }
           />

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import type { CSSProperties } from "react";
 
 export function toTransparent(color: string, alpha: number) {

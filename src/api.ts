@@ -2,6 +2,43 @@ export const API_BASE = (
   import.meta.env.VITE_API_URL ?? "http://localhost:8080"
 ).replace(/\/$/, "");
 
+type ApiErrorBody = {
+  message?: string;
+  error?: string;
+  status?: {
+    message?: string;
+    code?: string | number;
+  };
+};
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function readApiErrorBody(value: unknown): ApiErrorBody | null {
+  const body = asRecord(value);
+  if (!body) return null;
+
+  const status = asRecord(body.status);
+
+  return {
+    message: typeof body.message === "string" ? body.message : undefined,
+    error: typeof body.error === "string" ? body.error : undefined,
+    status: status
+      ? {
+          message:
+            typeof status.message === "string" ? status.message : undefined,
+          code:
+            typeof status.code === "string" || typeof status.code === "number"
+              ? status.code
+              : undefined,
+        }
+      : undefined,
+  };
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
@@ -29,7 +66,7 @@ export async function apiFetch<T>(
   });
 
   const text = await res.text().catch(() => "");
-  let json: any = null;
+  let json: unknown = null;
 
   if (text) {
     try {
@@ -41,15 +78,16 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     let msg = `${res.status} ${res.statusText}`;
+    const errorBody = readApiErrorBody(json);
 
-    if (json) {
+    if (errorBody) {
       msg =
-        json.message ||
-        json.error ||
-        json?.status?.message ||
+        errorBody.message ||
+        errorBody.error ||
+        errorBody.status?.message ||
         JSON.stringify(json);
 
-      const code = json?.status?.code;
+      const code = errorBody.status?.code;
       if (code && msg && !String(msg).includes(String(code))) {
         msg = `${code}: ${msg}`;
       }

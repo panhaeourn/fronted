@@ -3,6 +3,43 @@
   min-height: 100vh;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+img,
+video,
+canvas {
+  max-width: 100%;
+}
+
+.app-shell {
+  isolation: isolate;
+}
+
+.app-main {
+  min-width: 0;
+}
+
+.app-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(147, 197, 253, 0.42) transparent;
+}
+
+.app-sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(147, 197, 253, 0.32);
+  border-radius: 999px;
+}
+
+.app-mobile-topbar,
+.app-mobile-nav-backdrop {
+  display: none;
+}
+
 .course-card-hover,
 .sidebar-link-pop,
 button {
@@ -97,4 +134,175 @@ button:not(:disabled):active {
   background: linear-gradient(135deg, rgba(98, 163, 255, 1), rgba(90, 181, 255, 0.96));
   border: 1px solid rgba(191, 219, 254, 0.42);
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), 0 8px 18px rgba(37, 99, 235, 0.26);
+}
+
+@media (max-width: 820px) {
+  .app-shell:not(.app-shell--print) {
+    display: block !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+    padding-top: 74px;
+  }
+
+  .app-mobile-topbar {
+    position: fixed;
+    inset: 10px 10px auto 10px;
+    z-index: 30;
+    min-height: 54px;
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border: var(--app-sidebar-border);
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at top left, rgba(96, 165, 250, 0.2), transparent 32%),
+      rgba(7, 14, 30, 0.92);
+    box-shadow:
+      0 18px 38px rgba(2, 8, 23, 0.35),
+      0 0 0 1px rgba(191, 219, 254, 0.08);
+    backdrop-filter: blur(18px);
+  }
+
+  .app-mobile-menu-button,
+  .app-mobile-avatar {
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    border: 1px solid rgba(191, 219, 254, 0.18);
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--app-heading);
+    box-shadow: none !important;
+  }
+
+  .app-mobile-brand {
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--app-heading);
+    font-weight: 900;
+    letter-spacing: 0.03em;
+  }
+
+  .app-mobile-brand img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+  }
+
+  .app-mobile-avatar img,
+  .app-mobile-avatar span {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+  }
+
+  .app-mobile-avatar img {
+    object-fit: cover;
+  }
+
+  .app-mobile-avatar span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2563eb, #38bdf8);
+    color: #fff;
+    font-weight: 800;
+  }
+
+  .app-mobile-nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 19;
+    display: block;
+    width: 100%;
+    min-height: 100dvh;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: rgba(2, 8, 23, 0.62);
+    backdrop-filter: blur(5px);
+    box-shadow: none !important;
+  }
+
+  .app-sidebar {
+    position: fixed !important;
+    inset: 10px auto 10px 10px !important;
+    z-index: 25 !important;
+    width: min(86vw, 320px) !important;
+    height: calc(100dvh - 20px) !important;
+    margin: 0 !important;
+    padding: 18px !important;
+    transform: translateX(-115%);
+    transition: transform 220ms ease, box-shadow 220ms ease !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+
+  .app-shell--mobile-nav-open .app-sidebar {
+    transform: translateX(0);
+  }
+
+  .app-collapsed-rail,
+  .app-collapsed-toggle {
+    display: none !important;
+  }
+
+  .app-main {
+    width: 100% !important;
+    height: auto !important;
+    min-height: calc(100dvh - 74px) !important;
+    padding: 14px !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+  }
+
+  .app-main > div[style*="max-width"] {
+    width: 100%;
+  }
+
+  .sidebar-link-pop:hover,
+  .course-card-hover:hover,
+  button:not(:disabled):hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .app-shell:not(.app-shell--print) {
+    padding-top: 68px;
+  }
+
+  .app-mobile-topbar {
+    inset: 8px;
+    min-height: 50px;
+    border-radius: 18px;
+  }
+
+  .app-main {
+    padding: 10px !important;
+  }
+
+  .app-sidebar {
+    inset: 8px auto 8px 8px !important;
+    width: min(90vw, 300px) !important;
+    height: calc(100dvh - 16px) !important;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 12vw, 2.8rem);
+  }
+
+  h2 {
+    line-height: 1.08;
+  }
 }

@@ -402,15 +402,22 @@ function StatusChart({ items }: { items: Status[] }) {
   }
 
   const total = items.reduce((sum, item) => sum + item.value, 0) || 1;
-  let start = 0;
   const gradient = items
-    .map((item) => {
-      const end = start + (item.value / total) * 100;
-      const segment = `${item.color} ${start}% ${end}%`;
-      start = end;
-      return segment;
-    })
-    .join(", ");
+    .reduce(
+      (acc, item) => {
+        const end = acc.start + (item.value / total) * 100;
+
+        return {
+          start: end,
+          segments: [
+            ...acc.segments,
+            `${item.color} ${acc.start}% ${end}%`,
+          ],
+        };
+      },
+      { start: 0, segments: [] as string[] }
+    )
+    .segments.join(", ");
 
   return (
     <div style={donutWrapStyle}>
