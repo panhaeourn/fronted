@@ -349,6 +349,30 @@ function AppContent() {
                     </span>
                   }
                   label="CITO AI"
+                  decoration={
+                    <svg
+                      className="sidebar-link-ai-frame"
+                      viewBox="0 0 100 100"
+                      preserveAspectRatio="none"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <defs>
+                        <linearGradient id="cito-ai-frame-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#ff1744" />
+                          <stop offset="16%" stopColor="#ff9100" />
+                          <stop offset="32%" stopColor="#ffee00" />
+                          <stop offset="48%" stopColor="#24ff00" />
+                          <stop offset="64%" stopColor="#00e5ff" />
+                          <stop offset="80%" stopColor="#2979ff" />
+                          <stop offset="100%" stopColor="#d500f9" />
+                        </linearGradient>
+                      </defs>
+                      <rect className="sidebar-link-ai-frame-base" x="2" y="2" width="96" height="96" rx="17" />
+                      <rect className="sidebar-link-ai-frame-glow" x="2" y="2" width="96" height="96" rx="17" pathLength="320" />
+                      <rect className="sidebar-link-ai-frame-runner" x="2" y="2" width="96" height="96" rx="17" pathLength="320" />
+                    </svg>
+                  }
                 />
 
                 {!isAdmin && (
