@@ -131,13 +131,14 @@ button {
   border-color: rgba(191, 219, 254, 0.18) !important;
   background: var(--app-link-bg) !important;
   box-shadow:
-    0 0 0 1px rgba(56, 189, 248, 0.22),
-    0 0 18px rgba(56, 189, 248, 0.34),
-    0 0 34px rgba(236, 72, 153, 0.2),
-    inset 0 0 18px rgba(56, 189, 248, 0.12) !important;
+    0 0 0 1px rgba(125, 211, 252, 0.45),
+    0 0 16px rgba(56, 189, 248, 0.62),
+    0 0 34px rgba(139, 92, 246, 0.42),
+    0 0 58px rgba(236, 72, 153, 0.32),
+    inset 0 0 24px rgba(56, 189, 248, 0.18) !important;
   animation:
-    ai-rainbow-border 3.2s linear infinite,
-    ai-border-glow 1.9s ease-in-out infinite alternate;
+    ai-rainbow-border 2.2s linear infinite,
+    ai-border-glow 1.25s ease-in-out infinite alternate;
 }
 
 .sidebar-link-ai::after {
@@ -145,18 +146,21 @@ button {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: 3px;
+  padding: 4px;
   background: conic-gradient(
     from var(--ai-glow-angle, 0deg),
+    #ffffff,
     #38bdf8,
     #2563eb,
     #8b5cf6,
     #ec4899,
     #f97316,
+    #facc15,
     #22c55e,
+    #ffffff,
     #38bdf8
   );
-  opacity: 0.96;
+  opacity: 1;
   pointer-events: none;
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -166,15 +170,32 @@ button {
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   mask-composite: exclude;
-  animation: ai-rainbow-border 3.2s linear infinite;
+  animation: ai-rainbow-border 2.2s linear infinite;
+}
+
+.sidebar-link-ai::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  z-index: -1;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.38), transparent 34%),
+    radial-gradient(circle at 75% 35%, rgba(236, 72, 153, 0.36), transparent 36%),
+    radial-gradient(circle at 50% 90%, rgba(250, 204, 21, 0.22), transparent 38%);
+  filter: blur(12px);
+  opacity: 0.85;
+  pointer-events: none;
+  animation: ai-aura-pulse 1.45s ease-in-out infinite alternate;
 }
 
 .sidebar-link-ai:hover {
   box-shadow:
     0 16px 34px rgba(0, 0, 0, 0.24),
-    0 0 22px rgba(56, 189, 248, 0.48),
-    0 0 42px rgba(236, 72, 153, 0.32),
-    inset 0 0 20px rgba(56, 189, 248, 0.16) !important;
+    0 0 26px rgba(56, 189, 248, 0.78),
+    0 0 58px rgba(236, 72, 153, 0.48),
+    0 0 78px rgba(250, 204, 21, 0.24),
+    inset 0 0 28px rgba(56, 189, 248, 0.24) !important;
 }
 
 @property --ai-glow-angle {
@@ -191,10 +212,21 @@ button {
 
 @keyframes ai-border-glow {
   from {
-    filter: brightness(1);
+    filter: brightness(1) saturate(1.05);
   }
   to {
-    filter: brightness(1.18);
+    filter: brightness(1.38) saturate(1.35);
+  }
+}
+
+@keyframes ai-aura-pulse {
+  from {
+    opacity: 0.58;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.05);
   }
 }
 
