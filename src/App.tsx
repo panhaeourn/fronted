@@ -1,8 +1,8 @@
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import aiLogo from "./assets/AI logo.png";
 import citoLogo from "./assets/CITO.svg";
 import {
-  AiIcon,
   bottomActionStackStyle,
   ClaimIcon,
   CoursesIcon,
@@ -319,7 +319,23 @@ function AppContent() {
             <>
                 <SidebarLink to="/" icon={<DashboardIcon />} label={t("app.dashboard")} />
 
-                <SidebarLink to="/ai" icon={<AiIcon />} label="CITO AI" />
+                <SidebarLink
+                  to="/ai"
+                  icon={
+                    <img
+                      src={aiLogo}
+                      alt=""
+                      style={{
+                        width: 22,
+                        height: 22,
+                        objectFit: "cover",
+                        borderRadius: 7,
+                        display: "block",
+                      }}
+                    />
+                  }
+                  label="CITO AI"
+                />
 
                 {!isAdmin && (
                   <SidebarLink to="/courses" icon={<CoursesIcon />} label={t("app.courses")} />

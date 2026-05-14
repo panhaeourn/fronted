@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { apiFetch } from "../../api";
+import aiLogo from "../../assets/AI logo.png";
 import "./CitoAi.css";
 
 type AiChatResponse = {
@@ -66,9 +67,12 @@ export default function CitoAi() {
     <section className="cito-ai-page">
       <div className="cito-ai-shell">
         <header className="cito-ai-header">
-          <div>
-            <p className="cito-ai-kicker">CITO study assistant</p>
-            <h1>CITO AI</h1>
+          <div className="cito-ai-title-row">
+            <img className="cito-ai-logo" src={aiLogo} alt="" />
+            <div>
+              <p className="cito-ai-kicker">CITO study assistant</p>
+              <h1>CITO AI</h1>
+            </div>
           </div>
           <span className="cito-ai-model">GPT-5 mini</span>
         </header>

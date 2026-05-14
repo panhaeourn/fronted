@@ -27,6 +27,23 @@
   gap: 16px;
 }
 
+.cito-ai-title-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.cito-ai-logo {
+  width: 62px;
+  height: 62px;
+  object-fit: cover;
+  border-radius: 18px;
+  flex-shrink: 0;
+  border: 1px solid rgba(147, 197, 253, 0.2);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.24);
+}
+
 .cito-ai-kicker {
   margin: 0 0 8px;
   color: var(--app-muted);
@@ -184,6 +201,12 @@
 
   .cito-ai-header {
     flex-direction: column;
+  }
+
+  .cito-ai-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
   }
 
   .cito-ai-header h1 {
