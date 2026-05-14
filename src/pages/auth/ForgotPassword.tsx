@@ -272,12 +272,21 @@ export default function ForgotPassword() {
             <div style={eyebrowStyle}>Account Recovery</div>
             <h2 style={titleStyle}>Forgot Password</h2>
             <p style={subtitleStyle}>
-              Enter the email or phone number linked to your account and we will send a
-              verification code by SMS to the registered phone number.
+              Enter the email or phone number linked to your CITO account. This only changes your
+              CITO password, not your Google account password.
             </p>
           </div>
 
           <div style={stackStyle}>
+            <div style={accountTypeNoteStyle}>
+              <div style={accountTypeTitleStyle}>CITO password vs Google password</div>
+              <div style={accountTypeTextStyle}>
+                If you registered with a CITO password, reset it here. If you sign in with Google,
+                use the Google button on the login page; Google passwords are changed in your
+                Google account.
+              </div>
+            </div>
+
             <label style={labelStyle}>Email or phone number</label>
             <input
               value={identifier}
@@ -328,6 +337,13 @@ export default function ForgotPassword() {
               id="firebase-recaptcha"
               ref={recaptchaContainerRef}
             />
+
+            <div style={footerRowStyle}>
+              <span style={footerMutedStyle}>Use Google instead?</span>
+              <Link to="/login" style={footerLinkStyle}>
+                Back to login
+              </Link>
+            </div>
           </div>
         </section>
       </div>
@@ -383,6 +399,27 @@ const subtitleStyle: CSSProperties = {
 const stackStyle: CSSProperties = {
   display: "grid",
   gap: 12,
+};
+
+const accountTypeNoteStyle: CSSProperties = {
+  padding: "14px 16px",
+  borderRadius: 16,
+  background: "rgba(96, 165, 250, 0.12)",
+  border: "1px solid rgba(96, 165, 250, 0.24)",
+  boxShadow: "var(--app-glow-soft)",
+};
+
+const accountTypeTitleStyle: CSSProperties = {
+  color: "var(--app-heading)",
+  fontWeight: 800,
+  fontSize: 14,
+};
+
+const accountTypeTextStyle: CSSProperties = {
+  marginTop: 6,
+  color: "var(--app-subtle-text)",
+  lineHeight: 1.6,
+  fontSize: 13,
 };
 
 const labelStyle: CSSProperties = {
