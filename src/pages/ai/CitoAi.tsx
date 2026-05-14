@@ -32,13 +32,17 @@ export default function CitoAi() {
 
     setError("");
     setMessage("");
-    setMessages((current) => [...current, { role: "user", text: trimmed }]);
+    const nextMessages: ChatMessage[] = [...messages, { role: "user", text: trimmed }];
+    setMessages(nextMessages);
     setLoading(true);
 
     try {
       const response = await apiFetch<AiChatResponse>("/api/ai/chat", {
         method: "POST",
-        body: JSON.stringify({ message: trimmed }),
+        body: JSON.stringify({
+          message: trimmed,
+          messages: nextMessages.slice(-12),
+        }),
       });
 
       setMessages((current) => [
