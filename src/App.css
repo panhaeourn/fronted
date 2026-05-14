@@ -128,46 +128,36 @@ button {
   position: relative;
   isolation: isolate;
   overflow: visible;
-  border-color: transparent !important;
-  background: var(--app-link-bg) !important;
+  border: 2px solid transparent !important;
+  background:
+    linear-gradient(var(--app-link-bg), var(--app-link-bg)) padding-box,
+    linear-gradient(
+      90deg,
+      #ff1744,
+      #ff9100,
+      #ffee00,
+      #24ff00,
+      #00e5ff,
+      #2979ff,
+      #d500f9,
+      #ff1744
+    ) border-box !important;
+  background-size: 100% 100%, 320% 100% !important;
   box-shadow:
     0 0 18px rgba(56, 189, 248, 0.34),
     0 0 34px rgba(236, 72, 153, 0.22) !important;
-}
-
-.sidebar-link-ai::before,
-.sidebar-link-ai::after {
-  content: "";
-  position: absolute;
-  border-radius: inherit;
-  pointer-events: none;
+  animation: ai-neon-border-slide 2.1s linear infinite;
 }
 
 .sidebar-link-ai::before {
-  inset: -10px;
-  z-index: -2;
-  background: conic-gradient(
-    from 0deg,
-    #ff1744,
-    #ff9100,
-    #ffee00,
-    #24ff00,
-    #00e5ff,
-    #2979ff,
-    #d500f9,
-    #ff1744
-  );
-  filter: blur(16px);
-  opacity: 0.76;
-  animation: ai-neon-spin 2.4s linear infinite;
-}
-
-.sidebar-link-ai::after {
-  inset: 0;
+  content: "";
+  position: absolute;
+  inset: -7px;
   z-index: -1;
-  padding: 3px;
-  background: conic-gradient(
-    from 0deg,
+  border-radius: inherit;
+  padding: 7px;
+  background: linear-gradient(
+    90deg,
     #ff1744,
     #ff9100,
     #ffee00,
@@ -177,6 +167,10 @@ button {
     #d500f9,
     #ff1744
   );
+  background-size: 320% 100%;
+  filter: blur(12px);
+  opacity: 0.82;
+  pointer-events: none;
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -185,7 +179,9 @@ button {
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   mask-composite: exclude;
-  animation: ai-neon-spin 2.4s linear infinite;
+  animation:
+    ai-neon-border-slide 2.1s linear infinite,
+    ai-neon-aura-pulse 1.7s ease-in-out infinite alternate;
 }
 
 .sidebar-link-ai > span {
@@ -201,9 +197,23 @@ button {
     inset 0 0 20px rgba(56, 189, 248, 0.16) !important;
 }
 
-@keyframes ai-neon-spin {
+@keyframes ai-neon-border-slide {
+  from {
+    background-position: 0% 50%, 0% 50%;
+  }
   to {
-    transform: rotate(360deg);
+    background-position: 0% 50%, 320% 50%;
+  }
+}
+
+@keyframes ai-neon-aura-pulse {
+  from {
+    opacity: 0.58;
+    filter: blur(10px);
+  }
+  to {
+    opacity: 0.92;
+    filter: blur(15px);
   }
 }
 
