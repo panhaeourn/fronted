@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../api";
-import aiLogo from "../../assets/AI logo.png";
+import aiLogo from "../../assets/AI-logo-transparent.png";
 import "./CitoAi.css";
 
 type AiChatResponse = {

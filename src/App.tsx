@@ -1,6 +1,6 @@
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import aiLogo from "./assets/AI logo.png";
+import aiLogo from "./assets/AI-logo-transparent.png";
 import citoLogo from "./assets/CITO.svg";
 import {
   bottomActionStackStyle,
@@ -337,11 +337,10 @@ function AppContent() {
                         src={aiLogo}
                         alt=""
                         style={{
-                          width: 36,
-                          height: 36,
-                          objectFit: "cover",
+                          width: 24,
+                          height: 24,
+                          objectFit: "contain",
                           display: "block",
-                          transform: "scale(1.28)",
                         }}
                       />
                     </span>
