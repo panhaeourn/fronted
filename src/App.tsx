@@ -1,6 +1,7 @@
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import aiLogo from "./assets/AI-logo-transparent.png";
+import aiDarkLogo from "./assets/ai dark mode.png";
+import aiWhiteLogo from "./assets/ai-white-mode.jpg";
 import citoLogo from "./assets/CITO.svg";
 import {
   bottomActionStackStyle,
@@ -60,6 +61,7 @@ function AppContent() {
     return saved === "light" ? "light" : "dark";
   });
   const location = useLocation();
+  const aiLogo = theme === "light" ? aiWhiteLogo : aiDarkLogo;
   const isReceiptPrintPage =
     location.pathname.startsWith("/reception/receipt/") &&
     location.pathname.endsWith("/print");

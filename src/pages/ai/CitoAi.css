@@ -34,14 +34,35 @@
   min-width: 0;
 }
 
-.cito-ai-logo {
+.cito-ai-logo-frame {
   width: 62px;
   height: 62px;
-  object-fit: cover;
   border-radius: 18px;
   flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
   border: 1px solid rgba(147, 197, 253, 0.2);
   box-shadow: 0 0 24px rgba(56, 189, 248, 0.24);
+}
+
+.cito-ai-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cito-ai-logo--light {
+  display: none;
+}
+
+:root[data-theme="light"] .cito-ai-logo--dark {
+  display: none;
+}
+
+:root[data-theme="light"] .cito-ai-logo--light {
+  display: block;
 }
 
 .cito-ai-kicker {
@@ -203,7 +224,7 @@
     flex-direction: column;
   }
 
-  .cito-ai-logo {
+  .cito-ai-logo-frame {
     width: 52px;
     height: 52px;
     border-radius: 16px;
