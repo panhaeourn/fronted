@@ -128,18 +128,27 @@ button {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-color: transparent !important;
-  background: transparent !important;
+  border-color: rgba(191, 219, 254, 0.18) !important;
+  background: var(--app-link-bg) !important;
   box-shadow:
     inset 0 0 18px rgba(96, 165, 250, 0.1),
     0 0 24px rgba(96, 165, 250, 0.14) !important;
 }
 
+.sidebar-link-ai::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--app-link-bg);
+}
+
 .sidebar-link-ai::before {
   content: "";
   position: absolute;
-  inset: -120%;
-  z-index: -1;
+  inset: -80%;
+  z-index: -2;
+  border-radius: inherit;
   background: conic-gradient(
     from 0deg,
     #38bdf8,
@@ -151,16 +160,6 @@ button {
     #38bdf8
   );
   animation: ai-rainbow-spin 1.8s linear infinite;
-}
-
-.sidebar-link-ai::after {
-  content: "";
-  position: absolute;
-  inset: 2px;
-  z-index: 0;
-  border-radius: 12px;
-  background: var(--app-link-bg);
-  pointer-events: none;
 }
 
 .sidebar-link-ai > span {
