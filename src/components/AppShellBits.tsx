@@ -90,6 +90,21 @@ export function DashboardIcon() {
   );
 }
 
+export function AiIcon() {
+  return (
+    <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+      <path
+        d="M10 2.8 11.2 7l4.1-1.2-1.2 4.1 4.1 1.2-4.1 1.2 1.2 4.1-4.1-1.2L10 19.2l-1.2-4.1-4.1 1.2 1.2-4.1-4.1-1.2 4.1-1.2-1.2-4.1L8.8 7z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <circle cx="10" cy="10" r="2.1" fill="currentColor" opacity="0.85" />
+    </svg>
+  );
+}
+
 export function CoursesIcon() {
   return (
     <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">

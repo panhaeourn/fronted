@@ -2,6 +2,7 @@ import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from "react
 import { useEffect, useState } from "react";
 import citoLogo from "./assets/CITO.svg";
 import {
+  AiIcon,
   bottomActionStackStyle,
   ClaimIcon,
   CoursesIcon,
@@ -45,6 +46,7 @@ import EditCourse from "./pages/admin/EditCourse";
 import UploadCourseVideo from "./pages/admin/UploadCourseVideo";
 import ManageReceptionist from "./pages/admin/ManageReceptionist";
 import ReceptionistDailyMoney from "./pages/admin/ReceptionistDailyMoney";
+import CitoAi from "./pages/ai/CitoAi";
 
 function AppContent() {
   const { t } = useLanguage();
@@ -316,6 +318,8 @@ function AppContent() {
 
             <>
                 <SidebarLink to="/" icon={<DashboardIcon />} label={t("app.dashboard")} />
+
+                <SidebarLink to="/ai" icon={<AiIcon />} label="CITO AI" />
 
                 {!isAdmin && (
                   <SidebarLink to="/courses" icon={<CoursesIcon />} label={t("app.courses")} />
@@ -591,6 +595,14 @@ function AppContent() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route
+            path="/ai"
+            element={
+              <RequireAuth>
+                <CitoAi />
+              </RequireAuth>
+            }
+          />
           <Route
             path="/courses"
             element={
