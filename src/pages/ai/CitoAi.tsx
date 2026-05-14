@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiFetch } from "../../api";
 import aiLogo from "../../assets/AI logo.png";
 import "./CitoAi.css";
@@ -13,16 +13,49 @@ type ChatMessage = {
   text: string;
 };
 
+type AiChatHistoryResponse = {
+  messages: ChatMessage[];
+};
+
+const GREETING: ChatMessage = {
+  role: "assistant",
+  text: "Hello, I am CITO AI. Ask me about your lesson, course, study plan, or anything you want explained.",
+};
+
 export default function CitoAi() {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: "assistant",
-      text: "Hello, I am CITO AI. Ask me about your lesson, course, study plan, or anything you want explained.",
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
   const [loading, setLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadHistory() {
+      try {
+        const response = await apiFetch<AiChatHistoryResponse>("/api/ai/history");
+        if (!alive) return;
+
+        setMessages(response.messages?.length ? response.messages : [GREETING]);
+      } catch (err) {
+        if (!alive) return;
+        const text = err instanceof Error ? err.message : "Unable to load CITO AI history.";
+        setError(text);
+        setMessages([GREETING]);
+      } finally {
+        if (alive) {
+          setHistoryLoading(false);
+        }
+      }
+    }
+
+    void loadHistory();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   async function sendMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -39,10 +72,7 @@ export default function CitoAi() {
     try {
       const response = await apiFetch<AiChatResponse>("/api/ai/chat", {
         method: "POST",
-        body: JSON.stringify({
-          message: trimmed,
-          messages: nextMessages.slice(-12),
-        }),
+        body: JSON.stringify({ message: trimmed }),
       });
 
       setMessages((current) => [
@@ -98,6 +128,13 @@ export default function CitoAi() {
             <article className="cito-ai-message cito-ai-message--assistant">
               <span className="cito-ai-message-label">CITO AI</span>
               <p>Thinking...</p>
+            </article>
+          )}
+
+          {historyLoading && (
+            <article className="cito-ai-message cito-ai-message--assistant">
+              <span className="cito-ai-message-label">CITO AI</span>
+              <p>Loading your last 3 days of chat...</p>
             </article>
           )}
         </div>
