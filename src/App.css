@@ -130,27 +130,18 @@ button {
   overflow: hidden;
   border-color: rgba(191, 219, 254, 0.18) !important;
   background: var(--app-link-bg) !important;
-  box-shadow:
-    inset 0 0 18px rgba(96, 165, 250, 0.1),
-    0 0 24px rgba(96, 165, 250, 0.14) !important;
+  box-shadow: 0 0 24px rgba(96, 165, 250, 0.14) !important;
+  animation: ai-rainbow-border 3.2s linear infinite;
 }
 
 .sidebar-link-ai::after {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: -1;
-  background: var(--app-link-bg);
-}
-
-.sidebar-link-ai::before {
-  content: "";
-  position: absolute;
-  inset: -80%;
-  z-index: -2;
   border-radius: inherit;
+  padding: 2px;
   background: conic-gradient(
-    from 0deg,
+    from var(--ai-glow-angle, 0deg),
     #38bdf8,
     #2563eb,
     #8b5cf6,
@@ -159,28 +150,33 @@ button {
     #22c55e,
     #38bdf8
   );
-  animation: ai-rainbow-spin 1.8s linear infinite;
-}
-
-.sidebar-link-ai > span {
-  position: relative;
-  z-index: 1;
-}
-
-.sidebar-link-ai {
-  padding: 13px 16px !important;
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: ai-rainbow-border 3.2s linear infinite;
 }
 
 .sidebar-link-ai:hover {
   box-shadow:
     0 16px 34px rgba(0, 0, 0, 0.24),
-    0 0 18px rgba(56, 189, 248, 0.3),
-    0 0 34px rgba(236, 72, 153, 0.18) !important;
+    0 0 28px rgba(96, 165, 250, 0.22) !important;
 }
 
-@keyframes ai-rainbow-spin {
+@property --ai-glow-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes ai-rainbow-border {
   to {
-    transform: rotate(360deg);
+    --ai-glow-angle: 360deg;
   }
 }
 
