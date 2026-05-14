@@ -7,13 +7,11 @@ export function SidebarLink({
   icon,
   label,
   className,
-  decoration,
 }: {
   to: string;
   icon: ReactNode;
   label: string;
   className?: string;
-  decoration?: ReactNode;
 }) {
   return (
     <Link className={["sidebar-link-pop", className].filter(Boolean).join(" ")} style={linkStyle} to={to}>
@@ -21,7 +19,6 @@ export function SidebarLink({
         <span style={sidebarIconWrapStyle}>{icon}</span>
         <span>{label}</span>
       </span>
-      {decoration}
     </Link>
   );
 }
