@@ -127,27 +127,37 @@ button {
 .sidebar-link-ai {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
-  border-color: rgba(191, 219, 254, 0.18) !important;
-  background: var(--app-link-bg) !important;
+  overflow: visible;
+  border: 2px solid transparent !important;
+  background:
+    linear-gradient(var(--app-link-bg), var(--app-link-bg)) padding-box,
+    linear-gradient(
+      90deg,
+      #38bdf8,
+      #2563eb,
+      #8b5cf6,
+      #ec4899,
+      #f97316,
+      #22c55e,
+      #38bdf8
+    ) border-box !important;
+  background-size: 100% 100%, 320% 100% !important;
   box-shadow:
-    0 0 0 1px rgba(56, 189, 248, 0.22),
-    0 0 18px rgba(56, 189, 248, 0.34),
-    0 0 34px rgba(236, 72, 153, 0.2),
-    inset 0 0 18px rgba(56, 189, 248, 0.12) !important;
+    inset 0 0 18px rgba(56, 189, 248, 0.12),
+    0 0 18px rgba(56, 189, 248, 0.24) !important;
   animation:
-    ai-rainbow-border 3.2s linear infinite,
+    ai-rainbow-border 2.4s linear infinite,
     ai-border-glow 1.9s ease-in-out infinite alternate;
 }
 
-.sidebar-link-ai::after {
+.sidebar-link-ai::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -9px;
+  z-index: -1;
   border-radius: inherit;
-  padding: 3px;
-  background: conic-gradient(
-    from var(--ai-glow-angle, 0deg),
+  background: linear-gradient(
+    90deg,
     #38bdf8,
     #2563eb,
     #8b5cf6,
@@ -156,17 +166,18 @@ button {
     #22c55e,
     #38bdf8
   );
-  opacity: 0.96;
+  background-size: 320% 100%;
+  filter: blur(14px);
+  opacity: 0.72;
   pointer-events: none;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  animation: ai-rainbow-border 3.2s linear infinite;
+  animation:
+    ai-rainbow-border 2.4s linear infinite,
+    ai-aura-pulse 1.8s ease-in-out infinite alternate;
+}
+
+.sidebar-link-ai > span {
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar-link-ai:hover {
@@ -177,15 +188,12 @@ button {
     inset 0 0 20px rgba(56, 189, 248, 0.16) !important;
 }
 
-@property --ai-glow-angle {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-
 @keyframes ai-rainbow-border {
+  from {
+    background-position: 0% 50%, 0% 50%;
+  }
   to {
-    --ai-glow-angle: 360deg;
+    background-position: 0% 50%, 320% 50%;
   }
 }
 
@@ -195,6 +203,17 @@ button {
   }
   to {
     filter: brightness(1.18);
+  }
+}
+
+@keyframes ai-aura-pulse {
+  from {
+    opacity: 0.46;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 0.86;
+    transform: scale(1.025);
   }
 }
 
