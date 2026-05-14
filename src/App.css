@@ -130,8 +130,14 @@ button {
   overflow: hidden;
   border-color: rgba(191, 219, 254, 0.18) !important;
   background: var(--app-link-bg) !important;
-  box-shadow: 0 0 24px rgba(96, 165, 250, 0.14) !important;
-  animation: ai-rainbow-border 3.2s linear infinite;
+  box-shadow:
+    0 0 0 1px rgba(56, 189, 248, 0.22),
+    0 0 18px rgba(56, 189, 248, 0.34),
+    0 0 34px rgba(236, 72, 153, 0.2),
+    inset 0 0 18px rgba(56, 189, 248, 0.12) !important;
+  animation:
+    ai-rainbow-border 3.2s linear infinite,
+    ai-border-glow 1.9s ease-in-out infinite alternate;
 }
 
 .sidebar-link-ai::after {
@@ -139,7 +145,7 @@ button {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: 2px;
+  padding: 3px;
   background: conic-gradient(
     from var(--ai-glow-angle, 0deg),
     #38bdf8,
@@ -150,6 +156,7 @@ button {
     #22c55e,
     #38bdf8
   );
+  opacity: 0.96;
   pointer-events: none;
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -165,7 +172,9 @@ button {
 .sidebar-link-ai:hover {
   box-shadow:
     0 16px 34px rgba(0, 0, 0, 0.24),
-    0 0 28px rgba(96, 165, 250, 0.22) !important;
+    0 0 22px rgba(56, 189, 248, 0.48),
+    0 0 42px rgba(236, 72, 153, 0.32),
+    inset 0 0 20px rgba(56, 189, 248, 0.16) !important;
 }
 
 @property --ai-glow-angle {
@@ -177,6 +186,15 @@ button {
 @keyframes ai-rainbow-border {
   to {
     --ai-glow-angle: 360deg;
+  }
+}
+
+@keyframes ai-border-glow {
+  from {
+    filter: brightness(1);
+  }
+  to {
+    filter: brightness(1.18);
   }
 }
 
