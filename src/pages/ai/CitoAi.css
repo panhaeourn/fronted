@@ -35,9 +35,9 @@
 }
 
 .cito-ai-logo-frame {
-  width: 62px;
-  height: 62px;
-  border-radius: 18px;
+  width: 82px;
+  height: 82px;
+  border-radius: 22px;
   flex-shrink: 0;
   display: inline-grid;
   place-items: center;
@@ -225,9 +225,9 @@
   }
 
   .cito-ai-logo-frame {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
   }
 
   .cito-ai-header h1 {
