@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "firebase/auth";
 import { apiFetch } from "../../api";
 import {
@@ -29,6 +29,7 @@ type ResetChannel = "FIREBASE" | "EMAIL" | null;
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [identifier, setIdentifier] = useState("");
   const [message, setMessage] = useState("");
   const [debugResetUrl, setDebugResetUrl] = useState("");
@@ -42,6 +43,14 @@ export default function ForgotPassword() {
 
   const trimmedIdentifier = identifier.trim();
   const isEmailIdentifier = trimmedIdentifier.includes("@");
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const queryIdentifier = params.get("identifier");
+    if (queryIdentifier) {
+      setIdentifier(queryIdentifier);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     return () => {

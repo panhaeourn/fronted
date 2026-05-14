@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useLanguage } from "../../lib/language";
 
 type SettingsSection = "profile" | "security" | "notifications" | "appearance" | "help";
@@ -197,6 +198,20 @@ export default function Settings({
 
           {activeSection === "security" && (
             <div style={sectionStackStyle}>
+              <div style={securityActionCardStyle}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={noteCardTitleStyle}>{t("settings.changePassword")}</div>
+                  <div style={noteCardTextStyle}>{t("settings.changePasswordDesc")}</div>
+                </div>
+
+                <Link
+                  to={`/forgot-password?identifier=${encodeURIComponent(me.email || "")}`}
+                  style={actionLinkStyle}
+                >
+                  {t("settings.changePasswordAction")}
+                </Link>
+              </div>
+
               <div style={gridStyle}>
                 <InfoCard label={t("settings.signInMethod")} value={t("settings.protectedSession")} />
                 <InfoCard label={t("settings.primaryIdentity")} value={me.email || "-"} />
@@ -346,12 +361,17 @@ export default function Settings({
                 <InfoCard
                   label={t("settings.telegram")}
                   value={
-                    <div style={socialCardValueStyle}>
+                    <a
+                      href="https://t.me/EournPanhaa"
+                      target="_blank"
+                      rel="noreferrer"
+                      style={socialLinkStyle}
+                    >
                       <span style={socialIconWrapStyle}>
                         <TelegramIcon />
                       </span>
                       <span>{t("settings.telegramValue")}</span>
-                    </div>
+                    </a>
                   }
                 />
                 <InfoCard
@@ -718,12 +738,6 @@ const socialLinkStyle: React.CSSProperties = {
   fontWeight: 800,
 };
 
-const socialCardValueStyle: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 10,
-};
-
 const socialIconWrapStyle: React.CSSProperties = {
   width: 28,
   height: 28,
@@ -742,6 +756,30 @@ const noteCardStyle: React.CSSProperties = {
   background: "var(--app-card-solid-bg)",
   border: "1px solid var(--app-border-soft)",
   boxShadow: "var(--app-glow-soft)",
+};
+
+const securityActionCardStyle: React.CSSProperties = {
+  ...noteCardStyle,
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 16,
+  flexWrap: "wrap",
+};
+
+const actionLinkStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minHeight: 44,
+  padding: "0 18px",
+  borderRadius: 14,
+  border: "1px solid rgba(96, 165, 250, 0.38)",
+  background: "linear-gradient(135deg, rgba(61, 118, 255, 0.9), rgba(33, 211, 255, 0.78))",
+  color: "#ffffff",
+  textDecoration: "none",
+  fontWeight: 800,
+  boxShadow: "0 14px 30px rgba(61, 118, 255, 0.22)",
 };
 
 const noteCardTitleStyle: React.CSSProperties = {
