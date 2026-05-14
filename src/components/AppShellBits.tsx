@@ -6,13 +6,15 @@ export function SidebarLink({
   to,
   icon,
   label,
+  className,
 }: {
   to: string;
   icon: ReactNode;
   label: string;
+  className?: string;
 }) {
   return (
-    <Link className="sidebar-link-pop" style={linkStyle} to={to}>
+    <Link className={["sidebar-link-pop", className].filter(Boolean).join(" ")} style={linkStyle} to={to}>
       <span style={sidebarLinkInnerStyle}>
         <span style={sidebarIconWrapStyle}>{icon}</span>
         <span>{label}</span>

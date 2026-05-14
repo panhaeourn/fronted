@@ -323,6 +323,7 @@ function AppContent() {
 
                 <SidebarLink
                   to="/ai"
+                  className="sidebar-link-ai"
                   icon={
                     <span
                       style={{
