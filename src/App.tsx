@@ -322,17 +322,29 @@ function AppContent() {
                 <SidebarLink
                   to="/ai"
                   icon={
-                    <img
-                      src={aiLogo}
-                      alt=""
+                    <span
                       style={{
                         width: 22,
                         height: 22,
-                        objectFit: "cover",
-                        borderRadius: 7,
-                        display: "block",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
+                        borderRadius: 6,
                       }}
-                    />
+                    >
+                      <img
+                        src={aiLogo}
+                        alt=""
+                        style={{
+                          width: 36,
+                          height: 36,
+                          objectFit: "cover",
+                          display: "block",
+                          transform: "scale(1.28)",
+                        }}
+                      />
+                    </span>
                   }
                   label="CITO AI"
                 />
