@@ -326,21 +326,21 @@ function AppContent() {
                   icon={
                     <span
                       style={{
-                        width: 26,
-                        height: 26,
+                        width: 34,
+                        height: 34,
                         display: "inline-flex",
                         alignItems: "center",
                         justifyContent: "center",
                         overflow: "hidden",
-                        borderRadius: 8,
+                        borderRadius: 10,
                       }}
                     >
                       <img
                         src={aiLogo}
                         alt=""
                         style={{
-                          width: 32,
-                          height: 32,
+                          width: 42,
+                          height: 42,
                           objectFit: "cover",
                           display: "block",
                         }}
