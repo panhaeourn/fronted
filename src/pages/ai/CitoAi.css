@@ -65,13 +65,13 @@
   max-width: min(760px, 86%);
   padding: 14px 16px;
   border-radius: 18px;
-  border: 1px solid rgba(147, 197, 253, 0.16);
-  box-shadow: 0 14px 30px rgba(2, 8, 23, 0.18);
+  border: var(--app-panel-border);
+  box-shadow: var(--app-glow-soft);
 }
 
 .cito-ai-message--assistant {
   align-self: flex-start;
-  background: rgba(7, 17, 42, 0.72);
+  background: var(--app-card-solid-bg);
 }
 
 .cito-ai-message--user {
@@ -99,9 +99,9 @@
 .cito-ai-error {
   padding: 10px 12px;
   border-radius: 14px;
-  color: #fecaca;
-  background: rgba(127, 29, 29, 0.34);
-  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: var(--app-danger-text);
+  background: var(--app-danger-bg);
+  border: 1px solid var(--app-danger-border);
   font-size: 14px;
 }
 
@@ -118,12 +118,16 @@
   resize: vertical;
   padding: 14px 16px;
   border-radius: 18px;
-  border: 1px solid rgba(147, 197, 253, 0.18);
-  background: rgba(5, 12, 31, 0.74);
-  color: var(--app-heading);
+  border: 1px solid var(--app-input-border);
+  background: var(--app-input-bg);
+  color: var(--app-input-text);
   font: inherit;
   box-sizing: border-box;
   outline: none;
+}
+
+.cito-ai-form textarea::placeholder {
+  color: var(--app-muted);
 }
 
 .cito-ai-form textarea:focus {
@@ -147,6 +151,28 @@
 .cito-ai-form button:disabled {
   cursor: not-allowed;
   opacity: 0.56;
+}
+
+:root[data-theme="light"] .cito-ai-shell {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(96, 165, 250, 0.18), transparent 25%),
+    radial-gradient(circle at 18% 82%, rgba(14, 165, 233, 0.12), transparent 30%),
+    var(--app-panel-bg);
+}
+
+:root[data-theme="light"] .cito-ai-message--user {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.94), rgba(2, 132, 199, 0.9));
+}
+
+:root[data-theme="light"] .cito-ai-message--user .cito-ai-message-label,
+:root[data-theme="light"] .cito-ai-message--user p {
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .cito-ai-model {
+  color: #075985;
+  background: rgba(14, 165, 233, 0.12);
+  border-color: rgba(14, 165, 233, 0.22);
 }
 
 @media (max-width: 720px) {
