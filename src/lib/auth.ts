@@ -9,6 +9,8 @@ export type Me = {
   name?: string;
   picture?: string;
   role?: string;
+  authProvider?: "CITO" | "GOOGLE";
+  passwordLoginEnabled?: boolean;
 };
 
 export type AuthUser = {
@@ -18,6 +20,8 @@ export type AuthUser = {
   name: string;
   picture?: string;
   role: Role;
+  authProvider: "CITO" | "GOOGLE";
+  passwordLoginEnabled: boolean;
 };
 
 export function normalizeRole(role?: string): Role {
@@ -40,6 +44,8 @@ export function normalizeMe(me: Me | null | undefined): AuthUser | null {
     name: me.name || me.username || me.email,
     picture: me.picture,
     role: normalizeRole(me.role),
+    authProvider: me.authProvider === "GOOGLE" ? "GOOGLE" : "CITO",
+    passwordLoginEnabled: me.passwordLoginEnabled ?? me.authProvider !== "GOOGLE",
   };
 }
 

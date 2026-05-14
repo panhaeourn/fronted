@@ -43,6 +43,7 @@ export default function Login() {
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
+      localStorage.setItem("cito-auth-method", "CITO");
       await refreshMe();
       navigate(destination, { replace: true });
     } catch (error: unknown) {

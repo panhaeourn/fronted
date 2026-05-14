@@ -19,6 +19,7 @@ export default function OAuthSuccess() {
       if (cancelled) return;
 
       if (me) {
+        localStorage.setItem("cito-auth-method", "GOOGLE");
         nav("/", { replace: true });
         return;
       }

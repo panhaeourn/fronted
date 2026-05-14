@@ -11,6 +11,8 @@ type SettingsUser = {
   name: string;
   picture?: string;
   role: "ADMIN" | "RECEPTIONIST" | "USER";
+  authProvider?: "CITO" | "GOOGLE";
+  passwordLoginEnabled?: boolean;
 };
 
 type NotificationPreferences = {
@@ -97,6 +99,8 @@ export default function Settings({
   );
 
   const activeMeta = sections.find((section) => section.id === activeSection) || sections[0];
+  const passwordLoginEnabled = me?.passwordLoginEnabled ?? me?.authProvider !== "GOOGLE";
+  const isGoogleOnlyAccount = !passwordLoginEnabled;
 
   if (!me) {
     return (
@@ -200,23 +204,44 @@ export default function Settings({
             <div style={sectionStackStyle}>
               <div style={securityActionCardStyle}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={noteCardTitleStyle}>{t("settings.changePassword")}</div>
-                  <div style={noteCardTextStyle}>{t("settings.changePasswordDesc")}</div>
+                  <div style={noteCardTitleStyle}>
+                    {isGoogleOnlyAccount ? t("settings.googlePassword") : t("settings.changePassword")}
+                  </div>
+                  <div style={noteCardTextStyle}>
+                    {isGoogleOnlyAccount ? t("settings.googlePasswordDesc") : t("settings.changePasswordDesc")}
+                  </div>
                 </div>
 
-                <Link
-                  to={`/forgot-password?identifier=${encodeURIComponent(me.email || "")}`}
-                  style={actionLinkStyle}
-                >
-                  {t("settings.changePasswordAction")}
-                </Link>
+                {isGoogleOnlyAccount ? (
+                  <a
+                    href="https://myaccount.google.com/security"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={actionLinkStyle}
+                  >
+                    {t("settings.openGoogleSecurity")}
+                  </a>
+                ) : (
+                  <Link
+                    to={`/forgot-password?identifier=${encodeURIComponent(me.email || "")}`}
+                    style={actionLinkStyle}
+                  >
+                    {t("settings.changePasswordAction")}
+                  </Link>
+                )}
               </div>
 
               <div style={gridStyle}>
-                <InfoCard label={t("settings.signInMethod")} value={t("settings.protectedSession")} />
+                <InfoCard
+                  label={t("settings.signInMethod")}
+                  value={isGoogleOnlyAccount ? t("settings.googleAccount") : t("settings.citoPasswordAccount")}
+                />
                 <InfoCard label={t("settings.primaryIdentity")} value={me.email || "-"} />
                 <InfoCard label={t("settings.accessLevel")} value={me.role} />
-                <InfoCard label={t("settings.recommendation")} value={t("settings.strongPassword")} />
+                <InfoCard
+                  label={t("settings.recommendation")}
+                  value={isGoogleOnlyAccount ? t("settings.googlePasswordRecommendation") : t("settings.strongPassword")}
+                />
               </div>
 
               <div style={noteCardStyle}>

@@ -77,6 +77,7 @@ export default function Register() {
         }),
       });
 
+      localStorage.setItem("cito-auth-method", "CITO");
       setMsg(t("auth.registerSuccess"));
       const me = await refreshMe();
       navigate(me ? "/" : "/login", { replace: true });
