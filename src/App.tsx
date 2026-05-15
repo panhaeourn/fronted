@@ -333,17 +333,21 @@ function AppContent() {
                         alignItems: "center",
                         justifyContent: "center",
                         overflow: "hidden",
-                        borderRadius: 10,
+                        borderRadius: "50%",
+                        aspectRatio: "1 / 1",
+                        clipPath: "circle(50%)",
+                        flexShrink: 0,
                       }}
                     >
                       <img
                         src={aiLogo}
                         alt=""
                         style={{
-                          width: 42,
-                          height: 42,
+                          width: "100%",
+                          height: "100%",
                           objectFit: "cover",
                           display: "block",
+                          borderRadius: "50%",
                         }}
                       />
                     </span>
