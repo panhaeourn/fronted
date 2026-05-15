@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { apiFetch } from "../../api";
 import aiDarkLogo from "../../assets/ai dark mode.png";
 import aiWhiteLogo from "../../assets/ai-white-mode.jpg";
+import { useAuth } from "../../lib/auth-context";
 import "./CitoAi.css";
 
 type AiChatResponse = {
@@ -24,11 +25,13 @@ const GREETING: ChatMessage = {
 };
 
 export default function CitoAi() {
+  const { me } = useAuth();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
   const [loading, setLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState("");
+  const profileName = me?.name || me?.username || me?.email || "You";
 
   useEffect(() => {
     let alive = true;
@@ -122,7 +125,7 @@ export default function CitoAi() {
               key={`${item.role}-${index}`}
             >
               <span className="cito-ai-message-label">
-                {item.role === "assistant" ? "CITO AI" : "You"}
+                {item.role === "assistant" ? "CITO AI" : profileName}
               </span>
               <p>{item.text}</p>
             </article>
