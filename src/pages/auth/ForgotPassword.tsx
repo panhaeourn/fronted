@@ -272,18 +272,17 @@ export default function ForgotPassword() {
             <div style={eyebrowStyle}>Account Recovery</div>
             <h2 style={titleStyle}>Forgot Password</h2>
             <p style={subtitleStyle}>
-              Enter the email or phone number linked to your CITO account. This only changes your
-              CITO password, not your Google account password.
+              Use this page only if you created a CITO password. If you normally use the Google
+              button, go back to login and continue with Google.
             </p>
           </div>
 
           <div style={stackStyle}>
             <div style={accountTypeNoteStyle}>
-              <div style={accountTypeTitleStyle}>CITO password vs Google password</div>
+              <div style={accountTypeTitleStyle}>Which sign-in method do you use?</div>
               <div style={accountTypeTextStyle}>
-                If you registered with a CITO password, reset it here. If you sign in with Google,
-                use the Google button on the login page; Google passwords are changed in your
-                Google account.
+                CITO account: reset your password here. Google account: use Continue with Google
+                on the login page, or manage your Google Account from Google.
               </div>
             </div>
 

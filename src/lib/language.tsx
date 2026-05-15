@@ -69,13 +69,13 @@ const translations = {
     "settings.changePasswordDesc":
       "Send a secure reset link or verification code to this account so you can choose a new password.",
     "settings.changePasswordAction": "Change Password",
-    "settings.googlePassword": "Google password",
+    "settings.googlePassword": "Google sign-in",
     "settings.googlePasswordDesc":
-      "This account signs in with Google. CITO cannot change your Google password, so manage it in your Google account.",
-    "settings.openGoogleSecurity": "Open Google Security",
+      "This account uses the Google button to sign in. CITO does not control that password.",
+    "settings.openGoogleSecurity": "Manage Google Account",
     "settings.googleAccount": "Google account",
     "settings.citoPasswordAccount": "CITO password account",
-    "settings.googlePasswordRecommendation": "Use Google Security to manage this password",
+    "settings.googlePasswordRecommendation": "Use Continue with Google to sign in",
     "settings.securityGuidance": "Security guidance",
     "settings.securityGuide1": "Sign out when using a shared computer.",
     "settings.securityGuide2":
@@ -220,13 +220,13 @@ const translations = {
     "settings.changePasswordDesc":
       "ផ្ញើតំណកំណត់ឡើងវិញ ឬលេខកូដផ្ទៀងផ្ទាត់សុវត្ថិភាពទៅគណនីនេះ ដើម្បីជ្រើសពាក្យសម្ងាត់ថ្មី។",
     "settings.changePasswordAction": "ប្តូរពាក្យសម្ងាត់",
-    "settings.googlePassword": "ពាក្យសម្ងាត់ Google",
+    "settings.googlePassword": "ចូលប្រើតាម Google",
     "settings.googlePasswordDesc":
-      "គណនីនេះចូលប្រើតាម Google។ CITO មិនអាចប្តូរពាក្យសម្ងាត់ Google របស់អ្នកបានទេ ដូច្នេះសូមគ្រប់គ្រងវានៅក្នុងគណនី Google។",
-    "settings.openGoogleSecurity": "បើក Google Security",
+      "គណនីនេះប្រើប៊ូតុង Google ដើម្បីចូល។ CITO មិនគ្រប់គ្រងពាក្យសម្ងាត់នោះទេ។",
+    "settings.openGoogleSecurity": "គ្រប់គ្រងគណនី Google",
     "settings.googleAccount": "គណនី Google",
     "settings.citoPasswordAccount": "គណនីពាក្យសម្ងាត់ CITO",
-    "settings.googlePasswordRecommendation": "ប្រើ Google Security ដើម្បីគ្រប់គ្រងពាក្យសម្ងាត់នេះ",
+    "settings.googlePasswordRecommendation": "ប្រើ Continue with Google ដើម្បីចូលប្រើ",
     "settings.securityGuidance": "ការណែនាំសុវត្ថិភាព",
     "settings.securityGuide1": "សូមចេញពីគណនីនៅពេលប្រើកុំព្យូទ័ររួម។",
     "settings.securityGuide2": "កុំចែករំលែកសិទ្ធិអ្នកទទួលភ្ញៀវ ឬអ្នកគ្រប់គ្រងឲ្យអ្នកផ្សេង។",
