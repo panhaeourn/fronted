@@ -333,7 +333,7 @@ function AppContent() {
                         alignItems: "center",
                         justifyContent: "center",
                         overflow: "hidden",
-                        borderRadius: 10,
+                        borderRadius: "50%",
                       }}
                     >
                       <img
