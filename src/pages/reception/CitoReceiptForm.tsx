@@ -664,104 +664,13 @@ export default function CitoReceiptForm() {
         </section>
 
         <aside style={sidePanelStyle}>
-          <div style={sectionTitleStyle}>
-            {form.receiptType === "MONTHLY" ? "Monthly Payment Tracking" : "Bakong Payment"}
-          </div>
-          <p style={sideTextStyle}>
-            {form.receiptType === "MONTHLY"
-              ? "Create the monthly student once here. After that, search by the monthly student ID in receipt list and use Mark Paid there for each next month."
-              : "Generate a QR after entering the book price. The QR text and transaction hash will be saved with the receipt. The receipt can be used as proof for online or in-class study."}
-          </p>
-
-          <div style={summaryCardStyle}>
-            <div style={summaryLabelStyle}>Receipt Type</div>
-            <div style={{ ...summaryValueStyle, fontSize: 22 }}>
-              {form.receiptType === "MONTHLY" ? "Monthly" : "Course"}
-            </div>
-          </div>
+          <div style={sectionTitleStyle}>Bakong Payment</div>
 
           <div style={summaryCardStyle}>
             <div style={summaryLabelStyle}>Course</div>
             <div style={{ ...summaryValueStyle, fontSize: 17, lineHeight: 1.35 }}>
               {form.courseName || "—"}
             </div>
-          </div>
-
-          <div style={summaryCardStyle}>
-            <div style={summaryLabelStyle}>Student Name in English</div>
-            <div style={{ ...summaryValueStyle, fontSize: 17, lineHeight: 1.35 }}>
-              {form.studentNameEnglish || "—"}
-            </div>
-          </div>
-
-          <div style={summaryCardStyle}>
-            <div style={summaryLabelStyle}>Student Name in Khmer</div>
-            <div style={{ ...summaryValueStyle, fontSize: 17, lineHeight: 1.35 }}>
-              {form.studentNameKhmer || "—"}
-            </div>
-          </div>
-
-          <div style={summaryCardStyle}>
-            <div style={summaryLabelStyle}>Contact Information</div>
-            <div style={{ ...summaryValueStyle, fontSize: 17, lineHeight: 1.35 }}>
-              {form.contactInfo || "—"}
-            </div>
-          </div>
-
-          {form.receiptType === "MONTHLY" && (
-            <div style={summaryCardStyle}>
-              <div style={summaryLabelStyle}>Monthly Student ID</div>
-              <div style={{ ...summaryValueStyle, fontSize: 22 }}>
-                {form.studentCode || "Auto-generate after save"}
-              </div>
-            </div>
-          )}
-
-          {form.receiptType === "MONTHLY" && (
-            <div style={summaryCardStyle}>
-              <div style={summaryLabelStyle}>Month Period</div>
-              <div style={{ ...summaryValueStyle, fontSize: 22 }}>
-                {formatMonthlyPeriod(form.monthlyPeriod)}
-              </div>
-              <div style={{ color: "var(--app-muted-strong)", fontSize: 14, marginTop: 6 }}>
-                {formatMonthlyRangeLabel(form.monthlyPeriod, form.createdAt)}
-              </div>
-            </div>
-          )}
-
-          <div style={summaryCardStyle}>
-            <div style={summaryLabelStyle}>Book Price</div>
-            <div style={summaryValueStyle}>
-              {form.bookPrice ? `$${Number(form.bookPrice).toFixed(2)}` : "$0.00"}
-            </div>
-          </div>
-
-          <div style={summaryCardStyle}>
-            <div style={summaryLabelStyle}>
-              {form.receiptType === "MONTHLY" ? "Monthly Price" : "Course Price"}
-            </div>
-            <div style={summaryValueStyle}>
-              {form.programPrice ? `$${Number(form.programPrice).toFixed(2)}` : "$0.00"}
-            </div>
-          </div>
-
-          <div style={summaryCardStyle}>
-            <div style={summaryLabelStyle}>Total Price</div>
-            <div style={summaryValueStyle}>
-              {form.totalPrice ? `$${Number(form.totalPrice).toFixed(2)}` : "$0.00"}
-            </div>
-          </div>
-
-          <div style={summaryCardStyle}>
-            <div style={summaryLabelStyle}>Schedule</div>
-            <div style={{ ...summaryValueStyle, fontSize: 17, lineHeight: 1.35 }}>
-              {form.schedule || "—"}
-            </div>
-          </div>
-
-          <div style={summaryCardStyle}>
-            <div style={summaryLabelStyle}>Payment Status</div>
-            <div style={{ ...summaryValueStyle, fontSize: 22 }}>Pending</div>
           </div>
 
           {qrImage ? (
@@ -1046,12 +955,6 @@ const secondaryButtonStyle: CSSProperties = {
   border: "1px solid var(--app-secondary-border)",
   fontWeight: 700,
   boxShadow: "var(--app-glow-soft)",
-};
-
-const sideTextStyle: CSSProperties = {
-  color: "var(--app-subtle-text)",
-  lineHeight: 1.7,
-  marginTop: 0,
 };
 
 const summaryCardStyle: CSSProperties = {
