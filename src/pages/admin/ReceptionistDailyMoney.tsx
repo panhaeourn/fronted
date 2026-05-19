@@ -602,9 +602,9 @@ function formatRangeLabel(range: RangeView) {
 const backBtn: React.CSSProperties = {
   padding: "10px 16px",
   borderRadius: 12,
-  border: "1px solid rgba(191, 219, 254, 0.22)",
-  background: "rgba(96, 165, 250, 0.14)",
-  color: "#dbeafe",
+  border: "1px solid var(--app-secondary-border)",
+  background: "var(--app-link-bg)",
+  color: "var(--app-link-color)",
   fontWeight: 700,
   cursor: "pointer",
 };
