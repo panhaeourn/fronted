@@ -101,3 +101,36 @@ export function readFileAsDataUrl(file: File) {
     reader.readAsDataURL(file);
   });
 }
+
+export async function readImageFileAsCompressedDataUrl(file: File) {
+  const dataUrl = await readFileAsDataUrl(file);
+  return compressImageDataUrl(dataUrl);
+}
+
+function compressImageDataUrl(dataUrl: string) {
+  return new Promise<string>((resolve) => {
+    const image = new Image();
+
+    image.onload = () => {
+      const maxSize = 1200;
+      const ratio = Math.min(1, maxSize / Math.max(image.width, image.height));
+      const width = Math.max(1, Math.round(image.width * ratio));
+      const height = Math.max(1, Math.round(image.height * ratio));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const context = canvas.getContext("2d");
+      if (!context) {
+        resolve(dataUrl);
+        return;
+      }
+
+      context.drawImage(image, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", 0.86));
+    };
+
+    image.onerror = () => resolve(dataUrl);
+    image.src = dataUrl;
+  });
+}

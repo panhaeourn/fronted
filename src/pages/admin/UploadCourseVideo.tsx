@@ -5,7 +5,7 @@ import type { CourseRecord } from "../../lib/domain-types";
 import { getErrorMessage } from "../../lib/errors";
 import {
   getTeacherPhotoConfig,
-  readFileAsDataUrl,
+  readImageFileAsCompressedDataUrl,
   removeTeacherPhoto,
   setTeacherPhoto,
 } from "../../lib/courseTeacherPhoto";
@@ -400,12 +400,20 @@ export default function UploadCourseVideo() {
                       if (!selectedFile) return;
 
                       try {
-                        const dataUrl = await readFileAsDataUrl(selectedFile);
+                        const dataUrl = await readImageFileAsCompressedDataUrl(selectedFile);
+                        const photoConfig = {
+                          src: dataUrl,
+                          positionX: 50,
+                          positionY: 0,
+                          bottomDarkness: 90,
+                          scale: 1,
+                        };
+                        setTeacherPhoto(Number(id), photoConfig);
                         setTeacherPhotoState(dataUrl);
-                        setPhotoPositionX(50);
-                        setPhotoPositionY(0);
-                        setBottomDarkness(90);
-                        setPhotoScale(1);
+                        setPhotoPositionX(photoConfig.positionX);
+                        setPhotoPositionY(photoConfig.positionY);
+                        setBottomDarkness(photoConfig.bottomDarkness);
+                        setPhotoScale(photoConfig.scale);
                         setPhotoAutoSaveMessage("Teacher photo saved automatically.");
                       } catch (error: unknown) {
                         setErr(getErrorMessage(error, "Failed to load image"));
