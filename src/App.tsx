@@ -168,8 +168,7 @@ function AppContent() {
             width: 56,
             zIndex: 4,
             pointerEvents: "none",
-            background:
-              "linear-gradient(180deg, rgba(8, 20, 46, 0.96), rgba(5, 13, 31, 0.94))",
+            background: "var(--app-sidebar-bg)",
             border: "var(--app-sidebar-border)",
             borderRadius: 22,
             boxShadow: "var(--app-sidebar-shadow)",
