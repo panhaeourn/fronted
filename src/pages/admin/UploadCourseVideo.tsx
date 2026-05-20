@@ -40,6 +40,9 @@ export default function UploadCourseVideo() {
   const [photoPositionY, setPhotoPositionY] = useState(0);
   const [bottomDarkness, setBottomDarkness] = useState(90);
   const [photoScale, setPhotoScale] = useState(1);
+  const [teacherPhotoUploadName, setTeacherPhotoUploadName] =
+    useState("teacher-photo.jpg");
+  const [photoSaving, setPhotoSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [pageLoading, setPageLoading] = useState(false);
@@ -127,6 +130,48 @@ export default function UploadCourseVideo() {
     form.append("title", uploadTitle);
 
     await uploadCourseVideo(id, form, setUploadProgress);
+  }
+
+  async function saveTeacherPhotoToCloudflare(
+    dataUrl = teacherPhoto,
+    originalFileName = teacherPhotoUploadName,
+    photoConfig: TeacherPhotoConfig = {
+      src: dataUrl,
+      positionX: photoPositionX,
+      positionY: photoPositionY,
+      bottomDarkness,
+      scale: photoScale,
+    }
+  ) {
+    if (!id) return;
+
+    if (!dataUrl.startsWith("data:")) {
+      setPhotoAutoSaveMessage("Teacher photo is already saved to website.");
+      return;
+    }
+
+    try {
+      setErr("");
+      setPhotoSaving(true);
+      setPhotoAutoSaveMessage("Saving teacher photo to Cloudflare...");
+
+      const savedCourse = await uploadCourseTeacherPhoto(
+        Number(id),
+        dataUrl,
+        originalFileName,
+        photoConfig
+      );
+      setCourse(savedCourse);
+      const savedPhotoConfig = getCourseTeacherPhotoConfig(savedCourse);
+      setTeacherPhotoState(savedPhotoConfig.src);
+      setTeacherPhoto(Number(id), savedPhotoConfig);
+      setPhotoAutoSaveMessage("Teacher photo saved to website.");
+    } catch (error: unknown) {
+      setErr(getErrorMessage(error, "Failed to save teacher photo"));
+      setPhotoAutoSaveMessage("Teacher photo is only saved on this browser.");
+    } finally {
+      setPhotoSaving(false);
+    }
   }
 
   async function handleUpload(e: React.FormEvent) {
@@ -418,25 +463,18 @@ export default function UploadCourseVideo() {
                           bottomDarkness: 90,
                           scale: 1,
                         };
+                        setTeacherPhotoUploadName(selectedFile.name);
                         setTeacherPhoto(Number(id), photoConfig);
                         setTeacherPhotoState(dataUrl);
                         setPhotoPositionX(photoConfig.positionX);
                         setPhotoPositionY(photoConfig.positionY);
                         setBottomDarkness(photoConfig.bottomDarkness);
                         setPhotoScale(photoConfig.scale);
-                        setPhotoAutoSaveMessage("Uploading teacher photo...");
-
-                        const savedCourse = await uploadCourseTeacherPhoto(
-                          Number(id),
+                        await saveTeacherPhotoToCloudflare(
                           dataUrl,
                           selectedFile.name,
                           photoConfig
                         );
-                        setCourse(savedCourse);
-                        const savedPhotoConfig = getCourseTeacherPhotoConfig(savedCourse);
-                        setTeacherPhotoState(savedPhotoConfig.src);
-                        setTeacherPhoto(Number(id), savedPhotoConfig);
-                        setPhotoAutoSaveMessage("Teacher photo saved to website.");
                       } catch (error: unknown) {
                         setErr(getErrorMessage(error, "Failed to load image"));
                       }
@@ -474,6 +512,21 @@ export default function UploadCourseVideo() {
                       style={secondaryLinkStyle}
                     >
                       Remove Photo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void saveTeacherPhotoToCloudflare()}
+                      disabled={photoSaving || !teacherPhoto.startsWith("data:")}
+                      style={{
+                        ...secondaryLinkStyle,
+                        opacity: teacherPhoto.startsWith("data:") ? 1 : 0.72,
+                      }}
+                    >
+                      {photoSaving
+                        ? "Saving..."
+                        : teacherPhoto.startsWith("data:")
+                          ? "Save Photo to Cloudflare"
+                          : "Saved to Cloudflare"}
                     </button>
                   </div>
                 )}
