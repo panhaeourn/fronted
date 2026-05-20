@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiFetch } from "../../api";
+import { apiFetch, API_BASE } from "../../api";
 import AlertDialog from "../../components/AlertDialog";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import CreateCourseForm from "../../components/CreateCourseForm";
@@ -58,7 +58,7 @@ export default function Courses() {
       const list = await apiFetch<CourseRecord[]>("/api/courses");
       const sorted = sortCoursesNewestFirst(list || []);
       setCourses(sorted);
-      setTeacherPhotos(getTeacherPhotoMap(sorted.map((course) => course.id)));
+      setTeacherPhotos(getCourseTeacherPhotoMap(sorted));
     } catch (error: unknown) {
       setErr(getErrorMessage(error, "Failed to load courses"));
     } finally {
@@ -549,6 +549,47 @@ export default function Courses() {
       />
     </div>
   );
+}
+
+function getCourseTeacherPhotoMap(courses: CourseRecord[]) {
+  const localPhotos = getTeacherPhotoMap(courses.map((course) => course.id));
+
+  return courses.reduce<Record<number, TeacherPhotoConfig>>((acc, course) => {
+    if (course.teacherPhotoUrl || course.teacherPhotoFileName) {
+      acc[course.id] = {
+        src: resolveCoursePhotoUrl(course),
+        positionX:
+          typeof course.teacherPhotoPositionX === "number"
+            ? course.teacherPhotoPositionX
+            : 50,
+        positionY:
+          typeof course.teacherPhotoPositionY === "number"
+            ? course.teacherPhotoPositionY
+            : 0,
+        bottomDarkness:
+          typeof course.teacherPhotoBottomDarkness === "number"
+            ? course.teacherPhotoBottomDarkness
+            : 90,
+        scale:
+          typeof course.teacherPhotoScale === "number"
+            ? course.teacherPhotoScale
+            : 1,
+      };
+      return acc;
+    }
+
+    acc[course.id] = localPhotos[course.id];
+    return acc;
+  }, {});
+}
+
+function resolveCoursePhotoUrl(course: CourseRecord) {
+  const rawUrl =
+    course.teacherPhotoUrl ||
+    (course.teacherPhotoFileName ? `/files/${course.teacherPhotoFileName}` : "");
+
+  if (!rawUrl) return "";
+  return rawUrl.startsWith("http") ? rawUrl : `${API_BASE}${rawUrl}`;
 }
 
 const actionButtonBaseStyle: React.CSSProperties = {

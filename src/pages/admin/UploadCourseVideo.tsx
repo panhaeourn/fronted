@@ -4,6 +4,7 @@ import { apiFetch, API_BASE } from "../../api";
 import type { CourseRecord } from "../../lib/domain-types";
 import { getErrorMessage } from "../../lib/errors";
 import {
+  type TeacherPhotoConfig,
   getTeacherPhotoConfig,
   readImageFileAsCompressedDataUrl,
   removeTeacherPhoto,
@@ -60,7 +61,7 @@ export default function UploadCourseVideo() {
         setPageLoading(true);
         const data = await apiFetch<CourseRecord>(`/api/courses/${id}`);
         setCourse(data);
-        const photoConfig = getTeacherPhotoConfig(Number(id));
+        const photoConfig = getCourseTeacherPhotoConfig(data);
         setTeacherPhotoState(photoConfig.src);
         setPhotoPositionX(photoConfig.positionX);
         setPhotoPositionY(photoConfig.positionY);
@@ -84,14 +85,23 @@ export default function UploadCourseVideo() {
 
     if (!teacherPhoto) return;
 
-    setTeacherPhoto(Number(id), {
+    const photoConfig = {
       src: teacherPhoto,
       positionX: photoPositionX,
       positionY: photoPositionY,
       bottomDarkness,
       scale: photoScale,
-    });
+    };
+    setTeacherPhoto(Number(id), photoConfig);
     setPhotoAutoSaveMessage("Photo layout saved automatically.");
+
+    const timeoutId = window.setTimeout(() => {
+      void updateCourseTeacherPhotoLayout(Number(id), photoConfig).catch(() => {
+        setPhotoAutoSaveMessage("Photo layout saved locally. Backend sync failed.");
+      });
+    }, 650);
+
+    return () => window.clearTimeout(timeoutId);
   }, [id, teacherPhoto, photoPositionX, photoPositionY, bottomDarkness, photoScale]);
 
   useEffect(() => {
@@ -414,7 +424,19 @@ export default function UploadCourseVideo() {
                         setPhotoPositionY(photoConfig.positionY);
                         setBottomDarkness(photoConfig.bottomDarkness);
                         setPhotoScale(photoConfig.scale);
-                        setPhotoAutoSaveMessage("Teacher photo saved automatically.");
+                        setPhotoAutoSaveMessage("Uploading teacher photo...");
+
+                        const savedCourse = await uploadCourseTeacherPhoto(
+                          Number(id),
+                          dataUrl,
+                          selectedFile.name,
+                          photoConfig
+                        );
+                        setCourse(savedCourse);
+                        const savedPhotoConfig = getCourseTeacherPhotoConfig(savedCourse);
+                        setTeacherPhotoState(savedPhotoConfig.src);
+                        setTeacherPhoto(Number(id), savedPhotoConfig);
+                        setPhotoAutoSaveMessage("Teacher photo saved to website.");
                       } catch (error: unknown) {
                         setErr(getErrorMessage(error, "Failed to load image"));
                       }
@@ -673,6 +695,92 @@ function uploadCourseVideo(
     xhr.onerror = () => reject(new Error("Upload failed"));
     xhr.send(formData);
   });
+}
+
+function getCourseTeacherPhotoConfig(course: CourseRecord): TeacherPhotoConfig {
+  const localConfig = getTeacherPhotoConfig(course.id);
+  const serverSrc = resolveCoursePhotoUrl(course);
+
+  return {
+    src: serverSrc || localConfig.src,
+    positionX:
+      typeof course.teacherPhotoPositionX === "number"
+        ? course.teacherPhotoPositionX
+        : localConfig.positionX,
+    positionY:
+      typeof course.teacherPhotoPositionY === "number"
+        ? course.teacherPhotoPositionY
+        : localConfig.positionY,
+    bottomDarkness:
+      typeof course.teacherPhotoBottomDarkness === "number"
+        ? course.teacherPhotoBottomDarkness
+        : localConfig.bottomDarkness,
+    scale:
+      typeof course.teacherPhotoScale === "number"
+        ? course.teacherPhotoScale
+        : localConfig.scale,
+  };
+}
+
+function resolveCoursePhotoUrl(course: CourseRecord) {
+  const rawUrl =
+    course.teacherPhotoUrl ||
+    (course.teacherPhotoFileName ? `/files/${course.teacherPhotoFileName}` : "");
+
+  if (!rawUrl) return "";
+  return rawUrl.startsWith("http") ? rawUrl : `${API_BASE}${rawUrl}`;
+}
+
+async function uploadCourseTeacherPhoto(
+  courseId: number,
+  dataUrl: string,
+  originalFileName: string,
+  photoConfig: TeacherPhotoConfig
+) {
+  const form = new FormData();
+  form.append("file", dataUrlToFile(dataUrl, originalFileName));
+  form.append("positionX", String(photoConfig.positionX));
+  form.append("positionY", String(photoConfig.positionY));
+  form.append("bottomDarkness", String(photoConfig.bottomDarkness));
+  form.append("scale", String(photoConfig.scale));
+
+  return apiFetch<CourseRecord>(`/api/courses/${courseId}/teacher-photo`, {
+    method: "POST",
+    body: form,
+  });
+}
+
+function updateCourseTeacherPhotoLayout(
+  courseId: number,
+  photoConfig: TeacherPhotoConfig
+) {
+  const params = new URLSearchParams({
+    positionX: String(photoConfig.positionX),
+    positionY: String(photoConfig.positionY),
+    bottomDarkness: String(photoConfig.bottomDarkness),
+    scale: String(photoConfig.scale),
+  });
+
+  return apiFetch<CourseRecord>(
+    `/api/courses/${courseId}/teacher-photo?${params.toString()}`,
+    {
+      method: "PATCH",
+    }
+  );
+}
+
+function dataUrlToFile(dataUrl: string, originalFileName: string) {
+  const [meta, content] = dataUrl.split(",");
+  const mime = meta.match(/data:(.*?);base64/)?.[1] || "image/jpeg";
+  const binary = window.atob(content || "");
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  const safeName = originalFileName.replace(/\.[^.]+$/, "") || "teacher-photo";
+  return new File([bytes], `${safeName}.jpg`, { type: mime });
 }
 
 function formatFileSize(size: number) {

@@ -6,6 +6,12 @@ export type CourseRecord = {
   description?: string;
   price?: number;
   enrolled?: boolean;
+  teacherPhotoFileName?: string;
+  teacherPhotoUrl?: string;
+  teacherPhotoPositionX?: number;
+  teacherPhotoPositionY?: number;
+  teacherPhotoBottomDarkness?: number;
+  teacherPhotoScale?: number;
 };
 
 export type ReceiptType = "COURSE" | "MONTHLY";
