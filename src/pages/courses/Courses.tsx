@@ -31,7 +31,7 @@ type AlertState = {
   tone: "success" | "error" | "info";
 };
 
-const courseCardMinHeight = 360;
+const courseCardHeight = 420;
 
 export default function Courses() {
   const navigate = useNavigate();
@@ -310,6 +310,7 @@ export default function Courses() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gridAutoRows: courseCardHeight,
           gap: 18,
         }}
       >
@@ -331,8 +332,8 @@ export default function Courses() {
                 flexDirection: "column",
                 justifyContent: "space-between",
                 gap: 18,
-                minHeight: courseCardMinHeight,
-                height: "100%",
+                minHeight: courseCardHeight,
+                height: courseCardHeight,
                 background:
                   "radial-gradient(circle at top right, rgba(73, 120, 255, 0.26), transparent 24%), var(--app-card-elevated-bg)",
                 boxShadow: "var(--app-panel-shadow)",
@@ -387,16 +388,27 @@ export default function Courses() {
                   {course.enrolled ? "Unlocked" : "Available"}
                 </div>
 
-                <div style={{ fontWeight: 800, fontSize: 22, lineHeight: 1.2 }}>
+                <div
+                  style={{
+                    color: "#ffffff",
+                    fontWeight: 800,
+                    fontSize: 22,
+                    lineHeight: 1.2,
+                    textShadow: "0 2px 10px rgba(0, 0, 0, 0.72)",
+                  }}
+                >
                   {course.title}
                 </div>
 
                 {course.description && (
                   <div
                     style={{
-                      color: "var(--app-subtle-text)",
+                      color: "rgba(255, 255, 255, 0.78)",
                       marginTop: 10,
                       lineHeight: 1.6,
+                      maxHeight: 50,
+                      overflow: "hidden",
+                      textShadow: "0 2px 8px rgba(0, 0, 0, 0.65)",
                     }}
                   >
                     {course.description}
@@ -406,13 +418,22 @@ export default function Courses() {
                 <div
                   style={{
                     marginTop: 18,
-                    color: "var(--app-muted-strong)",
+                    color: "rgba(255, 255, 255, 0.72)",
                     fontSize: 10,
+                    textShadow: "0 2px 8px rgba(0, 0, 0, 0.65)",
                   }}
                 >
                   Course Price
                 </div>
-                <div style={{ marginTop: 4, fontSize: 24, fontWeight: 800 }}>
+                <div
+                  style={{
+                    marginTop: 4,
+                    color: "#ffffff",
+                    fontSize: 24,
+                    fontWeight: 800,
+                    textShadow: "0 2px 10px rgba(0, 0, 0, 0.72)",
+                  }}
+                >
                   ${Number(price).toFixed(0)}
                 </div>
 
@@ -424,7 +445,7 @@ export default function Courses() {
                     minHeight: 20,
                   }}
                 >
-                  {!course.enrolled ? "Purchase to unlock the course content." : "\u00A0"}
+                  {"\u00A0"}
                 </div>
 
                 {course.enrolled && (
@@ -473,7 +494,7 @@ export default function Courses() {
                         onClick={() => handleUploadVideo(course.id)}
                         style={secondaryActionStyle}
                       >
-                        Upload Video
+                        Upload
                       </button>
                     </>
                   )}
