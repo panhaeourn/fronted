@@ -32,7 +32,7 @@ export default function UploadCourseVideo() {
   const navigate = useNavigate();
 
   const [course, setCourse] = useState<CourseRecord | null>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [title, setTitle] = useState("");
   const [teacherPhoto, setTeacherPhotoState] = useState("");
   const [photoPositionX, setPhotoPositionX] = useState(50);
@@ -45,7 +45,11 @@ export default function UploadCourseVideo() {
   const [err, setErr] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [photoAutoSaveMessage, setPhotoAutoSaveMessage] = useState("");
+  const [currentUploadIndex, setCurrentUploadIndex] = useState<number | null>(null);
   const skipNextPhotoAutoSaveRef = useRef(true);
+  const activeFile =
+    currentUploadIndex !== null ? files[currentUploadIndex] : files[0] || null;
+  const totalUploadSize = files.reduce((sum, item) => sum + item.size, 0);
 
   useEffect(() => {
     if (!id) return;
@@ -96,48 +100,75 @@ export default function UploadCourseVideo() {
     return () => window.clearTimeout(timeoutId);
   }, [photoAutoSaveMessage]);
 
-  function handleVideoSelection(selectedFile: File | null) {
+  function handleVideoSelection(selectedFiles: File[]) {
     setSuccessMessage("");
-    setFile(selectedFile);
+    setUploadProgress(0);
+    setCurrentUploadIndex(null);
+    setFiles(selectedFiles);
   }
 
-  async function performUpload(selectedFile: File) {
+  async function uploadSingleVideo(selectedFile: File, uploadTitle: string) {
     if (!id) {
-      setErr("Course id is missing");
-      return;
+      throw new Error("Course id is missing");
     }
 
-    try {
-      setLoading(true);
-      setErr("");
-      setSuccessMessage("");
-      setUploadProgress(0);
+    const form = new FormData();
+    form.append("file", selectedFile);
+    form.append("title", uploadTitle);
 
-      const form = new FormData();
-      form.append("file", selectedFile);
-      form.append("title", title);
-
-      await uploadCourseVideo(id, form, setUploadProgress);
-
-      setUploadProgress(100);
-      setSuccessMessage("Video uploaded successfully.");
-    } catch (error: unknown) {
-      setErr(getErrorMessage(error, "Upload failed"));
-    } finally {
-      setLoading(false);
-    }
+    await uploadCourseVideo(id, form, setUploadProgress);
   }
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
 
-    if (!file) {
-      setErr("Please choose a video file");
+    if (!files.length) {
+      setErr("Please choose at least one video file");
       return;
     }
 
-    await performUpload(file);
+    let failedIndex = 0;
+
+    try {
+      setLoading(true);
+      setSuccessMessage("");
+
+      for (let index = 0; index < files.length; index += 1) {
+        failedIndex = index;
+        const selectedFile = files[index];
+        setCurrentUploadIndex(index);
+        setUploadProgress(0);
+
+        const fallbackTitle = selectedFile.name.replace(/\.[^/.]+$/, "");
+        const uploadTitle =
+          files.length === 1
+            ? title.trim() || fallbackTitle
+            : title.trim()
+              ? `${title.trim()} ${index + 1}`
+              : fallbackTitle;
+
+        await uploadSingleVideo(selectedFile, uploadTitle);
+        setUploadProgress(100);
+      }
+
+      setSuccessMessage(
+        files.length === 1
+          ? "Video uploaded successfully."
+          : `${files.length} videos uploaded successfully.`
+      );
+    } catch (error: unknown) {
+      const failedFile = files[failedIndex]?.name;
+      setErr(
+        getErrorMessage(
+          error,
+          failedFile ? `Upload failed for ${failedFile}` : "Upload failed"
+        )
+      );
+    } finally {
+      setLoading(false);
+      setCurrentUploadIndex(null);
+    }
   }
 
   if (pageLoading) return <div style={loadingStyle}>Loading...</div>;
@@ -161,7 +192,11 @@ export default function UploadCourseVideo() {
             </div>
             <div style={uploadOverlayTextStyle}>
               {uploadProgress < 100
-                ? "Sending the file from your browser to the backend."
+                ? `Uploading ${activeFile?.name || "selected video"}${
+                    files.length > 1 && currentUploadIndex !== null
+                      ? ` (${currentUploadIndex + 1} of ${files.length})`
+                      : ""
+                  }.`
                 : "Browser upload is complete. The backend is now saving the file to Cloudflare R2."}
             </div>
           </div>
@@ -224,7 +259,7 @@ export default function UploadCourseVideo() {
           <div style={{ position: "relative" }}>
             <h2 style={{ margin: 0, fontSize: 28 }}>Video Details</h2>
             <p style={{ margin: "10px 0 0", color: "var(--app-muted)", lineHeight: 1.7 }}>
-              Use a clear lesson title and select the video file you want to upload.
+              Use a clear lesson title and select one or more video files to upload.
             </p>
 
             {err && <div style={errorStyle}>{err}</div>}
@@ -243,45 +278,64 @@ export default function UploadCourseVideo() {
               </div>
 
               <div style={fieldGroupStyle}>
-                <label style={labelStyle}>Video File</label>
+                <label style={labelStyle}>Video Files</label>
                 <div style={nativeFileGroupStyle}>
                   <input
                     type="file"
                     accept="video/*"
+                    multiple
                     onClick={(e) => {
                       e.currentTarget.value = "";
                       setSuccessMessage("");
                       setErr("");
                     }}
                     onChange={(e) => {
-                      const selectedFile = e.target.files?.[0] || null;
-                      handleVideoSelection(selectedFile);
+                      handleVideoSelection(Array.from(e.target.files || []));
                     }}
                     style={nativeInputStyle}
                   />
                   <div style={selectedFileTextStyle}>
-                    {file
+                    {files.length
                       ? successMessage
-                        ? `Uploaded file: ${file.name}`
-                        : `Selected file: ${file.name}`
-                      : "No file selected yet"}
+                        ? `Uploaded ${files.length} video${files.length === 1 ? "" : "s"}`
+                        : `Selected ${files.length} video${files.length === 1 ? "" : "s"}`
+                      : "No videos selected yet"}
                   </div>
                   <div style={fileHintStyle}>
                     {loading
-                      ? "Uploading selected video..."
+                      ? `Uploading ${activeFile?.name || "selected video"}...`
                       : successMessage
                       ? "Upload completed successfully."
-                      : file
-                      ? `Selected: ${file.name}`
-                      : "MP4, MOV, or other video formats"}
+                      : files.length
+                      ? `Total size: ${formatFileSize(totalUploadSize)}`
+                      : "Select MP4, MOV, or other video formats"}
                   </div>
-                  {(loading || file || successMessage) && (
+                  {files.length > 0 && (
+                    <div style={fileQueueListStyle}>
+                      {files.map((item, index) => (
+                        <div
+                          key={`${item.name}-${item.size}-${index}`}
+                          style={{
+                            ...fileQueueItemStyle,
+                            borderColor:
+                              currentUploadIndex === index
+                                ? "rgba(125, 211, 252, 0.48)"
+                                : fileQueueItemStyle.borderColor,
+                          }}
+                        >
+                          <span style={fileQueueNameStyle}>{item.name}</span>
+                          <span style={fileQueueMetaStyle}>{formatFileSize(item.size)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {(loading || files.length > 0 || successMessage) && (
                     <div style={uploadStatusCardStyle}>
                       <div style={uploadStatusHeaderStyle}>
                         <div>
                           <div style={uploadStatusLabelStyle}>
                             {loading
-                              ? "Uploading Now"
+                              ? `Uploading ${currentUploadIndex !== null ? currentUploadIndex + 1 : 1} Of ${files.length}`
                               : successMessage
                               ? "Upload Complete"
                               : "Ready To Upload"}
@@ -291,7 +345,9 @@ export default function UploadCourseVideo() {
                           </div>
                         </div>
                         <div style={uploadStatusMetaStyle}>
-                          {file ? formatFileSize(file.size) : "Waiting for file"}
+                          {activeFile
+                            ? `${formatFileSize(activeFile.size)} current`
+                            : "Waiting for files"}
                         </div>
                       </div>
 
@@ -310,8 +366,8 @@ export default function UploadCourseVideo() {
                             ? "Please keep this page open while the video is uploading."
                             : "Browser upload is complete. The backend is now saving the video to Cloudflare R2."
                           : successMessage
-                          ? "You can now upload another video or open the course page."
-                          : "Choose a file and the upload progress will appear here."}
+                          ? "You can now upload more videos or open the course page."
+                          : "Videos will upload one by one to avoid server timeout errors."}
                       </div>
 
                       {loading && uploadProgress >= 100 && (
@@ -514,9 +570,10 @@ export default function UploadCourseVideo() {
                       onClick={() => {
                         setSuccessMessage("");
                         setErr("");
-                        setFile(null);
+                        setFiles([]);
                         setTitle("");
                         setUploadProgress(0);
+                        setCurrentUploadIndex(null);
                       }}
                       style={secondaryGhostButtonStyle}
                     >
@@ -756,6 +813,40 @@ const nativeFileGroupStyle: React.CSSProperties = {
 const selectedFileTextStyle: React.CSSProperties = {
   color: "var(--app-heading)",
   fontSize: 14,
+  fontWeight: 700,
+};
+
+const fileQueueListStyle: React.CSSProperties = {
+  display: "grid",
+  gap: 8,
+  marginTop: 4,
+};
+
+const fileQueueItemStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 12,
+  padding: "10px 12px",
+  borderRadius: 12,
+  border: "1px solid var(--app-border-soft)",
+  background: "var(--app-card-solid-bg)",
+};
+
+const fileQueueNameStyle: React.CSSProperties = {
+  minWidth: 0,
+  color: "var(--app-heading)",
+  fontSize: 13,
+  fontWeight: 700,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
+const fileQueueMetaStyle: React.CSSProperties = {
+  flexShrink: 0,
+  color: "var(--app-muted)",
+  fontSize: 12,
   fontWeight: 700,
 };
 
