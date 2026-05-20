@@ -150,8 +150,11 @@ export default function CourseDetail() {
               <video
                 key={selectedVideo.id}
                 controls
+                controlsList="nodownload"
+                disablePictureInPicture
                 preload="auto"
                 playsInline
+                onContextMenu={(event) => event.preventDefault()}
                 style={videoStyle}
               >
                 <source src={selectedVideoSrc} type="video/mp4" />

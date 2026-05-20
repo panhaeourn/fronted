@@ -31,6 +31,8 @@ type AlertState = {
   tone: "success" | "error" | "info";
 };
 
+const courseCardMinHeight = 360;
+
 export default function Courses() {
   const navigate = useNavigate();
 
@@ -329,7 +331,8 @@ export default function Courses() {
                 flexDirection: "column",
                 justifyContent: "space-between",
                 gap: 18,
-                minHeight: 280,
+                minHeight: courseCardMinHeight,
+                height: "100%",
                 background:
                   "radial-gradient(circle at top right, rgba(73, 120, 255, 0.26), transparent 24%), var(--app-card-elevated-bg)",
                 boxShadow: "var(--app-panel-shadow)",
@@ -436,6 +439,8 @@ export default function Courses() {
                   display: "grid",
                   gap: 10,
                   gridTemplateColumns: isAdmin ? "repeat(2, minmax(0, 1fr))" : "1fr",
+                  minHeight: isAdmin ? 114 : 52,
+                  alignItems: "stretch",
                 }}
               >
                 {course.enrolled ? (
