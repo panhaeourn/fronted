@@ -29,6 +29,16 @@ type CourseVideo = {
 const CLOUD_FLARE_R2_PUBLIC_BASE = (
   import.meta.env.VITE_CLOUDFLARE_R2_PUBLIC_BASE_URL ?? ""
 ).replace(/\/$/, "");
+const coursePriceFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
+
+function formatCoursePrice(value: number) {
+  return coursePriceFormatter.format(value || 0);
+}
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -116,7 +126,7 @@ export default function CourseDetail() {
       <div className="course-detail-stats" style={statsGridStyle}>
         <InfoCard
           label="Price"
-          value={`$${Number(course.price || 0).toFixed(0)}`}
+          value={formatCoursePrice(Number(course.price || 0))}
           accent="#60a5fa"
         />
         <InfoCard

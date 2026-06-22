@@ -32,6 +32,16 @@ type AlertState = {
 };
 
 const courseCardHeight = 420;
+const coursePriceFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
+
+function formatCoursePrice(value: number) {
+  return coursePriceFormatter.format(value || 0);
+}
 
 export default function Courses() {
   const navigate = useNavigate();
@@ -434,7 +444,7 @@ export default function Courses() {
                     textShadow: "0 2px 10px rgba(0, 0, 0, 0.72)",
                   }}
                 >
-                  ${Number(price).toFixed(0)}
+                  {formatCoursePrice(Number(price))}
                 </div>
 
                 <div
