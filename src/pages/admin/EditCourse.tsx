@@ -166,6 +166,7 @@ export default function EditCourse() {
                 <input
                   type="number"
                   min={1}
+                  step={0.01}
                   placeholder="Price"
                   value={price}
                   onChange={(e) =>

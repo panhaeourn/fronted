@@ -99,6 +99,7 @@ export default function CreateCourseForm({
           type="number"
           placeholder="Price"
           min={1}
+          step={0.01}
           value={price}
           onChange={(e) =>
             setPrice(e.target.value === "" ? "" : Number(e.target.value))
