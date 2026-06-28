@@ -833,7 +833,8 @@ function dataUrlToFile(dataUrl: string, originalFileName: string) {
   }
 
   const safeName = originalFileName.replace(/\.[^.]+$/, "") || "teacher-photo";
-  return new File([bytes], `${safeName}.jpg`, { type: mime });
+  const extension = mime === "image/webp" ? "webp" : "jpg";
+  return new File([bytes], `${safeName}.${extension}`, { type: mime });
 }
 
 function formatFileSize(size: number) {

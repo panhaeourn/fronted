@@ -127,7 +127,7 @@ function compressImageDataUrl(dataUrl: string) {
       }
 
       context.drawImage(image, 0, 0, width, height);
-      resolve(canvas.toDataURL("image/jpeg", 0.86));
+      resolve(canvas.toDataURL("image/webp", 0.82));
     };
 
     image.onerror = () => resolve(dataUrl);
