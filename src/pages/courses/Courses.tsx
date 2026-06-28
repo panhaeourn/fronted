@@ -355,6 +355,8 @@ export default function Courses() {
                     <img
                       src={teacherPhoto.src}
                       alt={`${course.title} poster`}
+                      loading="lazy"
+                      decoding="async"
                       style={{
                         ...teacherPosterStyle,
                         objectPosition: `${teacherPhoto.positionX}% ${teacherPhoto.positionY}%`,
