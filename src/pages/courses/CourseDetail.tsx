@@ -85,6 +85,10 @@ export default function CourseDetail() {
   const selectedVideoSrc = useMemo(() => {
     if (!selectedVideo) return "";
 
+    if (CLOUD_FLARE_R2_PUBLIC_BASE && selectedVideo.fileName) {
+      return encodeURI(`${CLOUD_FLARE_R2_PUBLIC_BASE}/${selectedVideo.fileName}`);
+    }
+
     if (selectedVideo.videoUrl) {
       const rawUrl = selectedVideo.videoUrl.startsWith("http")
         ? selectedVideo.videoUrl
@@ -94,10 +98,6 @@ export default function CourseDetail() {
 
     if (selectedVideo.fileName) {
       return encodeURI(`${API_BASE}/files/${selectedVideo.fileName}`);
-    }
-
-    if (CLOUD_FLARE_R2_PUBLIC_BASE && selectedVideo.fileName) {
-      return encodeURI(`${CLOUD_FLARE_R2_PUBLIC_BASE}/${selectedVideo.fileName}`);
     }
 
     return "";
@@ -162,7 +162,7 @@ export default function CourseDetail() {
                 controls
                 controlsList="nodownload"
                 disablePictureInPicture
-                preload="auto"
+                preload="metadata"
                 playsInline
                 onContextMenu={(event) => event.preventDefault()}
                 style={videoStyle}
