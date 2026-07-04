@@ -29,7 +29,7 @@ const initialFieldSettings: FieldSettings = {
   issueDate: { font: "", size: "" },
 };
 
-const defaultStamp: StampPlacement = { x: 67, y: 63, width: 18 };
+const defaultStamp: StampPlacement = { x: 69.25, y: 66.2, width: 13.5 };
 
 const fieldLabels: Record<TextField, string> = {
   name: "Student name",
