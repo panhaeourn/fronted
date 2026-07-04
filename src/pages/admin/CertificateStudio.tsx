@@ -172,9 +172,6 @@ export default function CertificateStudio() {
               <span>Admin only</span>
             </div>
             <h1>CITO Certificate</h1>
-            <p className="certificate-studio-subtitle">
-              Prepare, review, and issue official A4 certificates from verified student records.
-            </p>
           </div>
         </div>
         <div className="certificate-hero-actions">
@@ -202,7 +199,7 @@ export default function CertificateStudio() {
 
       <div className="certificate-studio-workspace">
         <aside className="certificate-control-panel">
-          <ControlSection step="01" title="Import records" description="Use the template or an existing Excel, CSV, or WPS file.">
+          <ControlSection>
             <UploadCard
               title="Spreadsheet"
               status={sheetName}
@@ -215,7 +212,7 @@ export default function CertificateStudio() {
             </p>
           </ControlSection>
 
-          <ControlSection step="02" title="Style selected text" description="Click a value inside the certificate preview first.">
+          <ControlSection step="01" title="Style selected text">
             <div className="certificate-selected-field">
               <span>{selectedField ? "Selected field" : "Waiting for selection"}</span>
               <strong>{selectedField ? fieldLabels[selectedField] : "Click certificate text"}</strong>
@@ -246,7 +243,7 @@ export default function CertificateStudio() {
             </label>
           </ControlSection>
 
-          <ControlSection step="03" title="Position the seal" description="Drag the CITO stamp directly on any preview.">
+          <ControlSection step="02" title="Position the seal">
             <button
               className="certificate-button certificate-button--secondary certificate-button--wide"
               type="button"
@@ -400,20 +397,20 @@ function UploadCard({
 function ControlSection({
   step,
   title,
-  description,
   children,
 }: {
-  step: string;
-  title: string;
-  description: string;
+  step?: string;
+  title?: string;
   children: React.ReactNode;
 }) {
   return (
     <section className="certificate-control-section">
-      <div className="certificate-section-title">
-        <span>{step}</span>
-        <div><h2>{title}</h2><p>{description}</p></div>
-      </div>
+      {step && title && (
+        <div className="certificate-section-title">
+          <span>{step}</span>
+          <div><h2>{title}</h2></div>
+        </div>
+      )}
       {children}
     </section>
   );
