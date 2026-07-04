@@ -132,36 +132,12 @@ export default function CertificateStudio() {
     document.body.classList.add("certificate-pdf-exporting");
 
     try {
-      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ]);
-      const certificates = await prepareCertificates();
-      const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
-
-      for (let index = 0; index < certificates.length; index += 1) {
-        setPrintStatus(`Creating page ${index + 1} of ${certificates.length}...`);
-        const canvas = await html2canvas(certificates[index], {
-          scale: 3,
-          useCORS: true,
-          backgroundColor: "#ffffff",
-          logging: false,
-        });
-
-        if (index > 0) pdf.addPage("a4", "landscape");
-        pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, 297, 210, undefined, "SLOW");
-        canvas.width = 1;
-        canvas.height = 1;
-      }
-
-      pdf.save(`cito-certificates-${new Date().toISOString().slice(0, 10)}.pdf`);
+      await prepareCertificates();
+      setPrintStatus("");
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      window.print();
     } catch {
-      setError("Could not create the PDF. Please try again with fewer certificates at one time.");
+      setError("Could not open the PDF print dialog. Please try again.");
     } finally {
       document.body.classList.remove("certificate-pdf-exporting");
       setPrintStatus("");
