@@ -52,8 +52,23 @@
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
+  z-index: 2;
   width: 4px;
   background: linear-gradient(180deg, #38bdf8, #2563eb);
+  pointer-events: none;
+}
+
+.certificate-studio-hero::after {
+  content: "";
+  position: absolute;
+  inset: -24px;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(59, 130, 246, 0.32), transparent 16%),
+    radial-gradient(circle at 68% 5%, rgba(139, 92, 246, 0.2), transparent 15%),
+    radial-gradient(circle at 94% 58%, rgba(14, 165, 233, 0.28), transparent 17%);
+  filter: blur(18px);
+  opacity: 0.72;
   pointer-events: none;
 }
 
@@ -127,6 +142,15 @@
   gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+:root[data-theme="light"] .certificate-studio-hero::after {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(96, 165, 250, 0.38), transparent 16%),
+    radial-gradient(circle at 68% 5%, rgba(167, 139, 250, 0.27), transparent 15%),
+    radial-gradient(circle at 94% 58%, rgba(56, 189, 248, 0.36), transparent 17%);
+  filter: blur(20px);
+  opacity: 0.9;
 }
 
 .certificate-button {
