@@ -11,7 +11,6 @@ import {
   downloadSpreadsheetTemplate,
   fieldValue,
   fullDate,
-  normalize,
   readSpreadsheet,
   type CertificateRow,
 } from "./certificate/certificateData";
@@ -62,24 +61,19 @@ const blankPreviewRow: CertificateRow = {
 
 export default function CertificateStudio() {
   const [rows, setRows] = useState<CertificateRow[]>([]);
-  const [externalPhotos, setExternalPhotos] = useState<Map<string, string>>(new Map());
-  const [externalPhotoCount, setExternalPhotoCount] = useState(0);
   const [embeddedUrls, setEmbeddedUrls] = useState<string[]>([]);
   const [sheetName, setSheetName] = useState("No spreadsheet selected");
-  const [photoStatus, setPhotoStatus] = useState("No student photos selected");
   const [selectedField, setSelectedField] = useState<TextField | null>(null);
   const [fieldSettings, setFieldSettings] = useState<FieldSettings>(initialFieldSettings);
   const [stamp, setStamp] = useState<StampPlacement>(defaultStamp);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [printStatus, setPrintStatus] = useState("");
-  const externalUrlsRef = useRef<string[]>([]);
   const embeddedUrlsRef = useRef<string[]>([]);
   const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
 
   useEffect(() => {
     return () => {
-      externalUrlsRef.current.forEach(URL.revokeObjectURL);
       embeddedUrlsRef.current.forEach(URL.revokeObjectURL);
     };
   }, []);
@@ -111,28 +105,6 @@ export default function CertificateStudio() {
     }
   }
 
-  function handlePhotos(files: FileList | null) {
-    externalUrlsRef.current.forEach(URL.revokeObjectURL);
-    externalUrlsRef.current = [];
-
-    const next = new Map<string, string>();
-    const selected = Array.from(files ?? []);
-    for (const file of selected) {
-      const url = URL.createObjectURL(file);
-      externalUrlsRef.current.push(url);
-      next.set(normalize(file.name), url);
-      next.set(normalize(file.name.replace(/\.[^.]+$/, "")), url);
-    }
-
-    setExternalPhotos(next);
-    setExternalPhotoCount(selected.length);
-    setPhotoStatus(
-      selected.length === 0
-        ? "No student photos selected"
-        : `${selected.length} photo${selected.length === 1 ? "" : "s"} ready for matching`
-    );
-  }
-
   function updateSelectedField(key: "font" | "size", value: string) {
     if (!selectedField) return;
     setFieldSettings((current) => ({
@@ -154,11 +126,9 @@ export default function CertificateStudio() {
 
   function photoForRow(row: CertificateRow) {
     const raw = fieldValue(row, "recipientPhoto");
-    const name = fieldValue(row, "recipientName");
-    if (!raw && name) return externalPhotos.get(normalize(name)) ?? "";
     if (!raw) return "";
     if (/^(https?:|data:|blob:)/i.test(raw)) return raw;
-    return externalPhotos.get(normalize(raw)) ?? externalPhotos.get(normalize(raw.replace(/\.[^.]+$/, ""))) ?? "";
+    return "";
   }
 
   function handleStampPointerDown(event: ReactPointerEvent<HTMLImageElement>) {
@@ -191,7 +161,7 @@ export default function CertificateStudio() {
   }
 
   const previewRows = rows.length > 0 ? rows : [blankPreviewRow];
-  const loadedPhotoCount = externalPhotoCount + embeddedUrls.length;
+  const loadedPhotoCount = embeddedUrls.length;
 
   return (
     <div className="certificate-studio-page">
@@ -250,15 +220,8 @@ export default function CertificateStudio() {
               disabled={busy}
               onChange={(files) => void handleSpreadsheet(files?.[0])}
             />
-            <UploadCard
-              title="Student photos"
-              status={photoStatus}
-              accept="image/*"
-              multiple
-              onChange={handlePhotos}
-            />
             <p className="certificate-control-note">
-              Photos match the <code>picture</code> column or the student&apos;s <code>name</code>.
+              Student photos can be embedded directly in the spreadsheet&apos;s <code>picture</code> column.
             </p>
           </ControlSection>
 
@@ -416,14 +379,12 @@ function UploadCard({
   title,
   status,
   accept,
-  multiple,
   disabled,
   onChange,
 }: {
   title: string;
   status: string;
   accept: string;
-  multiple?: boolean;
   disabled?: boolean;
   onChange: (files: FileList | null) => void;
 }) {
@@ -438,7 +399,6 @@ function UploadCard({
       <input
         type="file"
         accept={accept}
-        multiple={multiple}
         disabled={disabled}
         onClick={(event) => { event.currentTarget.value = ""; }}
         onChange={(event) => onChange(event.currentTarget.files)}
