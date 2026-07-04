@@ -4,7 +4,8 @@ import * as XLSX from "xlsx";
 export type CertificateRow = Record<string, string>;
 
 export const certificateColumns = [
-  "name",
+  "name_khmer",
+  "name_english",
   "sex",
   "birth_day",
   "birth_month",
@@ -18,6 +19,8 @@ export const certificateColumns = [
 
 const fieldAliases = {
   recipientName: ["name", "recipient_name", "recipient name", "student name", "full name"],
+  recipientNameKhmer: ["name_khmer", "khmer_name", "khmer name", "name_kh", "name kh"],
+  recipientNameEnglish: ["name_english", "english_name", "english name", "name_en", "name en", "latin_name"],
   gender: ["sex", "gender"],
   birthDay: ["birth_day", "birth day"],
   birthMonth: ["birth_month", "birth month"],
@@ -46,6 +49,21 @@ export function fieldValue(row: CertificateRow, key: CertificateField) {
     if (found) return found;
   }
   return "";
+}
+
+export function recipientName(row: CertificateRow, language: "khmer" | "english") {
+  const explicit = fieldValue(
+    row,
+    language === "khmer" ? "recipientNameKhmer" : "recipientNameEnglish"
+  );
+  if (explicit) return explicit;
+
+  const legacyName = fieldValue(row, "recipientName");
+  if (!legacyName) return "";
+  const containsKhmer = /[\u1780-\u17ff]/.test(legacyName);
+  return language === "khmer"
+    ? containsKhmer ? legacyName : ""
+    : containsKhmer ? "" : legacyName;
 }
 
 export function dateParts(
@@ -99,7 +117,7 @@ export async function readSpreadsheet(file: File) {
 
 export function downloadSpreadsheetTemplate() {
   const workbook = XLSX.utils.book_new();
-  const sample = ["Sok Dara", "Male", "15", "08", "2005", "Computer Basics", "04", "07", "2026", "Sok Dara.jpg"];
+  const sample = ["Khmer Name", "Sok Dara", "Male", "15", "08", "2005", "Computer Basics", "04", "07", "2026", "Sok Dara.jpg"];
   const sheet = XLSX.utils.aoa_to_sheet([certificateColumns, sample]);
   XLSX.utils.book_append_sheet(workbook, sheet, "Upload_Data");
   XLSX.writeFile(workbook, "cito_certificate_upload_template.xlsx");

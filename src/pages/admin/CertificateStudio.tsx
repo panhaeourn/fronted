@@ -12,6 +12,7 @@ import {
   fieldValue,
   fullDate,
   readSpreadsheet,
+  recipientName,
   type CertificateRow,
 } from "./certificate/certificateData";
 import "./certificate/certificateStudio.css";
@@ -48,7 +49,8 @@ const fontOptions = [
 ];
 
 const blankPreviewRow: CertificateRow = {
-  name: "Student Name",
+  name_khmer: "Khmer Name",
+  name_english: "English Name",
   sex: "Gender",
   birth_day: "DD",
   birth_month: "MM",
@@ -309,7 +311,7 @@ export default function CertificateStudio() {
           <div className="certificate-column-guide">
             <span className="certificate-guide-kicker">Required columns</span>
             <div>
-              {['name', 'sex', 'birth_day', 'birth_month', 'birth_year', 'course', 'issue_day', 'issue_month', 'issue_year', 'picture'].map((column) => (
+              {['name_khmer', 'name_english', 'sex', 'birth_day', 'birth_month', 'birth_year', 'course', 'issue_day', 'issue_month', 'issue_year', 'picture'].map((column) => (
                 <code key={column}>{column}</code>
               ))}
             </div>
@@ -331,7 +333,7 @@ export default function CertificateStudio() {
             <div className="certificate-list">
               {previewRows.map((row, index) => (
                 <CitoCertificate
-                  key={`${fieldValue(row, "recipientName") || "preview"}-${index}`}
+                  key={`${recipientName(row, "english") || recipientName(row, "khmer") || "preview"}-${index}`}
                   row={row}
                   photo={photoForRow(row)}
                   stamp={stamp}
@@ -385,8 +387,8 @@ function CitoCertificate({
   });
 
   return (
-    <article className="cito-certificate-sheet" aria-label={`CITO certificate for ${fieldValue(row, "recipientName") || "student"}`}>
-      <div {...textProps("name")} data-position="name-khmer">{fieldValue(row, "recipientName")}</div>
+    <article className="cito-certificate-sheet" aria-label={`CITO certificate for ${recipientName(row, "english") || recipientName(row, "khmer") || "student"}`}>
+      <div {...textProps("name")} data-position="name-khmer">{recipientName(row, "khmer")}</div>
       <div {...textProps("gender")} data-position="gender">{fieldValue(row, "gender")}</div>
       <div {...textProps("birthDate")} data-position="birth-day-khmer">{birth.day}</div>
       <div {...textProps("birthDate")} data-position="birth-month-khmer">{birth.month}</div>
@@ -395,7 +397,7 @@ function CitoCertificate({
       <div {...textProps("issueDate")} data-position="issue-day-khmer">{issue.day}</div>
       <div {...textProps("issueDate")} data-position="issue-month-khmer">{issue.month}</div>
       <div {...textProps("issueDate")} data-position="issue-year-khmer">{issue.year}</div>
-      <div {...textProps("name")} data-position="name-english">{fieldValue(row, "recipientName")}</div>
+      <div {...textProps("name")} data-position="name-english">{recipientName(row, "english")}</div>
       <div {...textProps("birthDate")} data-position="birth-date-english">{fullDate(row, "birthDate", birth)}</div>
       <div {...textProps("course")} data-position="course-english">{fieldValue(row, "course")}</div>
       <div {...textProps("issueDate")} data-position="issue-date-english">{fullDate(row, "issueDate", issue)}</div>
