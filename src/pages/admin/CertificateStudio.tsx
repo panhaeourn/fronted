@@ -147,14 +147,14 @@ export default function CertificateStudio() {
       for (let index = 0; index < certificates.length; index += 1) {
         setPrintStatus(`Creating page ${index + 1} of ${certificates.length}...`);
         const canvas = await html2canvas(certificates[index], {
-          scale: 2,
+          scale: 3,
           useCORS: true,
           backgroundColor: "#ffffff",
           logging: false,
         });
 
         if (index > 0) pdf.addPage("a4", "landscape");
-        pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, 297, 210, undefined, "FAST");
+        pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, 297, 210, undefined, "SLOW");
         canvas.width = 1;
         canvas.height = 1;
       }
