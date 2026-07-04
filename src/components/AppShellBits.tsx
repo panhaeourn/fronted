@@ -161,6 +161,16 @@ export function ManageCoursesIcon() {
   );
 }
 
+export function CertificateIcon() {
+  return (
+    <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+      <rect x="3.2" y="3.4" width="13.6" height="10.2" rx="1.8" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M6.2 6.6h7.6M6.2 9.2h5.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="m11.7 12.7 1.2 3.8 1.2-1 1.6.2-1.3-3.8" fill="none" stroke="currentColor" strokeWidth="1.45" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function ReceptionistIcon() {
   return (
     <svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">

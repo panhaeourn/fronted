@@ -1,10 +1,11 @@
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import aiDarkLogo from "./assets/ai dark mode.png";
 import aiWhiteLogo from "./assets/ai-white-mode.jpg";
 import citoLogo from "./assets/CITO.svg";
 import {
   bottomActionStackStyle,
+  CertificateIcon,
   ClaimIcon,
   CoursesIcon,
   DashboardIcon,
@@ -48,6 +49,8 @@ import UploadCourseVideo from "./pages/admin/UploadCourseVideo";
 import ManageReceptionist from "./pages/admin/ManageReceptionist";
 import ReceptionistDailyMoney from "./pages/admin/ReceptionistDailyMoney";
 import CitoAi from "./pages/ai/CitoAi";
+
+const CertificateStudio = lazy(() => import("./pages/admin/CertificateStudio"));
 
 function AppContent() {
   const { t } = useLanguage();
@@ -377,6 +380,12 @@ function AppContent() {
                     <SidebarLink to="/courses" icon={<ManageCoursesIcon />} label={t("app.manageCourse")} />
 
                     <SidebarLink
+                      to="/admin/certificates"
+                      icon={<CertificateIcon />}
+                      label={t("app.certificates")}
+                    />
+
+                    <SidebarLink
                       to="/admin/receptionists"
                       icon={<ReceptionistIcon />}
                       label={t("app.manageReceptionist")}
@@ -686,6 +695,16 @@ function AppContent() {
             element={
               <RequireRole roles={["ADMIN", "RECEPTIONIST"]}>
                 <ReceptionistDailyMoney />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/admin/certificates"
+            element={
+              <RequireRole roles={["ADMIN"]}>
+                <Suspense fallback={<div className="card">Loading Certificate Studio...</div>}>
+                  <CertificateStudio />
+                </Suspense>
               </RequireRole>
             }
           />
