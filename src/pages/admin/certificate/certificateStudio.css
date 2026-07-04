@@ -621,6 +621,15 @@
   cursor: grabbing;
 }
 
+.certificate-pdf-exporting .cito-certificate-sheet {
+  box-shadow: none;
+}
+
+.certificate-pdf-exporting .certificate-fill.is-selected {
+  outline: 0;
+  background: transparent;
+}
+
 @media (max-width: 1000px) {
   .certificate-studio-workspace {
     grid-template-columns: 1fr;

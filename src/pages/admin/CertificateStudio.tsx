@@ -110,13 +110,66 @@ export default function CertificateStudio() {
     }));
   }
 
-  async function openPrintDialog(mode: "print" | "pdf") {
-    if (rows.length === 0) return;
-    setPrintStatus(mode === "pdf" ? "Preparing PDF..." : "Preparing certificates...");
+  async function prepareCertificates() {
     await document.fonts.ready;
-    const images = Array.from(document.querySelectorAll<HTMLImageElement>(".cito-certificate-sheet img"));
+    const certificates = Array.from(
+      document.querySelectorAll<HTMLElement>(".cito-certificate-sheet")
+    );
+    const images = certificates.flatMap((certificate) =>
+      Array.from(certificate.querySelectorAll<HTMLImageElement>("img"))
+    );
     await Promise.all(images.map(waitForImage));
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    return certificates;
+  }
+
+  async function savePdf() {
+    if (rows.length === 0) return;
+    setError("");
+    setPrintStatus("Preparing PDF...");
+    document.body.classList.add("certificate-pdf-exporting");
+
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+      const certificates = await prepareCertificates();
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+        compress: true,
+      });
+
+      for (let index = 0; index < certificates.length; index += 1) {
+        setPrintStatus(`Creating page ${index + 1} of ${certificates.length}...`);
+        const canvas = await html2canvas(certificates[index], {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          logging: false,
+        });
+
+        if (index > 0) pdf.addPage("a4", "landscape");
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, 297, 210, undefined, "FAST");
+        canvas.width = 1;
+        canvas.height = 1;
+      }
+
+      pdf.save(`cito-certificates-${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch {
+      setError("Could not create the PDF. Please try again with fewer certificates at one time.");
+    } finally {
+      document.body.classList.remove("certificate-pdf-exporting");
+      setPrintStatus("");
+    }
+  }
+
+  async function printAll() {
+    if (rows.length === 0) return;
+    setPrintStatus("Preparing certificates...");
+    await prepareCertificates();
     setPrintStatus("");
     window.print();
   }
@@ -182,7 +235,7 @@ export default function CertificateStudio() {
             className="certificate-button certificate-button--primary"
             type="button"
             disabled={rows.length === 0 || Boolean(printStatus)}
-            onClick={() => void openPrintDialog("pdf")}
+            onClick={() => void savePdf()}
           >
             {printStatus || "Save PDF"}
           </button>
@@ -190,7 +243,7 @@ export default function CertificateStudio() {
             className="certificate-button certificate-button--primary"
             type="button"
             disabled={rows.length === 0 || Boolean(printStatus)}
-            onClick={() => void openPrintDialog("print")}
+            onClick={() => void printAll()}
           >
             Print all
           </button>
