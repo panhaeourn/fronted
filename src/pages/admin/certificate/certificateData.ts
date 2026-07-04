@@ -1,5 +1,6 @@
 import type JSZip from "jszip";
 import * as XLSX from "xlsx";
+import certificateTemplateUrl from "./assets/cito_certificate_upload_template.xlsx?url";
 
 export type CertificateRow = Record<string, string>;
 
@@ -116,11 +117,12 @@ export async function readSpreadsheet(file: File) {
 }
 
 export function downloadSpreadsheetTemplate() {
-  const workbook = XLSX.utils.book_new();
-  const sample = ["Khmer Name", "Sok Dara", "Male", "15", "08", "2005", "Computer Basics", "04", "07", "2026", "Sok Dara.jpg"];
-  const sheet = XLSX.utils.aoa_to_sheet([certificateColumns, sample]);
-  XLSX.utils.book_append_sheet(workbook, sheet, "Upload_Data");
-  XLSX.writeFile(workbook, "cito_certificate_upload_template.xlsx");
+  const link = document.createElement("a");
+  link.href = certificateTemplateUrl;
+  link.download = "cito_certificate_upload_template.xlsx";
+  document.body.append(link);
+  link.click();
+  link.remove();
 }
 
 function normalizeRow(row: Record<string, unknown>): CertificateRow {
