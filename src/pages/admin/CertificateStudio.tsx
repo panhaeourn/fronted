@@ -196,12 +196,20 @@ export default function CertificateStudio() {
   return (
     <div className="certificate-studio-page">
       <header className="certificate-studio-hero">
-        <div>
-          <p className="certificate-eyebrow">Admin workspace / CITO certificates</p>
-          <h1>Certificate Studio</h1>
-          <p className="certificate-studio-subtitle">
-            Turn one spreadsheet and a folder of student photos into print-ready A4 certificates.
-          </p>
+        <div className="certificate-hero-identity">
+          <div className="certificate-hero-mark" aria-hidden="true">
+            <CertificateMarkIcon />
+          </div>
+          <div>
+            <div className="certificate-hero-meta">
+              <p className="certificate-eyebrow">CITO administration</p>
+              <span>Admin only</span>
+            </div>
+            <h1>CITO Certificate</h1>
+            <p className="certificate-studio-subtitle">
+              Prepare, review, and issue official A4 certificates from verified student records.
+            </p>
+          </div>
         </div>
         <div className="certificate-hero-actions">
           <button className="certificate-button certificate-button--secondary" type="button" onClick={downloadSpreadsheetTemplate}>
@@ -309,7 +317,7 @@ export default function CertificateStudio() {
           <div className="certificate-preview-heading">
             <div>
               <p className="certificate-eyebrow">Live output</p>
-              <h2>{rows.length > 0 ? `${rows.length} certificate${rows.length === 1 ? "" : "s"} ready` : "CITO certificate preview"}</h2>
+              <h2>{rows.length > 0 ? `${rows.length} certificate${rows.length === 1 ? "" : "s"} ready` : "CITO Certificate preview"}</h2>
             </div>
             <span className="certificate-preview-badge">A4 landscape</span>
           </div>
@@ -474,6 +482,17 @@ function UploadIcon() {
   return (
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
       <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 15.5V19h14v-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CertificateMarkIcon() {
+  return (
+    <svg viewBox="0 0 32 32" width="30" height="30" fill="none" aria-hidden="true">
+      <path d="M7 5.5h18v14H7z" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M11 10h10M11 14h7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      <circle cx="21.5" cy="22" r="4.5" fill="currentColor" opacity=".18" />
+      <path d="m19.2 25.8-1 3 3.3-1.6 3.2 1.6-1-3" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
     </svg>
   );
 }
