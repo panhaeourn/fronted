@@ -582,19 +582,19 @@
   background: rgba(186, 230, 253, 0.3);
 }
 
-.certificate-fill[data-position="name-khmer"] { left: 17.95%; top: 42.35%; width: 8.1%; justify-content: flex-start; padding-inline: .3%; text-align: left; }
+.certificate-fill[data-position="name-khmer"] { left: 17.95%; top: 42.35%; width: 8.1%; padding-inline: .3%; }
 .certificate-fill[data-position="gender"] { left: 25.2%; top: 42.35%; width: 3.1%; }
 .certificate-fill[data-position="birth-day-khmer"] { left: 37.75%; top: 42.35%; width: 3.5%; }
 .certificate-fill[data-position="birth-month-khmer"] { left: 42.55%; top: 42.35%; width: 3.4%; }
 .certificate-fill[data-position="birth-year-khmer"] { left: 48.1%; top: 42.35%; width: 4.5%; }
-.certificate-fill[data-position="course-khmer"] { left: 20.9%; top: 46.5%; width: 15.5%; min-height: 2.7%; justify-content: flex-start; padding-inline: .3%; font-size: 12px; text-align: left; }
+.certificate-fill[data-position="course-khmer"] { left: 20.9%; top: 46.5%; width: 15.5%; min-height: 2.7%; padding-inline: .3%; font-size: 12px; }
 .certificate-fill[data-position="issue-day-khmer"] { left: 14.9%; top: 50.2%; width: 3.2%; }
 .certificate-fill[data-position="issue-month-khmer"] { left: 19.25%; top: 50.2%; width: 2.3%; }
 .certificate-fill[data-position="issue-year-khmer"] { left: 23.55%; top: 50.4%; width: 4.2%; }
-.certificate-fill[data-position="name-english"] { left: 70.45%; top: 41.7%; width: 13.2%; min-height: 2.8%; justify-content: flex-start; padding-inline: .28%; text-align: left; }
-.certificate-fill[data-position="birth-date-english"] { left: 84.9%; top: 41.7%; width: 8.25%; min-height: 2.8%; justify-content: flex-start; padding-inline: .2%; font-size: 12px; text-align: left; }
-.certificate-fill[data-position="course-english"] { left: 75.95%; top: 45.65%; width: 12.8%; min-height: 2.8%; justify-content: flex-start; padding-inline: .25%; font-size: 12px; text-align: left; }
-.certificate-fill[data-position="issue-date-english"] { left: 70.1%; top: 49.7%; width: 12.05%; min-height: 2.8%; justify-content: flex-start; padding-inline: .2%; font-size: 12px; text-align: left; }
+.certificate-fill[data-position="name-english"] { left: 70.45%; top: 41.7%; width: 13.2%; min-height: 2.8%; padding-inline: .28%; }
+.certificate-fill[data-position="birth-date-english"] { left: 84.9%; top: 41.7%; width: 8.25%; min-height: 2.8%; padding-inline: .2%; font-size: 12px; }
+.certificate-fill[data-position="course-english"] { left: 75.95%; top: 45.65%; width: 12.8%; min-height: 2.8%; padding-inline: .25%; font-size: 12px; }
+.certificate-fill[data-position="issue-date-english"] { left: 70.1%; top: 49.7%; width: 12.05%; min-height: 2.8%; padding-inline: .2%; font-size: 12px; }
 
 .certificate-student-photo {
   position: absolute;
