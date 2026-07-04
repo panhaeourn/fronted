@@ -630,6 +630,10 @@
   background: transparent;
 }
 
+.certificate-native-print-root {
+  display: none;
+}
+
 @media (max-width: 1000px) {
   .certificate-studio-workspace {
     grid-template-columns: 1fr;
@@ -755,5 +759,17 @@
 
   .certificate-stamp {
     cursor: default;
+  }
+
+  body.certificate-pdf-exporting > .app-shell {
+    display: none !important;
+  }
+
+  body.certificate-pdf-exporting > .certificate-native-print-root {
+    display: block !important;
+    width: 297mm !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 }

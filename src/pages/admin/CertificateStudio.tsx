@@ -112,10 +112,10 @@ export default function CertificateStudio() {
     }));
   }
 
-  async function prepareCertificates() {
+  async function prepareCertificates(root: ParentNode = document) {
     await document.fonts.ready;
     const certificates = Array.from(
-      document.querySelectorAll<HTMLElement>(".cito-certificate-sheet")
+      root.querySelectorAll<HTMLElement>(".cito-certificate-sheet")
     );
     const images = certificates.flatMap((certificate) =>
       Array.from(certificate.querySelectorAll<HTMLImageElement>("img"))
@@ -130,15 +130,25 @@ export default function CertificateStudio() {
     setError("");
     setPrintStatus("Preparing PDF...");
     document.body.classList.add("certificate-pdf-exporting");
+    let printRoot: HTMLDivElement | null = null;
 
     try {
-      await prepareCertificates();
+      const certificateList = document.querySelector<HTMLElement>(".certificate-list");
+      if (!certificateList) throw new Error("Certificate list is not available");
+
+      printRoot = document.createElement("div");
+      printRoot.className = "certificate-native-print-root";
+      printRoot.append(certificateList.cloneNode(true));
+      document.body.append(printRoot);
+
+      await prepareCertificates(printRoot);
       setPrintStatus("");
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       window.print();
     } catch {
       setError("Could not open the PDF print dialog. Please try again.");
     } finally {
+      printRoot?.remove();
       document.body.classList.remove("certificate-pdf-exporting");
       setPrintStatus("");
     }
