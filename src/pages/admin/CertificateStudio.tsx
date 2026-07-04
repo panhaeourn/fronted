@@ -61,7 +61,6 @@ const blankPreviewRow: CertificateRow = {
 
 export default function CertificateStudio() {
   const [rows, setRows] = useState<CertificateRow[]>([]);
-  const [embeddedUrls, setEmbeddedUrls] = useState<string[]>([]);
   const [sheetName, setSheetName] = useState("No spreadsheet selected");
   const [selectedField, setSelectedField] = useState<TextField | null>(null);
   const [fieldSettings, setFieldSettings] = useState<FieldSettings>(initialFieldSettings);
@@ -85,12 +84,10 @@ export default function CertificateStudio() {
     setSheetName(`Reading ${file.name}...`);
     embeddedUrlsRef.current.forEach(URL.revokeObjectURL);
     embeddedUrlsRef.current = [];
-    setEmbeddedUrls([]);
 
     try {
       const result = await readSpreadsheet(file);
       embeddedUrlsRef.current = result.embeddedObjectUrls;
-      setEmbeddedUrls(result.embeddedObjectUrls);
       setRows(result.rows);
       setSheetName(file.name);
       if (result.rows.length === 0) {
@@ -161,7 +158,6 @@ export default function CertificateStudio() {
   }
 
   const previewRows = rows.length > 0 ? rows : [blankPreviewRow];
-  const loadedPhotoCount = embeddedUrls.length;
 
   return (
     <div className="certificate-studio-page">
@@ -203,12 +199,6 @@ export default function CertificateStudio() {
           </button>
         </div>
       </header>
-
-      <section className="certificate-studio-metrics" aria-label="Certificate status">
-        <Metric value={String(rows.length)} label="Certificates" tone="blue" />
-        <Metric value={String(loadedPhotoCount)} label="Photos loaded" tone="cyan" />
-        <Metric value="A4" label="Landscape output" tone="gold" />
-      </section>
 
       <div className="certificate-studio-workspace">
         <aside className="certificate-control-panel">
@@ -426,15 +416,6 @@ function ControlSection({
       </div>
       {children}
     </section>
-  );
-}
-
-function Metric({ value, label, tone }: { value: string; label: string; tone: string }) {
-  return (
-    <div className={`certificate-metric certificate-metric--${tone}`}>
-      <strong>{value}</strong>
-      <span>{label}</span>
-    </div>
   );
 }
 
