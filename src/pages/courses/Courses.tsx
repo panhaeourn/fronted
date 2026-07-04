@@ -32,6 +32,8 @@ type AlertState = {
 };
 
 const courseCardHeight = 420;
+const eagerCoursePosterCount = 8;
+const highPriorityCoursePosterCount = 4;
 const coursePriceFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -324,7 +326,7 @@ export default function Courses() {
           gap: 18,
         }}
       >
-        {courses.map((course) => {
+        {courses.map((course, index) => {
           const price = typeof course.price === "number" ? course.price : 5;
           const teacherPhoto = teacherPhotos[course.id];
 
@@ -355,7 +357,8 @@ export default function Courses() {
                     <img
                       src={teacherPhoto.src}
                       alt={`${course.title} poster`}
-                      loading="lazy"
+                      loading={index < eagerCoursePosterCount ? "eager" : "lazy"}
+                      fetchPriority={index < highPriorityCoursePosterCount ? "high" : "auto"}
                       decoding="async"
                       style={{
                         ...teacherPosterStyle,
