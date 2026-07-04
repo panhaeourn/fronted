@@ -100,14 +100,38 @@ export function fullDate(
 export async function readSpreadsheet(file: File) {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const embeddedImages = await extractEmbeddedImages(buffer);
 
-  const rows = XLSX.utils
-    .sheet_to_json<Record<string, unknown>>(sheet, { defval: "", raw: false })
-    .map((row, index) => {
-      const normalized = normalizeRow(row);
-      const embeddedImage = embeddedImages.byRow.get(index) ?? embeddedImages.ordered[index];
+  let sheetRows: unknown[][] = [];
+  let headerRowIndex = -1;
+  for (const sheetName of workbook.SheetNames) {
+    const candidateRows = XLSX.utils.sheet_to_json<unknown[]>(workbook.Sheets[sheetName], {
+      header: 1,
+      defval: "",
+      raw: false,
+    });
+    const candidateHeaderIndex = findHeaderRow(candidateRows);
+    if (candidateHeaderIndex < 0) continue;
+    sheetRows = candidateRows;
+    headerRowIndex = candidateHeaderIndex;
+    break;
+  }
+
+  if (headerRowIndex < 0) {
+    throw new Error("Certificate columns were not found");
+  }
+
+  const headers = sheetRows[headerRowIndex].map((value) => normalize(String(value ?? "")));
+  const rows = sheetRows
+    .slice(headerRowIndex + 1)
+    .map((values, index) => {
+      const normalized: CertificateRow = {};
+      headers.forEach((header, columnIndex) => {
+        if (header) normalized[header] = String(values[columnIndex] ?? "").trim();
+      });
+
+      const embeddedImage =
+        embeddedImages.byRow.get(headerRowIndex + index) ?? embeddedImages.ordered[index];
       if (embeddedImage) normalized.picture = embeddedImage;
       return normalized;
     })
@@ -125,12 +149,32 @@ export function downloadSpreadsheetTemplate() {
   link.remove();
 }
 
-function normalizeRow(row: Record<string, unknown>): CertificateRow {
-  const result: CertificateRow = {};
-  for (const [key, value] of Object.entries(row)) {
-    result[normalize(key)] = String(value ?? "").trim();
-  }
-  return result;
+function findHeaderRow(rows: unknown[][]) {
+  const recognizedColumns = new Set([
+    "name",
+    "name_khmer",
+    "name_english",
+    "recipient_name",
+    "sex",
+    "gender",
+    "birth_day",
+    "birth_month",
+    "birth_year",
+    "course",
+    "issue_day",
+    "issue_month",
+    "issue_year",
+    "picture",
+  ]);
+
+  return rows.findIndex((row) => {
+    const headers = row.map((value) => normalize(String(value ?? "")));
+    const hasName = headers.some((header) =>
+      ["name", "name_khmer", "name_english", "recipient_name"].includes(header)
+    );
+    const recognizedCount = headers.filter((header) => recognizedColumns.has(header)).length;
+    return hasName && recognizedCount >= 4;
+  });
 }
 
 type EmbeddedImages = {
