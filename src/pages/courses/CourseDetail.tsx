@@ -26,9 +26,6 @@ type CourseVideo = {
   sortOrder?: number;
 };
 
-const CLOUD_FLARE_R2_PUBLIC_BASE = (
-  import.meta.env.VITE_CLOUDFLARE_R2_PUBLIC_BASE_URL ?? ""
-).replace(/\/$/, "");
 const coursePriceFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -58,12 +55,12 @@ export default function CourseDetail() {
       try {
         setLoading(true);
 
-        const courseData = await apiFetch<Course>(`/api/courses/${id}`);
-        setCourse(courseData);
+        const [courseData, videoData] = await Promise.all([
+          apiFetch<Course>(`/api/courses/${id}`),
+          apiFetch<CourseVideo[]>(`/api/course-videos/course/${id}`),
+        ]);
 
-        const videoData = await apiFetch<CourseVideo[]>(
-          `/api/course-videos/course/${id}`
-        );
+        setCourse(courseData);
         setVideos(videoData || []);
 
         if (videoData && videoData.length > 0) {
@@ -94,10 +91,6 @@ export default function CourseDetail() {
 
     if (selectedVideo.fileName) {
       return encodeURI(`${API_BASE}/files/${selectedVideo.fileName}`);
-    }
-
-    if (CLOUD_FLARE_R2_PUBLIC_BASE && selectedVideo.fileName) {
-      return encodeURI(`${CLOUD_FLARE_R2_PUBLIC_BASE}/${selectedVideo.fileName}`);
     }
 
     return "";
@@ -162,7 +155,7 @@ export default function CourseDetail() {
                 controls
                 controlsList="nodownload"
                 disablePictureInPicture
-                preload="metadata"
+                preload="auto"
                 playsInline
                 onContextMenu={(event) => event.preventDefault()}
                 style={videoStyle}
