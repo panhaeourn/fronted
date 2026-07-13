@@ -111,10 +111,6 @@ export default function CreateCourseForm({
           {loading ? "Creating..." : "Create"}
         </button>
 
-        <div style={{ opacity: 0.75, fontSize: 12, color: "var(--app-muted)" }}>
-          Note: you must be logged in (Google / cookie session) or backend
-          returns 401/403.
-        </div>
       </div>
     </form>
   );
