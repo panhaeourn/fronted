@@ -42,6 +42,7 @@ export default function CourseDetail() {
   const [course, setCourse] = useState<Course | null>(null);
   const [videos, setVideos] = useState<CourseVideo[]>([]);
   const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
+  const [playbackError, setPlaybackError] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const isLightTheme =
@@ -95,6 +96,10 @@ export default function CourseDetail() {
 
     return "";
   }, [selectedVideo]);
+
+  useEffect(() => {
+    setPlaybackError("");
+  }, [selectedVideoId]);
 
   if (loading) return <div style={loadingStyle}>Loading course...</div>;
   if (err) return <div style={errorStyle}>{err}</div>;
@@ -155,15 +160,35 @@ export default function CourseDetail() {
                 controls
                 controlsList="nodownload"
                 disablePictureInPicture
-                preload="auto"
+                preload="metadata"
                 playsInline
+                src={selectedVideoSrc}
+                onLoadStart={() => setPlaybackError("")}
+                onPlaying={() => setPlaybackError("")}
+                onStalled={() =>
+                  setPlaybackError(
+                    "Video data stopped loading. Please try again; if it continues, this file must be converted and uploaded again."
+                  )
+                }
+                onError={(event) => {
+                  const code = event.currentTarget.error?.code;
+                  setPlaybackError(
+                    code === MediaError.MEDIA_ERR_DECODE ||
+                      code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
+                      ? "This video codec is not supported by your browser. Convert it to H.264 video with AAC audio, then upload it again."
+                      : "This video could not be loaded from the server. Please try again."
+                  );
+                }}
                 onContextMenu={(event) => event.preventDefault()}
                 style={videoStyle}
-              >
-                <source src={selectedVideoSrc} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+              />
             </div>
+
+            {playbackError && (
+              <div role="alert" style={playbackErrorStyle}>
+                {playbackError}
+              </div>
+            )}
 
             <div className="course-detail-details-panel" style={detailsPanelStyle}>
               <div style={eyebrowStyle}>
@@ -384,6 +409,16 @@ const videoStyle: React.CSSProperties = {
   display: "block",
   background: "#000",
   maxHeight: 720,
+};
+
+const playbackErrorStyle: React.CSSProperties = {
+  marginTop: 12,
+  padding: "12px 14px",
+  borderRadius: 12,
+  color: "#fecaca",
+  background: "rgba(127, 29, 29, 0.35)",
+  border: "1px solid rgba(248, 113, 113, 0.45)",
+  lineHeight: 1.5,
 };
 
 const detailsPanelStyle: React.CSSProperties = {
