@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { apiFetch, API_BASE } from "../../api";
+import { useAuth } from "../../lib/auth-context";
 import {
   backLinkStyle,
   errorStyle,
@@ -39,9 +40,12 @@ function formatCoursePrice(value: number) {
 
 export default function CourseDetail() {
   const { id } = useParams();
+  const { isAdmin } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [videos, setVideos] = useState<CourseVideo[]>([]);
   const [selectedVideoId, setSelectedVideoId] = useState<number | null>(null);
+  const [deletingVideoId, setDeletingVideoId] = useState<number | null>(null);
+  const [deleteErr, setDeleteErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const isLightTheme =
@@ -95,6 +99,37 @@ export default function CourseDetail() {
 
     return "";
   }, [selectedVideo]);
+
+  async function handleDeleteVideo(video: CourseVideo) {
+    const lessonIndex = videos.findIndex((item) => item.id === video.id);
+    const lessonLabel = video.title || `Lesson ${lessonIndex + 1}`;
+    const confirmed = window.confirm(
+      `Delete "${lessonLabel}"? This permanently removes the lesson and its video file.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeleteErr("");
+      setDeletingVideoId(video.id);
+      await apiFetch<void>(`/api/course-videos/${video.id}`, { method: "DELETE" });
+
+      const remainingVideos = videos.filter((item) => item.id !== video.id);
+      setVideos(remainingVideos);
+
+      if (selectedVideoId === video.id) {
+        const replacement =
+          remainingVideos[lessonIndex] ||
+          remainingVideos[lessonIndex - 1] ||
+          remainingVideos[0];
+        setSelectedVideoId(replacement?.id ?? null);
+      }
+    } catch (error: unknown) {
+      setDeleteErr(error instanceof Error ? error.message : "Failed to delete lesson");
+    } finally {
+      setDeletingVideoId(null);
+    }
+  }
 
   if (loading) return <div style={loadingStyle}>Loading course...</div>;
   if (err) return <div style={errorStyle}>{err}</div>;
@@ -180,36 +215,37 @@ export default function CourseDetail() {
 
           <aside className="course-detail-playlist" style={playlistPanelStyle}>
             <h3 className="course-detail-playlist-title" style={playlistTitleStyle}>Course Playlist</h3>
+            {deleteErr && <div role="alert" style={playlistErrorStyle}>{deleteErr}</div>}
             <div className="course-detail-playlist-list" style={playlistListStyle}>
               {videos.map((video, index) => {
                 const active = selectedVideo.id === video.id;
 
                 return (
-                  <button
-                    className="course-detail-playlist-item"
-                    key={video.id}
-                    onClick={() => setSelectedVideoId(video.id)}
-                    style={{
-                      ...playlistItemStyle,
-                      border: active
-                        ? "1px solid rgba(96, 165, 250, 0.42)"
-                        : "1px solid rgba(148, 163, 184, 0.16)",
-                      background: active
-                        ? isLightTheme
-                          ? "linear-gradient(135deg, rgba(219, 234, 254, 0.95), rgba(191, 219, 254, 0.88))"
-                          : "linear-gradient(180deg, rgba(29, 49, 92, 0.96), rgba(17, 27, 54, 0.94))"
-                        : isLightTheme
-                        ? "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96))"
-                        : "linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.03))",
-                      boxShadow: active
-                        ? isLightTheme
-                          ? "0 14px 30px rgba(96, 165, 250, 0.18)"
-                          : "0 14px 30px rgba(59, 130, 246, 0.22)"
-                        : isLightTheme
-                        ? "0 10px 24px rgba(15, 23, 42, 0.06)"
-                        : "none",
-                    }}
-                  >
+                  <div key={video.id} style={playlistItemWrapStyle}>
+                    <button
+                      className="course-detail-playlist-item"
+                      onClick={() => setSelectedVideoId(video.id)}
+                      style={{
+                        ...playlistItemStyle,
+                        border: active
+                          ? "1px solid rgba(96, 165, 250, 0.42)"
+                          : "1px solid rgba(148, 163, 184, 0.16)",
+                        background: active
+                          ? isLightTheme
+                            ? "linear-gradient(135deg, rgba(219, 234, 254, 0.95), rgba(191, 219, 254, 0.88))"
+                            : "linear-gradient(180deg, rgba(29, 49, 92, 0.96), rgba(17, 27, 54, 0.94))"
+                          : isLightTheme
+                          ? "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96))"
+                          : "linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.03))",
+                        boxShadow: active
+                          ? isLightTheme
+                            ? "0 14px 30px rgba(96, 165, 250, 0.18)"
+                            : "0 14px 30px rgba(59, 130, 246, 0.22)"
+                          : isLightTheme
+                          ? "0 10px 24px rgba(15, 23, 42, 0.06)"
+                          : "none",
+                      }}
+                    >
                     <div className="course-detail-playlist-thumb" style={playlistThumbStyle}>
                       <div
                         style={{
@@ -223,7 +259,13 @@ export default function CourseDetail() {
                       </div>
                     </div>
 
-                    <div className="course-detail-playlist-text" style={playlistTextWrapStyle}>
+                    <div
+                      className="course-detail-playlist-text"
+                      style={{
+                        ...playlistTextWrapStyle,
+                        paddingRight: isAdmin ? 62 : 0,
+                      }}
+                    >
                       <div
                         style={{
                           ...playlistLessonStyle,
@@ -254,7 +296,20 @@ export default function CourseDetail() {
                         {video.title || `Video ${index + 1}`}
                       </div>
                     </div>
-                  </button>
+                    </button>
+
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        aria-label={`Delete ${video.title || `Lesson ${index + 1}`}`}
+                        disabled={deletingVideoId !== null}
+                        onClick={() => void handleDeleteVideo(video)}
+                        style={deleteLessonButtonStyle}
+                      >
+                        {deletingVideoId === video.id ? "..." : "Delete"}
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -431,6 +486,19 @@ const playlistListStyle: React.CSSProperties = {
   marginTop: 16,
 };
 
+const playlistErrorStyle: React.CSSProperties = {
+  marginTop: 12,
+  padding: "10px 12px",
+  borderRadius: 10,
+  color: "#fecaca",
+  background: "rgba(127, 29, 29, 0.34)",
+  border: "1px solid rgba(248, 113, 113, 0.4)",
+};
+
+const playlistItemWrapStyle: React.CSSProperties = {
+  position: "relative",
+};
+
 const playlistItemStyle: React.CSSProperties = {
   display: "grid",
   gridTemplateColumns: "132px 1fr",
@@ -441,6 +509,21 @@ const playlistItemStyle: React.CSSProperties = {
   cursor: "pointer",
   textAlign: "left",
   alignItems: "center",
+};
+
+const deleteLessonButtonStyle: React.CSSProperties = {
+  position: "absolute",
+  top: 10,
+  right: 10,
+  zIndex: 2,
+  padding: "6px 9px",
+  borderRadius: 9,
+  border: "1px solid rgba(248, 113, 113, 0.55)",
+  color: "#fee2e2",
+  background: "rgba(127, 29, 29, 0.82)",
+  fontSize: 11,
+  fontWeight: 800,
+  cursor: "pointer",
 };
 
 const playlistTextWrapStyle: React.CSSProperties = {
