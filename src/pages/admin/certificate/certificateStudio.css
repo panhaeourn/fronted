@@ -752,50 +752,57 @@
 
   .certificate-control-panel {
     grid-template-columns: 1fr;
-    width: min(100%, 320px);
+    width: min(100%, 270px);
     margin-inline: auto;
-    gap: 10px;
+    gap: 8px;
   }
 
   .certificate-control-section {
-    padding: 11px;
-    border-radius: 13px;
+    padding: 8px;
+    border-radius: 11px;
   }
 
   .certificate-control-section::before {
-    inset-inline: 11px;
+    inset-inline: 8px;
+  }
+
+  .certificate-control-panel .certificate-button {
+    min-height: 32px;
+    padding-inline: 9px;
+    border-radius: 9px;
+    font-size: 10px;
   }
 
   .certificate-section-title {
-    grid-template-columns: 30px 1fr;
-    gap: 9px;
-    margin-bottom: 8px;
+    grid-template-columns: 26px 1fr;
+    gap: 7px;
+    margin-bottom: 6px;
   }
 
   .certificate-section-title > span {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    font-size: 9px;
+    width: 25px;
+    height: 25px;
+    border-radius: 7px;
+    font-size: 8px;
   }
 
   .certificate-section-title h2 {
-    font-size: 16px;
+    font-size: 14px;
     line-height: 1.2;
   }
 
   .certificate-upload-card {
-    grid-template-columns: 30px minmax(0, 1fr) auto;
-    gap: 7px;
-    margin-top: 6px;
-    padding: 8px;
-    border-radius: 10px;
+    grid-template-columns: 27px minmax(0, 1fr) auto;
+    gap: 6px;
+    margin-top: 5px;
+    padding: 7px;
+    border-radius: 9px;
   }
 
   .certificate-upload-icon {
-    width: 30px;
-    height: 30px;
-    border-radius: 9px;
+    width: 27px;
+    height: 27px;
+    border-radius: 8px;
   }
 
   .certificate-upload-icon svg {
@@ -804,30 +811,30 @@
   }
 
   .certificate-upload-copy strong {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .certificate-upload-copy span,
   .certificate-control-note,
   .certificate-form-field > span {
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .certificate-upload-action {
-    padding: 5px 7px;
-    font-size: 9px;
+    padding: 4px 6px;
+    font-size: 8px;
   }
 
   .certificate-control-note {
     margin: 6px 1px 0;
-    line-height: 1.45;
+    line-height: 1.35;
   }
 
   .certificate-selected-field {
     gap: 3px;
-    margin-bottom: 8px;
-    padding: 9px 11px;
-    border-radius: 10px;
+    margin-bottom: 6px;
+    padding: 7px 9px;
+    border-radius: 9px;
   }
 
   .certificate-selected-field span {
@@ -835,25 +842,25 @@
   }
 
   .certificate-selected-field strong {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .certificate-form-field {
-    gap: 4px;
-    margin-top: 8px;
+    gap: 3px;
+    margin-top: 6px;
   }
 
   .certificate-form-field select,
   .certificate-form-field input {
-    min-height: 34px;
-    padding-inline: 10px;
-    border-radius: 9px;
-    font-size: 12px;
+    min-height: 31px;
+    padding-inline: 8px;
+    border-radius: 8px;
+    font-size: 11px;
   }
 
   .certificate-column-guide {
-    padding: 10px 11px 11px;
-    border-radius: 13px;
+    padding: 8px 9px 9px;
+    border-radius: 11px;
   }
 
   .certificate-guide-kicker {
@@ -866,8 +873,8 @@
   }
 
   .certificate-column-guide code {
-    padding: 3px 5px;
-    font-size: 8px;
+    padding: 2px 4px;
+    font-size: 7px;
   }
 
   .certificate-preview-heading {
