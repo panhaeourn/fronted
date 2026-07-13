@@ -113,11 +113,19 @@ export default function UploadCourseVideo() {
     return () => window.clearTimeout(timeoutId);
   }, [photoAutoSaveMessage]);
 
-  function handleVideoSelection(selectedFiles: File[]) {
+  async function handleVideoSelection(selectedFiles: File[]) {
+    setErr("");
     setSuccessMessage("");
     setUploadProgress(0);
     setCurrentUploadIndex(null);
-    setFiles(selectedFiles);
+    setFiles([]);
+
+    try {
+      await Promise.all(selectedFiles.map(validateFastStreamingMp4));
+      setFiles(selectedFiles);
+    } catch (error: unknown) {
+      setErr(getErrorMessage(error, "Video is not ready for browser streaming"));
+    }
   }
 
   async function uploadSingleVideo(selectedFile: File, uploadTitle: string) {
@@ -337,7 +345,7 @@ export default function UploadCourseVideo() {
                 <div style={nativeFileGroupStyle}>
                   <input
                     type="file"
-                    accept="video/*"
+                    accept=".mp4,video/mp4"
                     multiple
                     onClick={(e) => {
                       e.currentTarget.value = "";
@@ -345,7 +353,7 @@ export default function UploadCourseVideo() {
                       setErr("");
                     }}
                     onChange={(e) => {
-                      handleVideoSelection(Array.from(e.target.files || []));
+                      void handleVideoSelection(Array.from(e.target.files || []));
                     }}
                     style={nativeInputStyle}
                   />
@@ -363,7 +371,7 @@ export default function UploadCourseVideo() {
                       ? "Upload completed successfully."
                       : files.length
                       ? `Total size: ${formatFileSize(totalUploadSize)}`
-                      : "Select MP4, MOV, or other video formats"}
+                      : "MP4 only: H.264/AVC with Fast Start enabled"}
                   </div>
                   {files.length > 0 && (
                     <div style={fileQueueListStyle}>
@@ -445,7 +453,7 @@ export default function UploadCourseVideo() {
                 <div style={fileRowStyle}>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp"
                     onClick={(e) => {
                       e.currentTarget.value = "";
                       setErr("");
@@ -486,7 +494,7 @@ export default function UploadCourseVideo() {
                       {teacherPhoto ? "Teacher photo ready" : "No photo selected"}
                     </span>
                     <span style={fileHintStyle}>
-                      Save an optional teacher image for this course
+                      JPG, PNG, or WebP; automatically compressed for fast loading
                     </span>
                   </div>
                 </div>
@@ -847,6 +855,98 @@ function formatFileSize(size: number) {
   }
 
   return `${(size / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+const MP4_SCAN_SIZE = 16 * 1024 * 1024;
+
+async function validateFastStreamingMp4(file: File) {
+  if (!file.name.toLowerCase().endsWith(".mp4")) {
+    throw new Error(`${file.name}: choose an MP4 file.`);
+  }
+
+  const bytes = new Uint8Array(
+    await file.slice(0, Math.min(file.size, MP4_SCAN_SIZE)).arrayBuffer()
+  );
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let offset = 0;
+  let foundMediaData = false;
+
+  while (offset + 8 <= bytes.length) {
+    let boxSize = view.getUint32(offset);
+    const boxType = readAscii(bytes, offset + 4, 4);
+    let headerSize = 8;
+
+    if (boxSize === 1) {
+      if (offset + 16 > bytes.length) break;
+      boxSize = Number(view.getBigUint64(offset + 8));
+      headerSize = 16;
+    } else if (boxSize === 0) {
+      boxSize = file.size - offset;
+    }
+
+    if (!Number.isSafeInteger(boxSize) || boxSize < headerSize) break;
+
+    if (boxType === "mdat") {
+      foundMediaData = true;
+    }
+
+    if (boxType === "moov") {
+      if (foundMediaData) {
+        throw new Error(
+          `${file.name}: Fast Start is not enabled. Export again with Network Optimization/Fast Start.`
+        );
+      }
+
+      if (offset + boxSize > bytes.length) {
+        throw new Error(
+          `${file.name}: MP4 metadata is too large to verify. Export again with Fast Start.`
+        );
+      }
+
+      const moov = bytes.subarray(offset, offset + boxSize);
+      if (containsAscii(moov, "hev1") || containsAscii(moov, "hvc1")) {
+        throw new Error(
+          `${file.name}: H.265/HEVC is not supported. Export as H.264/AVC.`
+        );
+      }
+
+      if (!containsAscii(moov, "avc1") && !containsAscii(moov, "avc3")) {
+        throw new Error(
+          `${file.name}: video must use the H.264/AVC codec.`
+        );
+      }
+
+      return;
+    }
+
+    if (boxSize > bytes.length - offset) break;
+    offset += boxSize;
+  }
+
+  throw new Error(
+    `${file.name}: Fast Start metadata was not found. Export again with Network Optimization/Fast Start.`
+  );
+}
+
+function readAscii(bytes: Uint8Array, offset: number, length: number) {
+  let value = "";
+  for (let index = 0; index < length; index += 1) {
+    value += String.fromCharCode(bytes[offset + index]);
+  }
+  return value;
+}
+
+function containsAscii(bytes: Uint8Array, value: string) {
+  const pattern = Array.from(value, (character) => character.charCodeAt(0));
+
+  search: for (let offset = 0; offset <= bytes.length - pattern.length; offset += 1) {
+    for (let index = 0; index < pattern.length; index += 1) {
+      if (bytes[offset + index] !== pattern[index]) continue search;
+    }
+    return true;
+  }
+
+  return false;
 }
 
 const eyebrowStyle: React.CSSProperties = {
