@@ -420,12 +420,17 @@
 
 .certificate-guide-kicker {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   color: var(--app-muted);
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 1px;
   text-transform: uppercase;
+  cursor: pointer;
+}
+
+.certificate-column-guide[open] .certificate-guide-kicker {
+  margin-bottom: 10px;
 }
 
 .certificate-column-guide > div {
@@ -752,14 +757,14 @@
 
   .certificate-control-panel {
     grid-template-columns: 1fr;
-    width: min(100%, 270px);
+    width: min(100%, 220px);
     margin-inline: auto;
     gap: 8px;
   }
 
   .certificate-control-section {
-    padding: 8px;
-    border-radius: 11px;
+    padding: 7px;
+    border-radius: 10px;
   }
 
   .certificate-control-section::before {
@@ -787,7 +792,7 @@
   }
 
   .certificate-section-title h2 {
-    font-size: 14px;
+    font-size: 12px;
     line-height: 1.2;
   }
 
@@ -827,7 +832,8 @@
 
   .certificate-control-note {
     margin: 6px 1px 0;
-    line-height: 1.35;
+    font-size: 8px;
+    line-height: 1.3;
   }
 
   .certificate-selected-field {
@@ -859,13 +865,16 @@
   }
 
   .certificate-column-guide {
-    padding: 8px 9px 9px;
-    border-radius: 11px;
+    padding: 7px 8px 8px;
+    border-radius: 10px;
   }
 
   .certificate-guide-kicker {
-    margin-bottom: 7px;
     font-size: 8px;
+  }
+
+  .certificate-column-guide[open] .certificate-guide-kicker {
+    margin-bottom: 6px;
   }
 
   .certificate-column-guide > div {
