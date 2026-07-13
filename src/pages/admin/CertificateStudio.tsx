@@ -281,32 +281,30 @@ export default function CertificateStudio() {
               <span>{selectedField ? "Selected field" : "Waiting for selection"}</span>
               <strong>{selectedField ? fieldLabels[selectedField] : "Click certificate text"}</strong>
             </div>
-            {selectedField && (
-              <>
-                <label className="certificate-form-field">
-                  <span>Font</span>
-                  <select
-                    value={fieldSettings[selectedField].font}
-                    onChange={(event) => updateSelectedField("font", event.target.value)}
-                  >
-                    {fontOptions.map((option) => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="certificate-form-field">
-                  <span>Font size</span>
-                  <input
-                    type="number"
-                    min="6"
-                    max="120"
-                    placeholder="Template default"
-                    value={fieldSettings[selectedField].size}
-                    onChange={(event) => updateSelectedField("size", event.target.value)}
-                  />
-                </label>
-              </>
-            )}
+            <label className="certificate-form-field">
+              <span>Font</span>
+              <select
+                disabled={!selectedField}
+                value={selectedField ? fieldSettings[selectedField].font : ""}
+                onChange={(event) => updateSelectedField("font", event.target.value)}
+              >
+                {fontOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </label>
+            <label className="certificate-form-field">
+              <span>Font size</span>
+              <input
+                disabled={!selectedField}
+                type="number"
+                min="6"
+                max="120"
+                placeholder="Template default"
+                value={selectedField ? fieldSettings[selectedField].size : ""}
+                onChange={(event) => updateSelectedField("size", event.target.value)}
+              />
+            </label>
           </ControlSection>
 
           <ControlSection step="02" title="Position the seal">
@@ -319,14 +317,14 @@ export default function CertificateStudio() {
             </button>
           </ControlSection>
 
-          <details className="certificate-column-guide">
-            <summary className="certificate-guide-kicker">Required columns</summary>
+          <div className="certificate-column-guide">
+            <span className="certificate-guide-kicker">Required columns</span>
             <div>
               {['name_khmer', 'name_english', 'sex', 'birth_day', 'birth_month', 'birth_year', 'course', 'issue_day', 'issue_month', 'issue_year', 'picture'].map((column) => (
                 <code key={column}>{column}</code>
               ))}
             </div>
-          </details>
+          </div>
         </aside>
 
         <section className="certificate-preview-panel">
