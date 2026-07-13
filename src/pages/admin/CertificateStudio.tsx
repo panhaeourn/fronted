@@ -30,6 +30,7 @@ const initialFieldSettings: FieldSettings = {
 };
 
 const defaultStamp: StampPlacement = { x: 69.25, y: 66.2, width: 13.5 };
+const a4LandscapeWidthPx = (297 / 25.4) * 96;
 
 const fieldLabels: Record<TextField, string> = {
   name: "Student name",
@@ -70,13 +71,35 @@ export default function CertificateStudio() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [printStatus, setPrintStatus] = useState("");
+  const [previewOnly, setPreviewOnly] = useState(false);
+  const [previewScale, setPreviewScale] = useState(1);
   const embeddedUrlsRef = useRef<string[]>([]);
+  const previewScrollRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
 
   useEffect(() => {
     return () => {
       embeddedUrlsRef.current.forEach(URL.revokeObjectURL);
     };
+  }, []);
+
+  useEffect(() => {
+    const previewScroll = previewScrollRef.current;
+    if (!previewScroll) return;
+
+    const updateScale = () => {
+      const styles = window.getComputedStyle(previewScroll);
+      const horizontalPadding =
+        Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight);
+      const availableWidth = Math.max(0, previewScroll.clientWidth - horizontalPadding);
+      setPreviewScale(Math.min(1, availableWidth / a4LandscapeWidthPx));
+    };
+
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(previewScroll);
+    updateScale();
+
+    return () => observer.disconnect();
   }, []);
 
   async function handleSpreadsheet(file?: File) {
@@ -201,7 +224,7 @@ export default function CertificateStudio() {
   const previewRows = rows.length > 0 ? rows : [blankPreviewRow];
 
   return (
-    <div className="certificate-studio-page">
+    <div className={`certificate-studio-page${previewOnly ? " is-preview-only" : ""}`}>
       <header className="certificate-studio-hero">
         <div className="certificate-hero-identity">
           <div className="certificate-hero-mark" aria-hidden="true">
@@ -310,17 +333,27 @@ export default function CertificateStudio() {
               <p className="certificate-eyebrow">Live output</p>
               <h2>{rows.length > 0 ? `${rows.length} certificate${rows.length === 1 ? "" : "s"} ready` : "CITO Certificate preview"}</h2>
             </div>
-            <span className="certificate-preview-badge">A4 landscape</span>
+            <div className="certificate-preview-heading-actions">
+              <span className="certificate-preview-badge">A4 landscape</span>
+              <button
+                className="certificate-button certificate-button--secondary certificate-preview-full-button"
+                type="button"
+                onClick={() => setPreviewOnly((current) => !current)}
+              >
+                {previewOnly ? "Exit full page" : "Full page"}
+              </button>
+            </div>
           </div>
 
           {error && <div className="certificate-error" role="alert">{error}</div>}
 
-          <div className="certificate-preview-scroll">
+          <div className="certificate-preview-scroll" ref={previewScrollRef}>
             <div className="certificate-list">
               {previewRows.map((row, index) => (
                 <CitoCertificate
                   key={`${recipientName(row, "english") || recipientName(row, "khmer") || "preview"}-${index}`}
                   row={row}
+                  scale={previewScale}
                   photo={photoForRow(row)}
                   stamp={stamp}
                   selectedField={selectedField}
@@ -341,6 +374,7 @@ export default function CertificateStudio() {
 
 function CitoCertificate({
   row,
+  scale,
   photo,
   stamp,
   selectedField,
@@ -351,6 +385,7 @@ function CitoCertificate({
   onStampPointerEnd,
 }: {
   row: CertificateRow;
+  scale: number;
   photo: string;
   stamp: StampPlacement;
   selectedField: TextField | null;
@@ -373,7 +408,11 @@ function CitoCertificate({
   });
 
   return (
-    <article className="cito-certificate-sheet" aria-label={`CITO certificate for ${recipientName(row, "english") || recipientName(row, "khmer") || "student"}`}>
+    <article
+      className="cito-certificate-sheet"
+      aria-label={`CITO certificate for ${recipientName(row, "english") || recipientName(row, "khmer") || "student"}`}
+      style={{ zoom: scale }}
+    >
       <div {...textProps("name")} data-position="name-khmer">{recipientName(row, "khmer")}</div>
       <div {...textProps("gender")} data-position="gender">{fieldValue(row, "gender")}</div>
       <div {...textProps("birthDate")} data-position="birth-day-khmer">{birth.day}</div>
