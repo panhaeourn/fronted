@@ -755,6 +755,7 @@
     width: min(100%, 270px);
     margin-inline: auto;
     gap: 8px;
+    zoom: 0.8;
   }
 
   .certificate-control-section {
