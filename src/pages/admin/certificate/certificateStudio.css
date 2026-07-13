@@ -654,22 +654,61 @@
   .certificate-studio-hero {
     align-items: stretch;
     flex-direction: column;
-    padding: 21px;
+    gap: 14px;
+    margin-bottom: 12px;
+    padding: 15px;
+    border-radius: 17px;
   }
 
   .certificate-hero-identity {
     align-items: flex-start;
+    gap: 11px;
   }
 
   .certificate-hero-mark {
-    width: 48px;
-    height: 48px;
-    flex-basis: 48px;
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+    border-radius: 12px;
+  }
+
+  .certificate-hero-mark svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .certificate-hero-meta {
+    gap: 6px;
+    margin-bottom: 3px;
+  }
+
+  .certificate-eyebrow {
+    font-size: 9px;
+    letter-spacing: 1.15px;
+  }
+
+  .certificate-hero-meta > span {
+    padding: 3px 6px;
+    font-size: 8px;
+  }
+
+  .certificate-studio-hero h1 {
+    font-size: clamp(23px, 8vw, 30px);
+    line-height: 1.05;
+    letter-spacing: -0.65px;
   }
 
   .certificate-hero-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .certificate-button {
+    min-height: 38px;
+    padding-inline: 12px;
+    border-radius: 11px;
+    font-size: 11px;
   }
 
   .certificate-hero-actions .certificate-button:first-child {
@@ -678,6 +717,120 @@
 
   .certificate-control-panel {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .certificate-control-section {
+    padding: 14px;
+    border-radius: 15px;
+  }
+
+  .certificate-control-section::before {
+    inset-inline: 14px;
+  }
+
+  .certificate-section-title {
+    grid-template-columns: 30px 1fr;
+    gap: 9px;
+    margin-bottom: 11px;
+  }
+
+  .certificate-section-title > span {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    font-size: 9px;
+  }
+
+  .certificate-section-title h2 {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .certificate-upload-card {
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .certificate-upload-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .certificate-upload-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .certificate-upload-copy strong {
+    font-size: 12px;
+  }
+
+  .certificate-upload-copy span,
+  .certificate-control-note,
+  .certificate-form-field > span {
+    font-size: 10px;
+  }
+
+  .certificate-upload-action {
+    padding: 5px 7px;
+    font-size: 9px;
+  }
+
+  .certificate-control-note {
+    margin-top: 8px;
+    line-height: 1.45;
+  }
+
+  .certificate-selected-field {
+    gap: 3px;
+    margin-bottom: 8px;
+    padding: 9px 11px;
+    border-radius: 10px;
+  }
+
+  .certificate-selected-field span {
+    font-size: 8px;
+  }
+
+  .certificate-selected-field strong {
+    font-size: 12px;
+  }
+
+  .certificate-form-field {
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .certificate-form-field select,
+  .certificate-form-field input {
+    min-height: 36px;
+    padding-inline: 10px;
+    border-radius: 9px;
+    font-size: 12px;
+  }
+
+  .certificate-column-guide {
+    padding: 13px 14px 14px;
+    border-radius: 15px;
+  }
+
+  .certificate-guide-kicker {
+    margin-bottom: 7px;
+    font-size: 8px;
+  }
+
+  .certificate-column-guide > div {
+    gap: 4px;
+  }
+
+  .certificate-column-guide code {
+    padding: 3px 5px;
+    font-size: 8px;
   }
 
   .certificate-preview-heading {
