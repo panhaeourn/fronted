@@ -5,6 +5,9 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import { QRCodeSVG } from "qrcode.react";
+import { apiFetch } from "../../api";
+import { getErrorMessage } from "../../lib/errors";
 import stampImage from "./certificate/assets/cito-stamp.png";
 import {
   dateParts,
@@ -20,6 +23,18 @@ import "./certificate/certificateStudio.css";
 type TextField = "name" | "gender" | "birthDate" | "course" | "issueDate";
 type FieldSettings = Record<TextField, { font: string; size: string }>;
 type StampPlacement = { x: number; y: number; width: number };
+type IssuedCertificate = {
+  status: "VALID" | "REVOKED";
+  valid: boolean;
+  verificationCode: string;
+  certificateNumber: string;
+  recipientNameKhmer: string;
+  recipientNameEnglish: string;
+  courseName: string;
+  issueDate: string;
+  issuedAt: string;
+  revokedAt?: string | null;
+};
 
 const initialFieldSettings: FieldSettings = {
   name: { font: "", size: "" },
@@ -31,6 +46,7 @@ const initialFieldSettings: FieldSettings = {
 
 const defaultStamp: StampPlacement = { x: 69.25, y: 66.2, width: 13.5 };
 const a4LandscapeWidthPx = (297 / 25.4) * 96;
+const publicSiteUrl = (import.meta.env.VITE_PUBLIC_SITE_URL || "https://cito.study").replace(/\/$/, "");
 
 const fieldLabels: Record<TextField, string> = {
   name: "Student name",
@@ -73,7 +89,10 @@ export default function CertificateStudio() {
   const [printStatus, setPrintStatus] = useState("");
   const [previewOnly, setPreviewOnly] = useState(false);
   const [previewScale, setPreviewScale] = useState(1);
+  const [issuedCertificates, setIssuedCertificates] = useState<IssuedCertificate[]>([]);
+  const [issuing, setIssuing] = useState(false);
   const embeddedUrlsRef = useRef<string[]>([]);
+  const issuanceBatchRef = useRef(createIssuanceBatchId());
   const previewScrollRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
 
@@ -107,6 +126,8 @@ export default function CertificateStudio() {
     setBusy(true);
     setError("");
     setSheetName(`Reading ${file.name}...`);
+    setIssuedCertificates([]);
+    issuanceBatchRef.current = createIssuanceBatchId();
     embeddedUrlsRef.current.forEach(URL.revokeObjectURL);
     embeddedUrlsRef.current = [];
 
@@ -148,14 +169,66 @@ export default function CertificateStudio() {
     return certificates;
   }
 
+  async function ensureCertificatesIssued() {
+    if (rows.length === 0) {
+      throw new Error("Select a spreadsheet before issuing certificates.");
+    }
+    if (issuedCertificates.length === rows.length) {
+      return issuedCertificates;
+    }
+
+    setIssuing(true);
+    try {
+      const certificates = await apiFetch<IssuedCertificate[]>("/api/admin/certificates/issue", {
+        method: "POST",
+        body: JSON.stringify({
+          certificates: rows.map((row, index) => {
+            const issue = dateParts(row, "issueDate", "issueDay", "issueMonth", "issueYear");
+            return {
+              issuanceKey: `${issuanceBatchRef.current}-${index}`,
+              recipientNameKhmer: recipientName(row, "khmer"),
+              recipientNameEnglish: recipientName(row, "english"),
+              courseName: fieldValue(row, "course"),
+              issueDate: fullDate(row, "issueDate", issue),
+            };
+          }),
+        }),
+      });
+
+      if (certificates.length !== rows.length) {
+        throw new Error("The server did not register every certificate. Please try again.");
+      }
+
+      setIssuedCertificates(certificates);
+      await waitForQrCodes(certificates.length);
+      return certificates;
+    } finally {
+      setIssuing(false);
+    }
+  }
+
+  async function issueQrCodes() {
+    setError("");
+    setPrintStatus("Securing certificates...");
+    try {
+      await ensureCertificatesIssued();
+    } catch (issueError) {
+      setError(getErrorMessage(issueError, "Could not secure these certificates."));
+    } finally {
+      setPrintStatus("");
+    }
+  }
+
   async function savePdf() {
     if (rows.length === 0) return;
     setError("");
-    setPrintStatus("Preparing PDF...");
+    setPrintStatus("Securing certificates...");
     document.body.classList.add("certificate-pdf-exporting");
     let printRoot: HTMLDivElement | null = null;
 
     try {
+      await ensureCertificatesIssued();
+      setPrintStatus("Preparing PDF...");
       const certificateList = document.querySelector<HTMLElement>(".certificate-list");
       if (!certificateList) throw new Error("Certificate list is not available");
 
@@ -168,8 +241,8 @@ export default function CertificateStudio() {
       setPrintStatus("");
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       window.print();
-    } catch {
-      setError("Could not open the PDF print dialog. Please try again.");
+    } catch (printError) {
+      setError(getErrorMessage(printError, "Could not open the PDF print dialog. Please try again."));
     } finally {
       printRoot?.remove();
       document.body.classList.remove("certificate-pdf-exporting");
@@ -179,10 +252,18 @@ export default function CertificateStudio() {
 
   async function printAll() {
     if (rows.length === 0) return;
-    setPrintStatus("Preparing certificates...");
-    await prepareCertificates();
-    setPrintStatus("");
-    window.print();
+    setError("");
+    setPrintStatus("Securing certificates...");
+    try {
+      await ensureCertificatesIssued();
+      setPrintStatus("Preparing certificates...");
+      await prepareCertificates();
+      setPrintStatus("");
+      window.print();
+    } catch (printError) {
+      setError(getErrorMessage(printError, "Could not prepare the certificates for printing."));
+      setPrintStatus("");
+    }
   }
 
   function photoForRow(row: CertificateRow) {
@@ -243,9 +324,19 @@ export default function CertificateStudio() {
             Download template
           </button>
           <button
+            className="certificate-button certificate-button--secondary"
+            type="button"
+            disabled={rows.length === 0 || Boolean(printStatus) || issuing}
+            onClick={() => void issueQrCodes()}
+          >
+            {rows.length > 0 && issuedCertificates.length === rows.length
+              ? "QR secured"
+              : "Issue QR codes"}
+          </button>
+          <button
             className="certificate-button certificate-button--primary"
             type="button"
-            disabled={rows.length === 0 || Boolean(printStatus)}
+            disabled={rows.length === 0 || Boolean(printStatus) || issuing}
             onClick={() => void savePdf()}
           >
             {printStatus || "Save PDF"}
@@ -253,7 +344,7 @@ export default function CertificateStudio() {
           <button
             className="certificate-button certificate-button--primary"
             type="button"
-            disabled={rows.length === 0 || Boolean(printStatus)}
+            disabled={rows.length === 0 || Boolean(printStatus) || issuing}
             onClick={() => void printAll()}
           >
             Print all
@@ -355,6 +446,7 @@ export default function CertificateStudio() {
                   row={row}
                   scale={previewScale}
                   photo={photoForRow(row)}
+                  verification={issuedCertificates[index]}
                   stamp={stamp}
                   selectedField={selectedField}
                   fieldSettings={fieldSettings}
@@ -376,6 +468,7 @@ function CitoCertificate({
   row,
   scale,
   photo,
+  verification,
   stamp,
   selectedField,
   fieldSettings,
@@ -387,6 +480,7 @@ function CitoCertificate({
   row: CertificateRow;
   scale: number;
   photo: string;
+  verification?: IssuedCertificate;
   stamp: StampPlacement;
   selectedField: TextField | null;
   fieldSettings: FieldSettings;
@@ -427,6 +521,20 @@ function CitoCertificate({
       <div {...textProps("course")} data-position="course-english">{fieldValue(row, "course")}</div>
       <div {...textProps("issueDate")} data-position="issue-date-english">{fullDate(row, "issueDate", issue)}</div>
       {photo && <img className="certificate-student-photo" src={photo} alt="" />}
+      {verification && (
+        <div className="certificate-verification-block" aria-label="Official certificate verification QR code">
+          <QRCodeSVG
+            className="certificate-verification-qr"
+            value={certificateVerificationUrl(verification.verificationCode)}
+            level="M"
+            bgColor="#ffffff"
+            fgColor="#071737"
+            title={`Verify certificate ${verification.certificateNumber}`}
+          />
+          <span>VERIFY ONLINE</span>
+          <strong>{verification.certificateNumber}</strong>
+        </div>
+      )}
       <img
         className="certificate-stamp"
         src={stampImage}
@@ -522,6 +630,25 @@ function waitForImage(image: HTMLImageElement) {
     image.addEventListener("load", finish, { once: true });
     image.addEventListener("error", finish, { once: true });
   });
+}
+
+async function waitForQrCodes(expectedCount: number) {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    if (document.querySelectorAll(".certificate-verification-qr").length >= expectedCount) return;
+  }
+  throw new Error("The certificate QR codes did not finish rendering. Please try again.");
+}
+
+function certificateVerificationUrl(verificationCode: string) {
+  return `${publicSiteUrl}/#/verify-certificate/${encodeURIComponent(verificationCode)}`;
+}
+
+function createIssuanceBatchId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function clamp(value: number, min: number, max: number) {

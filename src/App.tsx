@@ -49,6 +49,7 @@ import UploadCourseVideo from "./pages/admin/UploadCourseVideo";
 import ManageReceptionist from "./pages/admin/ManageReceptionist";
 import ReceptionistDailyMoney from "./pages/admin/ReceptionistDailyMoney";
 import CitoAi from "./pages/ai/CitoAi";
+import VerifyCertificate from "./pages/certificates/VerifyCertificate";
 
 const CertificateStudio = lazy(() => import("./pages/admin/CertificateStudio"));
 
@@ -75,7 +76,13 @@ function AppContent() {
     "/reset-password",
   ].includes(location.pathname);
   const isGuestWelcomePage = location.pathname === "/" && !me;
-  const showSidebar = !!me && !isReceiptPrintPage && !isAuthLandingPage && !isGuestWelcomePage;
+  const isPublicCertificatePage = location.pathname.startsWith("/verify-certificate");
+  const showSidebar =
+    !!me &&
+    !isReceiptPrintPage &&
+    !isAuthLandingPage &&
+    !isGuestWelcomePage &&
+    !isPublicCertificatePage;
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -633,6 +640,8 @@ function AppContent() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-certificate" element={<VerifyCertificate />} />
+          <Route path="/verify-certificate/:verificationCode" element={<VerifyCertificate />} />
           <Route
             path="/ai"
             element={

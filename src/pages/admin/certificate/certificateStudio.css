@@ -642,6 +642,53 @@
   background: #fff;
 }
 
+.certificate-verification-block {
+  position: absolute;
+  z-index: 5;
+  right: 3.5%;
+  bottom: 5.2%;
+  box-sizing: border-box;
+  width: 12.2%;
+  padding: .55% .65% .48%;
+  border: 1px solid rgba(10, 35, 82, .32);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, .97);
+  color: #071737;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(7, 23, 55, .12);
+}
+
+.certificate-verification-qr {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.certificate-verification-block span,
+.certificate-verification-block strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: "Times New Roman", serif;
+  line-height: 1.15;
+}
+
+.certificate-verification-block span {
+  margin-top: 3.5%;
+  color: #254a82;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.certificate-verification-block strong {
+  margin-top: 2%;
+  font-size: 6px;
+  font-weight: 700;
+}
+
 .certificate-stamp {
   position: absolute;
   z-index: 4;
