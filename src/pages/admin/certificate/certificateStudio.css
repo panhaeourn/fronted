@@ -647,6 +647,23 @@
   background: #fff;
 }
 
+.certificate-publish-notice {
+  margin: 0 24px 14px;
+  padding: 12px 15px;
+  border: 1px solid rgba(245, 190, 74, .3);
+  border-radius: 12px;
+  color: #f8d98d;
+  background: rgba(118, 76, 10, .2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.certificate-publish-notice.is-published {
+  border-color: rgba(74, 222, 128, .28);
+  color: #a7f3c2;
+  background: rgba(20, 105, 58, .18);
+}
+
 .certificate-verification-block {
   position: absolute;
   z-index: 5;

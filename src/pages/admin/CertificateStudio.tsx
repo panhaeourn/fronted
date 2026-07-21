@@ -25,8 +25,9 @@ type FieldSettings = Record<TextField, { font: string; size: string }>;
 type StampPlacement = { x: number; y: number; width: number };
 type QrPlacement = { x: number; y: number; width: number };
 type IssuedCertificate = {
-  status: "VALID" | "REVOKED";
+  status: "DRAFT" | "VALID" | "REVOKED";
   valid: boolean;
+  published: boolean;
   verificationCode: string;
   certificateNumber: string;
   recipientNameKhmer: string;
@@ -34,6 +35,7 @@ type IssuedCertificate = {
   courseName: string;
   issueDate: string;
   issuedAt: string;
+  publishedAt?: string | null;
   revokedAt?: string | null;
 };
 
@@ -94,6 +96,7 @@ export default function CertificateStudio() {
   const [previewScale, setPreviewScale] = useState(1);
   const [issuedCertificates, setIssuedCertificates] = useState<IssuedCertificate[]>([]);
   const [issuing, setIssuing] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const embeddedUrlsRef = useRef<string[]>([]);
   const issuanceBatchRef = useRef(createIssuanceBatchId());
   const previewScrollRef = useRef<HTMLDivElement>(null);
@@ -223,6 +226,28 @@ export default function CertificateStudio() {
     }
   }
 
+  async function pushCertificatesToPublic() {
+    if (issuedCertificates.length !== rows.length) return;
+    setError("");
+    setPublishing(true);
+    try {
+      const published = await apiFetch<IssuedCertificate[]>("/api/admin/certificates/publish", {
+        method: "POST",
+        body: JSON.stringify({
+          verificationCodes: issuedCertificates.map((certificate) => certificate.verificationCode),
+        }),
+      });
+      if (published.length !== rows.length || published.some((certificate) => !certificate.published)) {
+        throw new Error("The server did not publish every certificate. Please try again.");
+      }
+      setIssuedCertificates(published);
+    } catch (publishError) {
+      setError(getErrorMessage(publishError, "Could not publish these certificates."));
+    } finally {
+      setPublishing(false);
+    }
+  }
+
   async function savePdf() {
     if (rows.length === 0) return;
     setError("");
@@ -231,7 +256,10 @@ export default function CertificateStudio() {
     let printRoot: HTMLDivElement | null = null;
 
     try {
-      await ensureCertificatesIssued();
+      const certificates = await ensureCertificatesIssued();
+      if (certificates.some((certificate) => !certificate.published)) {
+        throw new Error("Position the QR, then click Push to public before saving the PDF.");
+      }
       setPrintStatus("Preparing PDF...");
       const certificateList = document.querySelector<HTMLElement>(".certificate-list");
       if (!certificateList) throw new Error("Certificate list is not available");
@@ -259,7 +287,10 @@ export default function CertificateStudio() {
     setError("");
     setPrintStatus("Securing certificates...");
     try {
-      await ensureCertificatesIssued();
+      const certificates = await ensureCertificatesIssued();
+      if (certificates.some((certificate) => !certificate.published)) {
+        throw new Error("Position the QR, then click Push to public before printing.");
+      }
       setPrintStatus("Preparing certificates...");
       await prepareCertificates();
       setPrintStatus("");
@@ -336,6 +367,9 @@ export default function CertificateStudio() {
   }
 
   const previewRows = rows.length > 0 ? rows : [blankPreviewRow];
+  const allCertificatesIssued = rows.length > 0 && issuedCertificates.length === rows.length;
+  const allCertificatesPublished =
+    allCertificatesIssued && issuedCertificates.every((certificate) => certificate.published);
 
   return (
     <div className={`certificate-studio-page${previewOnly ? " is-preview-only" : ""}`}>
@@ -359,17 +393,25 @@ export default function CertificateStudio() {
           <button
             className="certificate-button certificate-button--secondary"
             type="button"
-            disabled={rows.length === 0 || Boolean(printStatus) || issuing}
+            disabled={rows.length === 0 || Boolean(printStatus) || issuing || publishing}
             onClick={() => void issueQrCodes()}
           >
-            {rows.length > 0 && issuedCertificates.length === rows.length
-              ? "QR secured"
+            {allCertificatesIssued
+              ? "QR ready"
               : "Issue QR codes"}
           </button>
           <button
             className="certificate-button certificate-button--primary"
             type="button"
-            disabled={rows.length === 0 || Boolean(printStatus) || issuing}
+            disabled={!allCertificatesIssued || allCertificatesPublished || Boolean(printStatus) || issuing || publishing}
+            onClick={() => void pushCertificatesToPublic()}
+          >
+            {publishing ? "Publishing..." : allCertificatesPublished ? "Published" : "Push to public"}
+          </button>
+          <button
+            className="certificate-button certificate-button--primary"
+            type="button"
+            disabled={!allCertificatesPublished || Boolean(printStatus) || issuing || publishing}
             onClick={() => void savePdf()}
           >
             {printStatus || "Save PDF"}
@@ -377,7 +419,7 @@ export default function CertificateStudio() {
           <button
             className="certificate-button certificate-button--primary"
             type="button"
-            disabled={rows.length === 0 || Boolean(printStatus) || issuing}
+            disabled={!allCertificatesPublished || Boolean(printStatus) || issuing || publishing}
             onClick={() => void printAll()}
           >
             Print all
@@ -480,6 +522,16 @@ export default function CertificateStudio() {
           </div>
 
           {error && <div className="certificate-error" role="alert">{error}</div>}
+          {allCertificatesIssued && !allCertificatesPublished && !error && (
+            <div className="certificate-publish-notice" role="status">
+              QR draft ready. Drag it into position, then click <strong>Push to public</strong>.
+            </div>
+          )}
+          {allCertificatesPublished && !error && (
+            <div className="certificate-publish-notice is-published" role="status">
+              Published. These QR codes now verify on the official CITO website.
+            </div>
+          )}
 
           <div className="certificate-preview-scroll" ref={previewScrollRef}>
             <div className="certificate-list">
