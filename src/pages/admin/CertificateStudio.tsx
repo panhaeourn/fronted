@@ -440,9 +440,6 @@ export default function CertificateStudio() {
               disabled={busy}
               onChange={(files) => void handleSpreadsheet(files?.[0])}
             />
-            <p className="certificate-control-note">
-              Student photos can be embedded directly in the spreadsheet&apos;s <code>picture</code> column.
-            </p>
           </ControlSection>
 
           <ControlSection step="01" title="Style selected text">
@@ -496,14 +493,6 @@ export default function CertificateStudio() {
             </div>
           </ControlSection>
 
-          <div className="certificate-column-guide">
-            <span className="certificate-guide-kicker">Required columns</span>
-            <div>
-              {['name_khmer', 'name_english', 'sex', 'birth_day', 'birth_month', 'birth_year', 'course', 'issue_day', 'issue_month', 'issue_year', 'picture'].map((column) => (
-                <code key={column}>{column}</code>
-              ))}
-            </div>
-          </div>
         </aside>
 
         <section className="certificate-preview-panel">
