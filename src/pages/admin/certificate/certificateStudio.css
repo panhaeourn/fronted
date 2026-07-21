@@ -281,6 +281,11 @@
   margin-top: 0;
 }
 
+.certificate-position-actions {
+  display: grid;
+  gap: 9px;
+}
+
 .certificate-upload-card:hover {
   transform: translateY(-2px);
   border-color: rgba(96, 165, 250, 0.58);
@@ -645,10 +650,7 @@
 .certificate-verification-block {
   position: absolute;
   z-index: 5;
-  right: 3.5%;
-  bottom: 5.2%;
   box-sizing: border-box;
-  width: 12.2%;
   padding: .55% .65% .48%;
   border: 1px solid rgba(10, 35, 82, .32);
   border-radius: 5px;
@@ -656,6 +658,13 @@
   color: #071737;
   text-align: center;
   box-shadow: 0 2px 8px rgba(7, 23, 55, .12);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.certificate-verification-block:active {
+  cursor: grabbing;
 }
 
 .certificate-verification-qr {

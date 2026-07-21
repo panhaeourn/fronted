@@ -23,6 +23,7 @@ import "./certificate/certificateStudio.css";
 type TextField = "name" | "gender" | "birthDate" | "course" | "issueDate";
 type FieldSettings = Record<TextField, { font: string; size: string }>;
 type StampPlacement = { x: number; y: number; width: number };
+type QrPlacement = { x: number; y: number; width: number };
 type IssuedCertificate = {
   status: "VALID" | "REVOKED";
   valid: boolean;
@@ -45,6 +46,7 @@ const initialFieldSettings: FieldSettings = {
 };
 
 const defaultStamp: StampPlacement = { x: 69.25, y: 66.2, width: 13.5 };
+const defaultQr: QrPlacement = { x: 84.3, y: 74.4, width: 12.2 };
 const a4LandscapeWidthPx = (297 / 25.4) * 96;
 const publicSiteUrl = (import.meta.env.VITE_PUBLIC_SITE_URL || "https://cito.study").replace(/\/$/, "");
 
@@ -84,6 +86,7 @@ export default function CertificateStudio() {
   const [selectedField, setSelectedField] = useState<TextField | null>(null);
   const [fieldSettings, setFieldSettings] = useState<FieldSettings>(initialFieldSettings);
   const [stamp, setStamp] = useState<StampPlacement>(defaultStamp);
+  const [qr, setQr] = useState<QrPlacement>(defaultQr);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [printStatus, setPrintStatus] = useState("");
@@ -95,6 +98,7 @@ export default function CertificateStudio() {
   const issuanceBatchRef = useRef(createIssuanceBatchId());
   const previewScrollRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
+  const qrDragRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
 
   useEffect(() => {
     return () => {
@@ -302,6 +306,35 @@ export default function CertificateStudio() {
     }));
   }
 
+  function handleQrPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    const certificate = event.currentTarget.closest<HTMLElement>(".cito-certificate-sheet");
+    if (!certificate) return;
+    const qrRect = event.currentTarget.getBoundingClientRect();
+    qrDragRef.current = {
+      pointerId: event.pointerId,
+      offsetX: event.clientX - qrRect.left,
+      offsetY: event.clientY - qrRect.top,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  }
+
+  function handleQrPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    const drag = qrDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const certificate = event.currentTarget.closest<HTMLElement>(".cito-certificate-sheet");
+    if (!certificate) return;
+    const certificateRect = certificate.getBoundingClientRect();
+    const qrRect = event.currentTarget.getBoundingClientRect();
+    const widthPercent = (qrRect.width / certificateRect.width) * 100;
+    const heightPercent = (qrRect.height / certificateRect.height) * 100;
+    setQr((current) => ({
+      ...current,
+      x: clamp(((event.clientX - certificateRect.left - drag.offsetX) / certificateRect.width) * 100, 0, 100 - widthPercent),
+      y: clamp(((event.clientY - certificateRect.top - drag.offsetY) / certificateRect.height) * 100, 0, 100 - heightPercent),
+    }));
+  }
+
   const previewRows = rows.length > 0 ? rows : [blankPreviewRow];
 
   return (
@@ -398,14 +431,24 @@ export default function CertificateStudio() {
             </label>
           </ControlSection>
 
-          <ControlSection step="02" title="Position the seal">
-            <button
-              className="certificate-button certificate-button--secondary certificate-button--wide"
-              type="button"
-              onClick={() => setStamp(defaultStamp)}
-            >
-              Reset stamp position
-            </button>
+          <ControlSection step="02" title="Position the seal and QR">
+            <div className="certificate-position-actions">
+              <button
+                className="certificate-button certificate-button--secondary certificate-button--wide"
+                type="button"
+                onClick={() => setStamp(defaultStamp)}
+              >
+                Reset stamp position
+              </button>
+              <button
+                className="certificate-button certificate-button--secondary certificate-button--wide"
+                type="button"
+                disabled={issuedCertificates.length === 0}
+                onClick={() => setQr(defaultQr)}
+              >
+                Reset QR position
+              </button>
+            </div>
           </ControlSection>
 
           <div className="certificate-column-guide">
@@ -448,12 +491,16 @@ export default function CertificateStudio() {
                   photo={photoForRow(row)}
                   verification={issuedCertificates[index]}
                   stamp={stamp}
+                  qr={qr}
                   selectedField={selectedField}
                   fieldSettings={fieldSettings}
                   onSelectField={setSelectedField}
                   onStampPointerDown={handleStampPointerDown}
                   onStampPointerMove={handleStampPointerMove}
                   onStampPointerEnd={() => { dragRef.current = null; }}
+                  onQrPointerDown={handleQrPointerDown}
+                  onQrPointerMove={handleQrPointerMove}
+                  onQrPointerEnd={() => { qrDragRef.current = null; }}
                 />
               ))}
             </div>
@@ -470,24 +517,32 @@ function CitoCertificate({
   photo,
   verification,
   stamp,
+  qr,
   selectedField,
   fieldSettings,
   onSelectField,
   onStampPointerDown,
   onStampPointerMove,
   onStampPointerEnd,
+  onQrPointerDown,
+  onQrPointerMove,
+  onQrPointerEnd,
 }: {
   row: CertificateRow;
   scale: number;
   photo: string;
   verification?: IssuedCertificate;
   stamp: StampPlacement;
+  qr: QrPlacement;
   selectedField: TextField | null;
   fieldSettings: FieldSettings;
   onSelectField: (field: TextField) => void;
   onStampPointerDown: (event: ReactPointerEvent<HTMLImageElement>) => void;
   onStampPointerMove: (event: ReactPointerEvent<HTMLImageElement>) => void;
   onStampPointerEnd: () => void;
+  onQrPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onQrPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onQrPointerEnd: () => void;
 }) {
   const birth = dateParts(row, "birthDate", "birthDay", "birthMonth", "birthYear");
   const issue = dateParts(row, "issueDate", "issueDay", "issueMonth", "issueYear");
@@ -522,7 +577,15 @@ function CitoCertificate({
       <div {...textProps("issueDate")} data-position="issue-date-english">{fullDate(row, "issueDate", issue)}</div>
       {photo && <img className="certificate-student-photo" src={photo} alt="" />}
       {verification && (
-        <div className="certificate-verification-block" aria-label="Official certificate verification QR code">
+        <div
+          className="certificate-verification-block"
+          aria-label="Official certificate verification QR code. Drag to reposition."
+          style={{ left: `${qr.x}%`, top: `${qr.y}%`, width: `${qr.width}%` }}
+          onPointerDown={onQrPointerDown}
+          onPointerMove={onQrPointerMove}
+          onPointerUp={onQrPointerEnd}
+          onPointerCancel={onQrPointerEnd}
+        >
           <QRCodeSVG
             className="certificate-verification-qr"
             value={certificateVerificationUrl(verification.verificationCode)}
