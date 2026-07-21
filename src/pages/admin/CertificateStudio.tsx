@@ -32,6 +32,7 @@ type IssuedCertificate = {
   certificateNumber: string;
   recipientNameKhmer: string;
   recipientNameEnglish: string;
+  birthDate: string;
   courseName: string;
   issueDate: string;
   issuedAt: string;
@@ -190,11 +191,13 @@ export default function CertificateStudio() {
         method: "POST",
         body: JSON.stringify({
           certificates: rows.map((row, index) => {
+            const birth = dateParts(row, "birthDate", "birthDay", "birthMonth", "birthYear");
             const issue = dateParts(row, "issueDate", "issueDay", "issueMonth", "issueYear");
             return {
               issuanceKey: `${issuanceBatchRef.current}-${index}`,
               recipientNameKhmer: recipientName(row, "khmer"),
               recipientNameEnglish: recipientName(row, "english"),
+              birthDate: fullDate(row, "birthDate", birth),
               courseName: fieldValue(row, "course"),
               issueDate: fullDate(row, "issueDate", issue),
             };

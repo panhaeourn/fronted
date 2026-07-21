@@ -12,6 +12,7 @@ type CertificateVerification = {
   certificateNumber: string;
   recipientNameKhmer: string;
   recipientNameEnglish: string;
+  birthDate?: string | null;
   courseName: string;
   issueDate: string;
   issuedAt: string;
@@ -54,7 +55,11 @@ export default function VerifyCertificate() {
       .catch((verificationError) => {
         if (active) {
           const message = getErrorMessage(verificationError, "Certificate not found.");
-          setError(message.includes("404") ? "Certificate not found in the official CITO registry." : message);
+          setError(
+            message.includes("404")
+              ? "Certificate not found in the official CITO registry."
+              : message
+          );
         }
       })
       .finally(() => {
@@ -73,10 +78,17 @@ export default function VerifyCertificate() {
     navigate(`/verify-certificate/${encodeURIComponent(code)}`);
   }
 
-  const state = certificate?.valid ? "valid" : certificate ? "revoked" : error ? "invalid" : "ready";
+  const state = certificate?.valid
+    ? "valid"
+    : certificate
+      ? "revoked"
+      : error
+        ? "invalid"
+        : "ready";
 
   return (
     <div className="certificate-verify-page">
+      <div className="certificate-verify-grid" aria-hidden="true" />
       <div className="certificate-verify-glow certificate-verify-glow--one" />
       <div className="certificate-verify-glow certificate-verify-glow--two" />
 
@@ -86,80 +98,92 @@ export default function VerifyCertificate() {
             <img src={citoLogo} alt="CITO" />
             <span>
               <strong>CITO</strong>
-              <small>Official certificate registry</small>
+              <small>Official credential verification</small>
             </span>
           </a>
-          <span className="certificate-verify-official">cito.study</span>
+          <span className="certificate-verify-official">
+            <OfficialMarkIcon />
+            cito.study
+          </span>
         </header>
 
         <section className={`certificate-verify-card is-${state}`}>
-          <div className="certificate-verify-status-mark" aria-hidden="true">
-            {loading ? <span className="certificate-verify-spinner" /> : certificate?.valid ? "✓" : certificate ? "!" : error ? "×" : "?"}
-          </div>
-
           {loading ? (
-            <div className="certificate-verify-message">
-              <p>Checking official records</p>
-              <h1>Verifying certificate...</h1>
-              <span>Please wait while CITO checks the secure registry.</span>
-            </div>
+            <ResultHeader icon={<span className="certificate-verify-spinner" />}>
+              <div className="certificate-verify-message">
+                <p>Checking official records</p>
+                <h1>Verifying certificate...</h1>
+                <span>Please wait while CITO checks the secure registry.</span>
+              </div>
+            </ResultHeader>
           ) : certificate ? (
             <>
-              <div className="certificate-verify-message">
-                <p>Official verification result</p>
-                <h1>{certificate.valid ? "Valid CITO certificate" : "Certificate revoked"}</h1>
-                <span>
-                  {certificate.valid
-                    ? "This certificate matches an official record issued by CITO."
-                    : "This certificate is in the registry, but CITO has revoked it."}
-                </span>
-              </div>
+              <ResultHeader icon={<VerificationStatusIcon valid={certificate.valid} />}>
+                <div className="certificate-verify-message">
+                  <p>Official verification result</p>
+                  <h1>{certificate.valid ? "Valid CITO certificate" : "Certificate revoked"}</h1>
+                  <span>
+                    {certificate.valid
+                      ? "Authenticated against CITO's official certificate registry."
+                      : "This record exists, but its certificate has been revoked by CITO."}
+                  </span>
+                </div>
+              </ResultHeader>
 
               <dl className="certificate-verify-details">
-                <div>
+                <div className="certificate-detail--id">
                   <dt>Certificate ID</dt>
                   <dd>{certificate.certificateNumber}</dd>
                 </div>
-                <div>
+                <div className="certificate-detail--recipient">
                   <dt>Recipient</dt>
                   <dd>{certificate.recipientNameEnglish || certificate.recipientNameKhmer}</dd>
                   {certificate.recipientNameKhmer && certificate.recipientNameEnglish && (
                     <small>{certificate.recipientNameKhmer}</small>
                   )}
                 </div>
-                <div>
+                <div className="certificate-detail--course">
                   <dt>Course</dt>
                   <dd>{certificate.courseName}</dd>
                 </div>
-                <div>
+                <div className="certificate-detail--birth">
+                  <dt>Date of birth</dt>
+                  <dd>{certificate.birthDate || "Not recorded"}</dd>
+                </div>
+                <div className="certificate-detail--issue">
                   <dt>Issue date</dt>
                   <dd>{certificate.issueDate}</dd>
                 </div>
               </dl>
 
               <p className="certificate-verify-guidance">
-                Confirm that the recipient, course, and issue date shown here match the printed certificate.
+                <OfficialMarkIcon />
+                Confirm that the recipient, date of birth, course, and issue date match the printed certificate.
               </p>
             </>
           ) : (
-            <div className="certificate-verify-message">
-              <p>{error ? "Verification failed" : "Official CITO verification"}</p>
-              <h1>{error ? "Certificate not verified" : "Check a certificate"}</h1>
-              <span>
-                {error || "Scan a CITO certificate QR code or enter its verification code below."}
-              </span>
-            </div>
+            <ResultHeader icon={<VerificationStatusIcon valid={false} neutral={!error} />}>
+              <div className="certificate-verify-message">
+                <p>{error ? "Verification failed" : "Official CITO verification"}</p>
+                <h1>{error ? "Certificate not verified" : "Check a certificate"}</h1>
+                <span>
+                  {error || "Scan a CITO certificate QR code or enter its verification code below."}
+                </span>
+              </div>
+            </ResultHeader>
           )}
 
           {!loading && (
             <form className="certificate-verify-search" onSubmit={submitSearch}>
-              <label htmlFor="certificate-code">Verification code</label>
+              <label htmlFor="certificate-code">
+                {certificate ? "Verify another certificate" : "Verification code"}
+              </label>
               <div>
                 <input
                   id="certificate-code"
                   value={searchCode}
                   onChange={(event) => setSearchCode(event.target.value)}
-                  placeholder="Enter the code printed with the QR"
+                  placeholder="Enter the code contained in the QR"
                   autoComplete="off"
                 />
                 <button type="submit" disabled={!searchCode.trim()}>Verify</button>
@@ -169,10 +193,46 @@ export default function VerifyCertificate() {
         </section>
 
         <footer className="certificate-verify-footer">
-          <span>Verified directly from CITO&apos;s official database</span>
+          <span><OfficialMarkIcon /> Verified directly from CITO&apos;s official</span>
           <a href="https://cito.study/#/">Return to cito.study</a>
         </footer>
       </main>
     </div>
+  );
+}
+
+function ResultHeader({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="certificate-verify-result-head">
+      <div className="certificate-verify-status-mark" aria-hidden="true">{icon}</div>
+      {children}
+    </div>
+  );
+}
+
+function VerificationStatusIcon({ valid, neutral = false }: { valid: boolean; neutral?: boolean }) {
+  if (neutral) {
+    return (
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="14" cy="14" r="8" />
+        <path d="m20 20 6 6" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M16 3.5 26 7v7.5c0 6.5-4.1 11.7-10 14-5.9-2.3-10-7.5-10-14V7l10-3.5Z" />
+      {valid ? <path d="m10.8 15.8 3.2 3.3 7.2-7.4" /> : <path d="m12 12 8 8m0-8-8 8" />}
+    </svg>
+  );
+}
+
+function OfficialMarkIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M10 1.8 16.7 4v5c0 4.3-2.7 7.8-6.7 9.3C6 16.8 3.3 13.3 3.3 9V4L10 1.8Z" />
+      <path d="m6.8 9.8 2 2 4.5-4.6" />
+    </svg>
   );
 }
