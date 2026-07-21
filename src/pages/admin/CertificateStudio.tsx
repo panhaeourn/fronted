@@ -646,8 +646,6 @@ function CitoCertificate({
             fgColor="#071737"
             title={`Verify certificate ${verification.certificateNumber}`}
           />
-          <span>VERIFY ONLINE</span>
-          <strong>{verification.certificateNumber}</strong>
         </div>
       )}
       <img

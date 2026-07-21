@@ -691,30 +691,6 @@
   aspect-ratio: 1;
 }
 
-.certificate-verification-block span,
-.certificate-verification-block strong {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: "Times New Roman", serif;
-  line-height: 1.15;
-}
-
-.certificate-verification-block span {
-  margin-top: 3.5%;
-  color: #254a82;
-  font-size: 7px;
-  font-weight: 700;
-  letter-spacing: .08em;
-}
-
-.certificate-verification-block strong {
-  margin-top: 2%;
-  font-size: 6px;
-  font-weight: 700;
-}
-
 .certificate-stamp {
   position: absolute;
   z-index: 4;
