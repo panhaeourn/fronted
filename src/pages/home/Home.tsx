@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "../../api";
 import type {
   ClaimCode,
@@ -8,83 +8,114 @@ import type {
   ReceptionistUser,
 } from "../../lib/domain-types";
 import { getErrorMessage } from "../../lib/errors";
-import { DashboardLayout, GuestHome, HomeError, HomeLoading } from "./components";
+import { useAuth } from "../../lib/auth-context";
+import { DashboardLayout, HomeError, HomeLoading } from "./components";
 import { buildAdminDashboard, buildReceptionistDashboard, buildUserDashboard } from "./helpers";
-import type { DashboardApi, MeUser } from "./types";
 
 export default function Home() {
-  const [me, setMe] = useState<MeUser | null>(null);
+  const { me } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
-  const [meLoaded, setMeLoaded] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [claimCodes, setClaimCodes] = useState<ClaimCode[]>([]);
   const [receptionists, setReceptionists] = useState<ReceptionistUser[]>([]);
-  const [adminAggregate, setAdminAggregate] = useState<DashboardApi | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
+  const hasLoaded = useRef(false);
+  const userId = me?.id;
+  const role = me?.role;
 
   useEffect(() => {
-    void loadHome();
-  }, []);
+    if (!userId || !role) return;
 
-  async function loadHome() {
-    setLoading(true);
-    setError("");
+    let active = true;
+    const initialLoad = !hasLoaded.current;
 
-    try {
-      const user = await apiFetch<MeUser>("/api/auth/me");
-      setMe(user);
-      setMeLoaded(true);
-
-      if (user.role === "ADMIN") {
-        const [c, p, r, cc, ru] = await Promise.allSettled([
-          apiFetch<Course[]>("/api/courses"),
-          apiFetch<Payment[]>("/api/admin/payment-history"),
-          apiFetch<Receipt[]>("/api/reception/receipts"),
-          apiFetch<ClaimCode[]>("/api/admin/receptionist-codes"),
-          apiFetch<ReceptionistUser[]>("/api/admin/receptionist-codes/users"),
-        ]);
-        setAdminAggregate(null);
-        setCourses(c.status === "fulfilled" ? c.value || [] : []);
-        setPayments(p.status === "fulfilled" ? p.value || [] : []);
-        setReceipts(r.status === "fulfilled" ? r.value || [] : []);
-        setClaimCodes(cc.status === "fulfilled" ? cc.value || [] : []);
-        setReceptionists(ru.status === "fulfilled" ? ru.value || [] : []);
-      } else if (user.role === "RECEPTIONIST") {
-        const [c, r] = await Promise.allSettled([
-          apiFetch<Course[]>("/api/courses"),
-          apiFetch<Receipt[]>("/api/reception/receipts"),
-        ]);
-        setCourses(c.status === "fulfilled" ? c.value || [] : []);
-        setReceipts(r.status === "fulfilled" ? r.value || [] : []);
+    async function loadHome() {
+      if (initialLoad) {
+        setLoading(true);
       } else {
-        setCourses((await apiFetch<Course[]>("/api/courses")) || []);
+        setRefreshing(true);
       }
-    } catch (error: unknown) {
-      setMe(null);
-      setMeLoaded(true);
-      setError(getErrorMessage(error, "Failed to load dashboard"));
-    } finally {
-      setLoading(false);
+      setError("");
+
+      try {
+        const courseRequest = apiFetch<Course[]>("/api/courses");
+        const adminRequest =
+          role === "ADMIN"
+            ? Promise.allSettled([
+                apiFetch<Payment[]>("/api/admin/payment-history"),
+                apiFetch<Receipt[]>("/api/reception/receipts"),
+                apiFetch<ClaimCode[]>("/api/admin/receptionist-codes"),
+                apiFetch<ReceptionistUser[]>("/api/admin/receptionist-codes/users"),
+              ] as const)
+            : null;
+        const receptionistRequest =
+          role === "RECEPTIONIST"
+            ? Promise.allSettled([apiFetch<Receipt[]>("/api/reception/receipts")] as const)
+            : null;
+
+        const courseData = await courseRequest;
+        if (!active) return;
+
+        setCourses(courseData || []);
+        hasLoaded.current = true;
+        setLoading(false);
+
+        if (adminRequest) {
+          const [p, r, cc, ru] = await adminRequest;
+          if (!active) return;
+
+          setPayments(p.status === "fulfilled" ? p.value || [] : []);
+          setReceipts(r.status === "fulfilled" ? r.value || [] : []);
+          setClaimCodes(cc.status === "fulfilled" ? cc.value || [] : []);
+          setReceptionists(ru.status === "fulfilled" ? ru.value || [] : []);
+        } else if (receptionistRequest) {
+          const [r] = await receptionistRequest;
+          if (!active) return;
+          setReceipts(r.status === "fulfilled" ? r.value || [] : []);
+        }
+      } catch (loadError: unknown) {
+        if (!active) return;
+        setError(getErrorMessage(loadError, "Failed to load dashboard"));
+      } finally {
+        if (active) {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      }
     }
-  }
+
+    void loadHome();
+    return () => {
+      active = false;
+    };
+  }, [reloadVersion, role, userId]);
 
   const data = useMemo(() => {
     if (!me) return null;
     if (me.role === "ADMIN") {
-      return buildAdminDashboard(me, courses, receipts, payments, claimCodes, receptionists, adminAggregate);
+      return buildAdminDashboard(me, courses, receipts, payments, claimCodes, receptionists, null);
     }
     if (me.role === "RECEPTIONIST") {
       return buildReceptionistDashboard(me, courses, receipts);
     }
     return buildUserDashboard(me, courses);
-  }, [me, courses, receipts, payments, claimCodes, receptionists, adminAggregate]);
+  }, [me, courses, receipts, payments, claimCodes, receptionists]);
 
   if (loading) return <HomeLoading>Loading dashboard...</HomeLoading>;
-  if (!me && meLoaded) return <GuestHome />;
-  if (error) return <HomeError error={error} onRetry={() => void loadHome()} />;
+  if (error) {
+    return <HomeError error={error} onRetry={() => setReloadVersion((version) => version + 1)} />;
+  }
   if (!data) return <HomeLoading>Please log in.</HomeLoading>;
 
-  return <DashboardLayout data={data} onRefresh={() => void loadHome()} refreshing={loading} />;
+  return (
+    <DashboardLayout
+      data={data}
+      onRefresh={() => setReloadVersion((version) => version + 1)}
+      refreshing={refreshing}
+    />
+  );
 }
