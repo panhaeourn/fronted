@@ -525,17 +525,6 @@ export default function CertificateStudio() {
           </div>
 
           {error && <div className="certificate-error" role="alert">{error}</div>}
-          {allCertificatesIssued && !allCertificatesPublished && !error && (
-            <div className="certificate-publish-notice" role="status">
-              QR draft ready. Drag it into position, then click <strong>Push to public</strong>.
-            </div>
-          )}
-          {allCertificatesPublished && !error && (
-            <div className="certificate-publish-notice is-published" role="status">
-              Published. These QR codes now verify on the official CITO website.
-            </div>
-          )}
-
           <div className="certificate-preview-scroll" ref={previewScrollRef}>
             <div className="certificate-list">
               {previewRows.map((row, index) => (
