@@ -422,7 +422,7 @@ export default function CitoReceiptForm() {
 
             <div style={fieldBlockWideStyle}>
               <label style={labelStyle}>
-                {form.receiptType === "COURSE" ? "Course Search (Online Courses)" : "Course Search (Monthly List)"}
+                {form.receiptType === "COURSE" ? "Course Search" : "Course Search (Monthly List)"}
               </label>
               <div ref={coursePickerRef} style={coursePickerShellStyle}>
                 <input
@@ -511,12 +511,6 @@ export default function CitoReceiptForm() {
                   </div>
                 )}
               </div>
-
-              {selectedCourse && (
-                <div style={selectedCourseStyle}>
-                  Selected course: <b>{selectedCourse.title}</b> - ${Number(selectedCourse.price || 0).toFixed(2)}
-                </div>
-              )}
 
               {selectedMonthlyCourse && (
                 <div style={selectedCourseStyle}>
