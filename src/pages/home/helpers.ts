@@ -10,6 +10,7 @@ import type {
   Receipt,
   SideMetric,
 } from "./types";
+import { hasCollectedReceiptPayment } from "../../lib/receptionistDailyReceipts";
 
 const monthFormatter = new Intl.DateTimeFormat("en", { month: "short" });
 
@@ -244,7 +245,7 @@ export function buildReceptionistMoneySummary(receipts: Receipt[]): MoneySummary
   const paidByDay = new Map<string, { total: number; count: number; dayLabel: string }>();
 
   for (const receipt of receipts) {
-    if ((receipt.paymentStatus || "").trim().toLowerCase() !== "paid") continue;
+    if (!hasCollectedReceiptPayment(receipt)) continue;
     if (!receipt.createdAt) continue;
     const createdAt = new Date(receipt.createdAt);
     if (Number.isNaN(createdAt.getTime())) continue;

@@ -9,6 +9,8 @@ export type ReceiptHistoryRow = {
   checkedBy?: string;
   studentId?: string;
   studentCode?: string;
+  receiptType?: string;
+  monthlyPaidMonths?: string;
   paymentStatus?: string;
   status?: string;
 };
@@ -36,8 +38,7 @@ export function groupReceiptsByReceptionistDay(
   const grouped = new Map<string, ReceptionistDayEntry[]>();
 
   for (const receipt of receipts) {
-    const status = (receipt.paymentStatus || receipt.status || "").trim().toLowerCase();
-    if (status !== "paid") continue;
+    if (!hasCollectedReceiptPayment(receipt)) continue;
 
     const receptionistKey = (receipt.checkedBy || receipt.createdByReceptionist || "").trim().toLowerCase();
     if (!receptionistKey) continue;
@@ -97,4 +98,14 @@ export function groupReceiptsByReceptionistDay(
   }
 
   return grouped;
+}
+
+export function hasCollectedReceiptPayment(receipt: ReceiptHistoryRow) {
+  const status = (receipt.paymentStatus || receipt.status || "").trim().toLowerCase();
+  if (status === "paid") return true;
+  if ((receipt.receiptType || "").trim().toUpperCase() !== "MONTHLY") return false;
+
+  return String(receipt.monthlyPaidMonths || "")
+    .split(",")
+    .some((period) => period.trim().length > 0);
 }
