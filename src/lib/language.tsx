@@ -39,12 +39,8 @@ const translations = {
     "app.signedInAs": "Signed in as",
 
     "settings.title": "Account Settings",
-    "settings.subtitle":
-      "Manage your profile, security preferences, notification choices, and overall experience in one place.",
     "settings.titleShort": "Settings",
     "settings.currentSection": "Current Section",
-    "settings.signInPrompt":
-      "Sign in to manage your profile, notifications, appearance, and account preferences.",
     "settings.needSignIn": "You need to sign in first",
     "settings.needSignInDesc": "Settings are only available for authenticated users.",
     "settings.profile": "Profile",
@@ -191,12 +187,8 @@ const translations = {
     "app.signedInAs": "បានចូលជា",
 
     "settings.title": "ការកំណត់គណនី",
-    "settings.subtitle":
-      "គ្រប់គ្រងប្រវត្តិរូប សុវត្ថិភាព ការជូនដំណឹង និងបទពិសោធន៍ប្រើប្រាស់របស់អ្នកនៅកន្លែងតែមួយ។",
     "settings.titleShort": "ការកំណត់",
     "settings.currentSection": "ផ្នែកបច្ចុប្បន្ន",
-    "settings.signInPrompt":
-      "សូមចូលគណនីជាមុន ដើម្បីគ្រប់គ្រងប្រវត្តិរូប ការជូនដំណឹង រូបរាង និងចំណូលចិត្តគណនី។",
     "settings.needSignIn": "ត្រូវចូលគណនីជាមុន",
     "settings.needSignInDesc": "ការកំណត់អាចប្រើបានសម្រាប់អ្នកដែលបានចូលគណនីប៉ុណ្ណោះ។",
     "settings.profile": "ប្រវត្តិរូប",

@@ -285,25 +285,6 @@ export default function CertificateStudio() {
     }
   }
 
-  async function printAll() {
-    if (rows.length === 0) return;
-    setError("");
-    setPrintStatus("Securing certificates...");
-    try {
-      const certificates = await ensureCertificatesIssued();
-      if (certificates.some((certificate) => !certificate.published)) {
-        throw new Error("Position the QR, then click Push to public before printing.");
-      }
-      setPrintStatus("Preparing certificates...");
-      await prepareCertificates();
-      setPrintStatus("");
-      window.print();
-    } catch (printError) {
-      setError(getErrorMessage(printError, "Could not prepare the certificates for printing."));
-      setPrintStatus("");
-    }
-  }
-
   function photoForRow(row: CertificateRow) {
     const raw = fieldValue(row, "recipientPhoto");
     if (!raw) return "";
@@ -418,14 +399,6 @@ export default function CertificateStudio() {
             onClick={() => void savePdf()}
           >
             {printStatus || "Save PDF"}
-          </button>
-          <button
-            className="certificate-button certificate-button--primary"
-            type="button"
-            disabled={!allCertificatesPublished || Boolean(printStatus) || issuing || publishing}
-            onClick={() => void printAll()}
-          >
-            Print all
           </button>
         </div>
       </header>

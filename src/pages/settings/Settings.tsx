@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../lib/language";
 
-type SettingsSection = "profile" | "security" | "notifications" | "appearance" | "help";
+type SettingsSection = "profile" | "security" | "appearance" | "help";
 
 type SettingsUser = {
   id: number;
@@ -15,23 +15,11 @@ type SettingsUser = {
   passwordLoginEnabled?: boolean;
 };
 
-type NotificationPreferences = {
-  paymentAlerts: boolean;
-  courseUpdates: boolean;
-  systemAnnouncements: boolean;
-};
-
 type SettingsProps = {
   me: SettingsUser | null;
   theme: "dark" | "light";
   setTheme: (theme: "dark" | "light") => void;
   initialSection?: SettingsSection;
-};
-
-const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
-  paymentAlerts: true,
-  courseUpdates: true,
-  systemAnnouncements: false,
 };
 
 export default function Settings({
@@ -42,24 +30,10 @@ export default function Settings({
 }: SettingsProps) {
   const { language, setLanguage, t } = useLanguage();
   const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
-  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>(() => {
-    const raw = localStorage.getItem("settings-notifications");
-    if (!raw) return DEFAULT_NOTIFICATION_PREFERENCES;
-
-    try {
-      return { ...DEFAULT_NOTIFICATION_PREFERENCES, ...JSON.parse(raw) };
-    } catch {
-      return DEFAULT_NOTIFICATION_PREFERENCES;
-    }
-  });
 
   useEffect(() => {
     setActiveSection(initialSection);
   }, [initialSection]);
-
-  useEffect(() => {
-    localStorage.setItem("settings-notifications", JSON.stringify(notificationPreferences));
-  }, [notificationPreferences]);
 
   const sections = useMemo(
     () =>
@@ -75,12 +49,6 @@ export default function Settings({
           label: t("settings.security"),
           description: t("settings.securityDesc"),
           icon: <SecurityIcon />,
-        },
-        {
-          id: "notifications" as const,
-          label: t("settings.notifications"),
-          description: t("settings.notificationsDesc"),
-          icon: <NotificationIcon />,
         },
         {
           id: "appearance" as const,
@@ -109,7 +77,6 @@ export default function Settings({
           <div>
             <div style={eyebrowStyle}>{t("settings.titleShort")}</div>
             <h1 style={titleStyle}>{t("settings.title")}</h1>
-            <p style={subtitleStyle}>{t("settings.signInPrompt")}</p>
           </div>
         </div>
 
@@ -127,7 +94,6 @@ export default function Settings({
         <div>
           <div style={eyebrowStyle}>{t("settings.titleShort")}</div>
           <h1 style={titleStyle}>{t("settings.title")}</h1>
-          <p style={subtitleStyle}>{t("settings.subtitle")}</p>
         </div>
 
         <div style={heroCardStyle}>
@@ -252,46 +218,6 @@ export default function Settings({
                   <li>{t("settings.securityGuide3")}</li>
                 </ul>
               </div>
-            </div>
-          )}
-
-          {activeSection === "notifications" && (
-            <div style={sectionStackStyle}>
-              <SettingToggle
-                label={t("settings.paymentAlerts")}
-                description={t("settings.paymentAlertsDesc")}
-                checked={notificationPreferences.paymentAlerts}
-                onToggle={() =>
-                  setNotificationPreferences((prev) => ({
-                    ...prev,
-                    paymentAlerts: !prev.paymentAlerts,
-                  }))
-                }
-              />
-
-              <SettingToggle
-                label={t("settings.courseUpdates")}
-                description={t("settings.courseUpdatesDesc")}
-                checked={notificationPreferences.courseUpdates}
-                onToggle={() =>
-                  setNotificationPreferences((prev) => ({
-                    ...prev,
-                    courseUpdates: !prev.courseUpdates,
-                  }))
-                }
-              />
-
-              <SettingToggle
-                label={t("settings.systemAnnouncements")}
-                description={t("settings.systemAnnouncementsDesc")}
-                checked={notificationPreferences.systemAnnouncements}
-                onToggle={() =>
-                  setNotificationPreferences((prev) => ({
-                    ...prev,
-                    systemAnnouncements: !prev.systemAnnouncements,
-                  }))
-                }
-              />
             </div>
           )}
 
@@ -422,7 +348,6 @@ export default function Settings({
                 <ul style={bulletListStyle}>
                   <li>{t("settings.help1")}</li>
                   <li>{t("settings.help2")}</li>
-                  <li>{t("settings.help3")}</li>
                   <li>{t("settings.help4")}</li>
                   <li>{t("settings.help5")}</li>
                 </ul>
@@ -440,44 +365,6 @@ function InfoCard({ label, value }: { label: string; value: React.ReactNode }) {
     <div style={infoCardStyle}>
       <div style={infoLabelStyle}>{label}</div>
       <div style={infoValueStyle}>{value}</div>
-    </div>
-  );
-}
-
-function SettingToggle({
-  label,
-  description,
-  checked,
-  onToggle,
-}: {
-  label: string;
-  description: string;
-  checked: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <div style={toggleRowStyle}>
-      <div style={{ minWidth: 0 }}>
-        <div style={toggleLabelStyle}>{label}</div>
-        <div style={toggleDescriptionStyle}>{description}</div>
-      </div>
-
-      <button
-        type="button"
-        onClick={onToggle}
-        style={{
-          ...toggleButtonStyle,
-          ...(checked ? toggleButtonActiveStyle : null),
-        }}
-        aria-pressed={checked}
-      >
-        <span
-          style={{
-            ...toggleThumbStyle,
-            ...(checked ? toggleThumbActiveStyle : null),
-          }}
-        />
-      </button>
     </div>
   );
 }
@@ -507,13 +394,6 @@ const eyebrowStyle: React.CSSProperties = {
 const titleStyle: React.CSSProperties = {
   margin: "8px 0 8px",
   fontSize: "clamp(1.7rem, 2.8vw, 2.4rem)",
-};
-
-const subtitleStyle: React.CSSProperties = {
-  margin: 0,
-  color: "var(--app-subtle-text)",
-  lineHeight: 1.7,
-  maxWidth: 760,
 };
 
 const heroCardStyle: React.CSSProperties = {
@@ -826,63 +706,6 @@ const bulletListStyle: React.CSSProperties = {
   lineHeight: 1.75,
 };
 
-const toggleRowStyle: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  gap: 16,
-  padding: "18px 20px",
-  borderRadius: 20,
-  background: "var(--app-card-solid-bg)",
-  border: "1px solid var(--app-border-soft)",
-  boxShadow: "var(--app-glow-soft)",
-};
-
-const toggleLabelStyle: React.CSSProperties = {
-  fontSize: 17,
-  fontWeight: 800,
-  color: "var(--app-heading)",
-};
-
-const toggleDescriptionStyle: React.CSSProperties = {
-  marginTop: 6,
-  color: "var(--app-subtle-text)",
-  fontSize: 14,
-  lineHeight: 1.65,
-  maxWidth: 560,
-};
-
-const toggleButtonStyle: React.CSSProperties = {
-  width: 58,
-  height: 34,
-  borderRadius: 999,
-  border: "1px solid var(--app-border-soft)",
-  background: "var(--app-input-readonly-bg)",
-  display: "inline-flex",
-  alignItems: "center",
-  padding: 4,
-  boxSizing: "border-box",
-  transition: "all 180ms ease",
-};
-
-const toggleButtonActiveStyle: React.CSSProperties = {
-  background: "rgba(96, 165, 250, 0.18)",
-  border: "1px solid rgba(96, 165, 250, 0.32)",
-};
-
-const toggleThumbStyle: React.CSSProperties = {
-  width: 24,
-  height: 24,
-  borderRadius: "50%",
-  background: "var(--app-muted)",
-  transition: "all 180ms ease",
-};
-
-const toggleThumbActiveStyle: React.CSSProperties = {
-  background: "#5ec8ff",
-  transform: "translateX(24px)",
-};
-
 const appearanceGridStyle: React.CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
@@ -1007,15 +830,6 @@ function SecurityIcon() {
     <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
       <path d="M10 3.4 15.4 6v3.8c0 3.2-2.1 5.3-5.4 6.6-3.3-1.3-5.4-3.4-5.4-6.6V6z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M8.2 9.8 9.6 11l2.3-2.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function NotificationIcon() {
-  return (
-    <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
-      <path d="M10 16.2a1.9 1.9 0 0 0 1.9-1.7H8.1A1.9 1.9 0 0 0 10 16.2Z" fill="currentColor" />
-      <path d="M5.8 13.8h8.4l-1.1-1.8v-2a3.1 3.1 0 1 0-6.2 0v2z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
