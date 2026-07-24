@@ -70,6 +70,7 @@ export type DashboardData = {
   tableTwoColumns: string[];
   tableTwoRows: string[][];
   moneySummary?: MoneySummary | null;
+  swapSecondChartWithTableOne?: boolean;
 };
 
 export type { ClaimCode, Course, Payment, Receipt, ReceptionistUser };

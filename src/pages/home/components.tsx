@@ -203,22 +203,15 @@ export function DashboardLayout({
           <StatusChart items={data.statuses} />
         </section>
 
-        <section className="dashboard-panel" style={panelStyle}>
-          <h3 style={{ marginTop: 0 }}>{data.tableOneTitle}</h3>
-          <DataTable columns={data.tableOneColumns} rows={data.tableOneRows} />
-        </section>
+        {data.swapSecondChartWithTableOne
+          ? <SecondaryChartPanel data={data} />
+          : <PrimaryTablePanel data={data} />}
       </div>
 
       <div className="dashboard-grid dashboard-grid--two" style={twoColumnGridStyle}>
-        <section className="dashboard-panel" style={panelStyle}>
-          <h3 style={{ marginTop: 0 }}>{data.secondTitle}</h3>
-          <p style={panelSubtitleStyle}>{data.secondSubtitle}</p>
-          <BarChart
-            items={data.secondItems}
-            color="linear-gradient(180deg, rgba(52,211,153,0.95), rgba(30,110,102,0.3))"
-            formatter={data.secondFormatter}
-          />
-        </section>
+        {data.swapSecondChartWithTableOne
+          ? <PrimaryTablePanel data={data} />
+          : <SecondaryChartPanel data={data} />}
 
         <section className="dashboard-panel" style={panelStyle}>
           <h3 style={{ marginTop: 0 }}>{data.activityTitle}</h3>
@@ -250,6 +243,29 @@ export function DashboardLayout({
         </section>
       </div>
     </div>
+  );
+}
+
+function SecondaryChartPanel({ data }: { data: DashboardData }) {
+  return (
+    <section className="dashboard-panel" style={panelStyle}>
+      <h3 style={{ marginTop: 0 }}>{data.secondTitle}</h3>
+      <p style={panelSubtitleStyle}>{data.secondSubtitle}</p>
+      <BarChart
+        items={data.secondItems}
+        color="linear-gradient(180deg, rgba(52,211,153,0.95), rgba(30,110,102,0.3))"
+        formatter={data.secondFormatter}
+      />
+    </section>
+  );
+}
+
+function PrimaryTablePanel({ data }: { data: DashboardData }) {
+  return (
+    <section className="dashboard-panel" style={panelStyle}>
+      <h3 style={{ marginTop: 0 }}>{data.tableOneTitle}</h3>
+      <DataTable columns={data.tableOneColumns} rows={data.tableOneRows} />
+    </section>
   );
 }
 

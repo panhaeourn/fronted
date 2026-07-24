@@ -89,6 +89,7 @@ export function buildAdminDashboard(
       formatDate(item.paidAt || item.createdAt),
     ]),
     moneySummary: null,
+    swapSecondChartWithTableOne: true,
   };
 }
 
