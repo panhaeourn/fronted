@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { ReceiptRecord } from "../../lib/domain-types";
+import { isReceiptCurrentlyPaid } from "../../lib/receptionistDailyReceipts";
 import { statusBadgeStyle } from "../../lib/uiStyles";
 
 export function formatCurrency(value: number) {
@@ -35,10 +36,7 @@ export function formatReceiptType(value?: string) {
 }
 
 export function isReceiptPaid(receipt: ReceiptRecord) {
-  if (normalizeReceiptType(receipt.receiptType) !== "MONTHLY") {
-    return String(receipt.paymentStatus || "").toLowerCase() === "paid";
-  }
-  return getMonthlyPaymentSummary(receipt).isPaid;
+  return isReceiptCurrentlyPaid(receipt);
 }
 
 export function getReceiptIncomeState(receipt: ReceiptRecord) {
