@@ -157,6 +157,7 @@ export function buildReceptionistDashboard(me: MeUser, courses: Course[], receip
       formatDate(item.createdAt),
     ]),
     moneySummary,
+    swapSecondChartWithTableOne: true,
   };
 }
 
