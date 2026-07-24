@@ -149,9 +149,11 @@ export default function ReceptionistDailyMoney() {
         </button>
         <div>
           <h1 style={{ margin: 0 }}>{isSelfView ? `My ${getPageTitle(range)}` : getPageTitle(range)}</h1>
-          <p style={{ margin: "6px 0 0", color: "var(--app-muted)", fontSize: 14 }}>
-            {getPageDescription(range)}
-          </p>
+          {range !== "YEAR" && (
+            <p style={{ margin: "6px 0 0", color: "var(--app-muted)", fontSize: 14 }}>
+              {getPageDescription(range)}
+            </p>
+          )}
         </div>
       </div>
 
@@ -566,7 +568,7 @@ function getPageDescription(range: RangeView) {
     case "MONTH":
       return "See this month's paid income grouped by week, then by day.";
     case "YEAR":
-      return "See this year's paid income grouped by month in a decomposition tree.";
+      return "";
   }
 }
 
