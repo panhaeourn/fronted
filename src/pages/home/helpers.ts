@@ -10,7 +10,7 @@ import type {
   Receipt,
   SideMetric,
 } from "./types";
-import { hasCollectedReceiptPayment } from "../../lib/receptionistDailyReceipts";
+import { isReceiptCurrentlyPaid } from "../../lib/receptionistDailyReceipts";
 
 const monthFormatter = new Intl.DateTimeFormat("en", { month: "short" });
 
@@ -95,8 +95,8 @@ export function buildAdminDashboard(
 }
 
 export function buildReceptionistDashboard(me: MeUser, courses: Course[], receipts: Receipt[]): DashboardData {
-  const paidReceipts = receipts.filter((item) => (item.paymentStatus || "").toLowerCase() === "paid");
-  const pendingReceipts = receipts.filter((item) => (item.paymentStatus || "").toLowerCase() !== "paid");
+  const paidReceipts = receipts.filter(isReceiptCurrentlyPaid);
+  const pendingReceipts = receipts.filter((item) => !isReceiptCurrentlyPaid(item));
   const moneySummary = buildReceptionistMoneySummary(receipts);
 
   return {
@@ -245,7 +245,7 @@ export function buildReceptionistMoneySummary(receipts: Receipt[]): MoneySummary
   const paidByDay = new Map<string, { total: number; count: number; dayLabel: string }>();
 
   for (const receipt of receipts) {
-    if (!hasCollectedReceiptPayment(receipt)) continue;
+    if (!isReceiptCurrentlyPaid(receipt)) continue;
     if (!receipt.createdAt) continue;
     const createdAt = new Date(receipt.createdAt);
     if (Number.isNaN(createdAt.getTime())) continue;
