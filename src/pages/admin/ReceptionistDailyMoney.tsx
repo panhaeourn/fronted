@@ -58,7 +58,7 @@ export default function ReceptionistDailyMoney() {
         if (isSelfView) {
           const [meData, receiptData] = await Promise.all([
             apiFetch<MeUser>("/api/auth/me"),
-            apiFetch<ReceiptHistoryRow[]>("/api/reception/receipts"),
+            apiFetch<ReceiptHistoryRow[]>("/api/reception/payment-history"),
           ]);
           if (cancelled) return;
           setMe(meData || null);

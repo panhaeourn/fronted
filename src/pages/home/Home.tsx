@@ -54,7 +54,10 @@ export default function Home() {
             : null;
         const receptionistRequest =
           role === "RECEPTIONIST"
-            ? Promise.allSettled([apiFetch<Receipt[]>("/api/reception/receipts")] as const)
+            ? Promise.allSettled([
+                apiFetch<Receipt[]>("/api/reception/receipts"),
+                apiFetch<Payment[]>("/api/reception/payment-history"),
+              ] as const)
             : null;
 
         const courseData = await courseRequest;
@@ -73,9 +76,10 @@ export default function Home() {
           setClaimCodes(cc.status === "fulfilled" ? cc.value || [] : []);
           setReceptionists(ru.status === "fulfilled" ? ru.value || [] : []);
         } else if (receptionistRequest) {
-          const [r] = await receptionistRequest;
+          const [r, p] = await receptionistRequest;
           if (!active) return;
           setReceipts(r.status === "fulfilled" ? r.value || [] : []);
+          setPayments(p.status === "fulfilled" ? p.value || [] : []);
         }
       } catch (loadError: unknown) {
         if (!active) return;
@@ -100,7 +104,7 @@ export default function Home() {
       return buildAdminDashboard(me, courses, receipts, payments, claimCodes, receptionists, null);
     }
     if (me.role === "RECEPTIONIST") {
-      return buildReceptionistDashboard(me, courses, receipts);
+      return buildReceptionistDashboard(me, courses, receipts, payments);
     }
     return buildUserDashboard(me, courses);
   }, [me, courses, receipts, payments, claimCodes, receptionists]);

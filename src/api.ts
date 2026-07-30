@@ -11,6 +11,32 @@ type ApiErrorBody = {
   };
 };
 
+type CsrfResponse = {
+  headerName: string;
+  token: string;
+};
+
+let csrfToken: CsrfResponse | null = null;
+
+function isStateChangingMethod(method?: string) {
+  const normalized = (method || "GET").toUpperCase();
+  return !["GET", "HEAD", "OPTIONS", "TRACE"].includes(normalized);
+}
+
+async function getCsrfToken(): Promise<CsrfResponse> {
+  if (csrfToken) return csrfToken;
+
+  const response = await fetch(`${API_BASE}/api/auth/csrf`, {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error("Unable to initialize request security");
+  }
+
+  csrfToken = (await response.json()) as CsrfResponse;
+  return csrfToken;
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null
     ? (value as Record<string, unknown>)
@@ -47,6 +73,11 @@ export async function apiFetch<T>(
     ...((options.headers as Record<string, string>) || {}),
   };
 
+  if (isStateChangingMethod(options.method)) {
+    const csrf = await getCsrfToken();
+    headers[csrf.headerName] = csrf.token;
+  }
+
   const isFormData = options.body instanceof FormData;
 
   if (!isFormData) {
@@ -77,6 +108,9 @@ export async function apiFetch<T>(
   }
 
   if (!res.ok) {
+    if (res.status === 403 && isStateChangingMethod(options.method)) {
+      csrfToken = null;
+    }
     let msg = `${res.status} ${res.statusText}`;
     const errorBody = readApiErrorBody(json);
 

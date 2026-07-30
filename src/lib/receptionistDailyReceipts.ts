@@ -5,6 +5,8 @@ export type ReceiptHistoryRow = {
   totalPrice?: number;
   amount?: number;
   createdAt?: string;
+  updatedAt?: string;
+  paidAt?: string;
   createdByReceptionist?: string;
   checkedBy?: string;
   studentId?: string;
@@ -44,16 +46,17 @@ export function groupReceiptsByReceptionistDay(
     const receptionistKey = (receipt.checkedBy || receipt.createdByReceptionist || "").trim().toLowerCase();
     if (!receptionistKey) continue;
 
-    const createdAt = receipt.createdAt ? new Date(receipt.createdAt) : null;
-    if (!createdAt || Number.isNaN(createdAt.getTime())) continue;
+    const transactionAtValue = receipt.paidAt || receipt.updatedAt || receipt.createdAt;
+    const transactionAt = transactionAtValue ? new Date(transactionAtValue) : null;
+    if (!transactionAt || Number.isNaN(transactionAt.getTime())) continue;
 
-    const dayKey = createdAt.toISOString().slice(0, 10);
-    const dayLabel = createdAt.toLocaleDateString(undefined, {
+    const dayKey = toLocalDayKey(transactionAt);
+    const dayLabel = transactionAt.toLocaleDateString(undefined, {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
-    const timeLabel = createdAt.toLocaleTimeString(undefined, {
+    const timeLabel = transactionAt.toLocaleTimeString(undefined, {
       hour: "numeric",
       minute: "2-digit",
     });
@@ -99,6 +102,14 @@ export function groupReceiptsByReceptionistDay(
   }
 
   return grouped;
+}
+
+function toLocalDayKey(date: Date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
 }
 
 export function isReceiptCurrentlyPaid(receipt: ReceiptHistoryRow) {

@@ -94,10 +94,20 @@ export function buildAdminDashboard(
   };
 }
 
-export function buildReceptionistDashboard(me: MeUser, courses: Course[], receipts: Receipt[]): DashboardData {
+export function buildReceptionistDashboard(
+  me: MeUser,
+  courses: Course[],
+  receipts: Receipt[],
+  payments: Payment[]
+): DashboardData {
   const paidReceipts = receipts.filter(isReceiptCurrentlyPaid);
   const pendingReceipts = receipts.filter((item) => !isReceiptCurrentlyPaid(item));
-  const moneySummary = buildReceptionistMoneySummary(receipts);
+  const paidReceiptPayments = payments.filter(
+    (item) =>
+      (item.paymentType || "").toUpperCase() === "RECEIPT" &&
+      isPaid(item.status)
+  );
+  const moneySummary = buildReceptionistMoneySummary(paidReceiptPayments);
 
   return {
     title: "Receptionist Dashboard",
@@ -120,13 +130,17 @@ export function buildReceptionistDashboard(me: MeUser, courses: Course[], receip
       { label: "Receipt List", to: "/reception/receipts" },
       { label: "Course Catalog", to: "/courses" },
     ],
-    chartTitle: "Receipt Trend",
+    chartTitle: "Receipt Creation Trend",
     chartSubtitle: "Receipts created over the last 6 months",
     chartItems: buildSeries(receipts, (item) => item.createdAt, () => 1),
     chartFormatter: (value) => `${value} receipts`,
     secondTitle: "Collection Trend",
     secondSubtitle: "Paid receipt value over the last 6 months",
-    secondItems: buildSeries(paidReceipts, (item) => item.createdAt, (item) => Number(item.totalPrice || 0)),
+    secondItems: buildSeries(
+      paidReceiptPayments,
+      (item) => item.paidAt || item.updatedAt || item.createdAt,
+      (item) => Number(item.amount || 0)
+    ),
     secondFormatter: (value) => formatCurrency(value),
     statusTitle: "Receipt Status",
     statuses: [
@@ -241,23 +255,28 @@ export function buildUserDashboard(me: MeUser, courses: Course[]): DashboardData
   };
 }
 
-export function buildReceptionistMoneySummary(receipts: Receipt[]): MoneySummary {
+export function buildReceptionistMoneySummary(payments: Payment[]): MoneySummary {
   const paidByDay = new Map<string, { total: number; count: number; dayLabel: string }>();
 
-  for (const receipt of receipts) {
-    if (!isReceiptCurrentlyPaid(receipt)) continue;
-    if (!receipt.createdAt) continue;
-    const createdAt = new Date(receipt.createdAt);
-    if (Number.isNaN(createdAt.getTime())) continue;
+  for (const payment of payments) {
+    if (!isPaid(payment.status)) continue;
+    const paidAtValue = payment.paidAt || payment.updatedAt || payment.createdAt;
+    if (!paidAtValue) continue;
+    const paidAt = new Date(paidAtValue);
+    if (Number.isNaN(paidAt.getTime())) continue;
 
-    const dayKey = createdAt.toISOString().slice(0, 10);
-    const dayLabel = createdAt.toLocaleDateString(undefined, {
+    const dayKey = [
+      paidAt.getFullYear(),
+      String(paidAt.getMonth() + 1).padStart(2, "0"),
+      String(paidAt.getDate()).padStart(2, "0"),
+    ].join("-");
+    const dayLabel = paidAt.toLocaleDateString(undefined, {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
     const current = paidByDay.get(dayKey) || { total: 0, count: 0, dayLabel };
-    current.total += Number(receipt.totalPrice || 0);
+    current.total += Number(payment.amount || 0);
     current.count += 1;
     paidByDay.set(dayKey, current);
   }
