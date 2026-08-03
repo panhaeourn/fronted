@@ -192,6 +192,63 @@ export default function ReceiptList() {
     });
   }, [activeTypeFilter, items, searchId, searchName]);
 
+  const pendingBakongReceiptIds = useMemo(
+    () =>
+      items
+        .filter(
+          (item) =>
+            Boolean(item.bakongTranId?.trim()) &&
+            String(item.paymentStatus || "").toLocaleLowerCase() !== "paid"
+        )
+        .map((item) => item.id)
+        .join(","),
+    [items]
+  );
+
+  useEffect(() => {
+    if (!pendingBakongReceiptIds) return;
+
+    const receiptIds = pendingBakongReceiptIds.split(",").map(Number);
+    let cancelled = false;
+    let checking = false;
+
+    async function verifyPendingPayments() {
+      if (checking) return;
+      checking = true;
+
+      try {
+        const results = await Promise.allSettled(
+          receiptIds.map((id) =>
+            apiFetch<ReceiptRecord>(`/api/reception/receipts/${id}/payment-status`)
+          )
+        );
+
+        if (cancelled) return;
+
+        const verified = new Map<number, ReceiptRecord>();
+        results.forEach((result) => {
+          if (result.status === "fulfilled") verified.set(result.value.id, result.value);
+        });
+
+        if (verified.size > 0) {
+          setItems((current) =>
+            current.map((item) => verified.get(item.id) || item)
+          );
+        }
+      } finally {
+        checking = false;
+      }
+    }
+
+    void verifyPendingPayments();
+    const timer = window.setInterval(() => void verifyPendingPayments(), 5000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [pendingBakongReceiptIds]);
+
   if (loading) {
     return <div style={loadingStyle}>Loading receipts...</div>;
   }
