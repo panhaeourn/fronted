@@ -88,31 +88,6 @@ export default function ReceiptList() {
     };
   }, []);
 
-  async function handleSearch() {
-    try {
-      setLoading(true);
-      setErr("");
-
-      let url = "/api/reception/receipts/search";
-      const params = new URLSearchParams();
-
-      if (searchName.trim()) params.append("studentName", searchName.trim());
-      if (searchId.trim() && searchId.trim().toUpperCase() !== "CITO") {
-        params.append("studentId", searchId.trim());
-      }
-
-      const query = params.toString();
-      if (query) url += `?${query}`;
-
-      const res = await apiFetch<ReceiptRecord[]>(url);
-      setItems(res || []);
-    } catch (error: unknown) {
-      setErr(getErrorMessage(error, "Failed to search receipts"));
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function handleReset() {
     try {
       setLoading(true);
@@ -194,14 +169,26 @@ export default function ReceiptList() {
   }, [items]);
 
   const filteredItems = useMemo(() => {
-    if (activeTypeFilter === "ALL") {
-      return items;
-    }
+    const nameQuery = searchName.trim().toLocaleLowerCase();
+    const idQuery = searchId.trim().toLocaleUpperCase();
+    const hasIdQuery = idQuery !== "" && idQuery !== "CITO";
 
-    return items.filter(
-      (item) => normalizeReceiptType(item.receiptType) === activeTypeFilter
-    );
-  }, [activeTypeFilter, items]);
+    return items.filter((item) => {
+      const matchesType =
+        activeTypeFilter === "ALL" ||
+        normalizeReceiptType(item.receiptType) === activeTypeFilter;
+      const matchesName =
+        !nameQuery ||
+        String(item.studentName || "").toLocaleLowerCase().includes(nameQuery);
+      const matchesId =
+        !hasIdQuery ||
+        normalizeDisplayId(item.studentId || item.studentCode)
+          .toLocaleUpperCase()
+          .includes(idQuery);
+
+      return matchesType && matchesName && matchesId;
+    });
+  }, [activeTypeFilter, items, searchId, searchName]);
 
   if (loading) {
     return <div style={loadingStyle}>Loading receipts...</div>;
@@ -267,12 +254,13 @@ export default function ReceiptList() {
             style={searchInputStyle}
           />
 
-          <button onClick={() => void handleSearch()} style={primaryButtonStyle}>
-            Search
-          </button>
           <button onClick={() => void handleReset()} style={secondaryButtonStyle}>
             Reset
           </button>
+
+          <span aria-live="polite" style={{ color: "#93c5fd", alignSelf: "center" }}>
+            {filteredItems.length} related receipt{filteredItems.length === 1 ? "" : "s"}
+          </span>
         </div>
 
         <div style={{ overflowX: "auto" }}>
