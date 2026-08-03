@@ -260,14 +260,9 @@ export default function CitoReceiptForm() {
     try {
       setLoadingQr(true);
 
-      const data = await apiFetch<{
-        qr?: string;
-        md5?: string;
-        transactionId?: string;
-      }>("/api/bakong/receipt-payment", {
-        method: "POST",
-        body: JSON.stringify({ amount }),
-      });
+      const data = await apiFetch<{ qr?: string; md5?: string }>(
+        `/api/bakong/qr?amount=${amount}`
+      );
 
       if (!data.qr) {
         throw new Error("QR payload missing");
@@ -279,11 +274,7 @@ export default function CitoReceiptForm() {
 
       setQrText(data.qr);
       setQrImage(qrUrl);
-      if (!data.transactionId) {
-        throw new Error("Payment transaction ID missing");
-      }
-
-      setBakongTranId(data.transactionId);
+      setBakongTranId(data.md5 || "");
     } catch (error: unknown) {
       setError(getErrorMessage(error, "Failed to generate QR"));
     } finally {
