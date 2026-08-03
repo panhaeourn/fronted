@@ -269,7 +269,7 @@ export default function BakongQrModal({
     void pollPaymentStatus();
     pollRef.current = window.setInterval(() => {
       void pollPaymentStatus();
-    }, 1000);
+    }, 5000);
 
     return () => {
       clearAllTimers();
