@@ -24,6 +24,8 @@ export function buildAdminDashboard(
   aggregate: DashboardApi | null
 ): DashboardData {
   const paidPayments = payments.filter((item) => isPaid(item.status));
+  const paidReceipts = receipts.filter(isReceiptCurrentlyPaid);
+  const pendingReceipts = receipts.filter((item) => !isReceiptCurrentlyPaid(item));
   const activeCodes = claimCodes.filter((item) => !item.used && new Date(item.expiresAt) >= new Date()).length;
   const usedCodes = claimCodes.filter((item) => item.used).length;
   const expiredCodes = claimCodes.filter((item) => !item.used && new Date(item.expiresAt) < new Date()).length;
@@ -69,8 +71,11 @@ export function buildAdminDashboard(
     secondSubtitle: "Monthly receipt volume",
     secondItems: buildSeries(receipts, (item) => item.createdAt, () => 1),
     secondFormatter: (value) => `${value} receipts`,
-    statusTitle: "Payment Status",
-    statuses: buildPaymentStatusItems(payments),
+    statusTitle: "Receipt Payment Status",
+    statuses: [
+      { label: "Paid", value: paidReceipts.length, color: "#34d399" },
+      { label: "Pending", value: pendingReceipts.length, color: "#f59e0b" },
+    ],
     activityTitle: "Recent Activity",
     activity: buildAdminActivity(receipts, payments, claimCodes),
     tableOneTitle: "Recent Receipts",
@@ -317,20 +322,6 @@ export function formatDate(value?: string) {
   if (!value) return "-";
   const date = parseDashboardDate(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
-}
-
-function buildPaymentStatusItems(payments: Payment[]) {
-  const counts = new Map<string, number>();
-  payments.forEach((item) => {
-    const key = capitalize(item.status || "Unknown");
-    counts.set(key, (counts.get(key) || 0) + 1);
-  });
-
-  return Array.from(counts.entries()).map(([label, value], index) => ({
-    label,
-    value,
-    color: ["#60a5fa", "#34d399", "#f59e0b", "#f87171"][index % 4],
-  }));
 }
 
 function buildAdminActivity(receipts: Receipt[], payments: Payment[], claimCodes: ClaimCode[]) {
