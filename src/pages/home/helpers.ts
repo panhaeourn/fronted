@@ -315,7 +315,7 @@ export function formatCurrency(value: number) {
 
 export function formatDate(value?: string) {
   if (!value) return "-";
-  const date = new Date(value);
+  const date = parseDashboardDate(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
 }
 
@@ -371,7 +371,7 @@ function buildSeries<T>(rows: T[], getDate: (row: T) => string | undefined, getV
   rows.forEach((row) => {
     const rawDate = getDate(row);
     if (!rawDate) return;
-    const date = new Date(rawDate);
+    const date = parseDashboardDate(rawDate);
     if (Number.isNaN(date.getTime())) return;
     const bucket = buckets.find((item) => item.key === `${date.getFullYear()}-${date.getMonth()}`);
     if (bucket) bucket.value += getValue(row);
@@ -396,7 +396,7 @@ function countToday<T>(rows: T[], getDate: (row: T) => string | undefined) {
   return rows.filter((row) => {
     const rawDate = getDate(row);
     if (!rawDate) return false;
-    const date = new Date(rawDate);
+    const date = parseDashboardDate(rawDate);
     return (
       !Number.isNaN(date.getTime()) &&
       date.getFullYear() === today.getFullYear() &&
@@ -428,6 +428,37 @@ function capitalize(value: string) {
 
 function toTime(value?: string) {
   if (!value) return 0;
-  const date = new Date(value);
+  const date = parseDashboardDate(value);
   return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
+function parseDashboardDate(value: string) {
+  const normalized = value
+    .trim()
+    .replace(/[០-៩]/g, (digit) => String("០១២៣៤៥៦៧៨៩".indexOf(digit)));
+  const direct = new Date(normalized);
+  if (!Number.isNaN(direct.getTime())) return direct;
+
+  const match = normalized.match(
+    /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i
+  );
+  if (!match) return direct;
+
+  const first = Number(match[1]);
+  const second = Number(match[2]);
+  const year = Number(match[3]);
+  const dayFirst = first > 12;
+  const month = dayFirst ? second : first;
+  const day = dayFirst ? first : second;
+  let hour = Number(match[4] || 0);
+  const minute = Number(match[5] || 0);
+  const secondValue = Number(match[6] || 0);
+  const meridiem = (match[7] || "").toUpperCase();
+  if (meridiem === "PM" && hour < 12) hour += 12;
+  if (meridiem === "AM" && hour === 12) hour = 0;
+
+  const parsed = new Date(year, month - 1, day, hour, minute, secondValue);
+  return parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day
+    ? parsed
+    : new Date(Number.NaN);
 }
