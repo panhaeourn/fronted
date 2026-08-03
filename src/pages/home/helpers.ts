@@ -24,8 +24,6 @@ export function buildAdminDashboard(
   aggregate: DashboardApi | null
 ): DashboardData {
   const paidPayments = payments.filter((item) => isPaid(item.status));
-  const paidReceipts = receipts.filter(isReceiptCurrentlyPaid);
-  const pendingReceipts = receipts.filter((item) => !isReceiptCurrentlyPaid(item));
   const activeCodes = claimCodes.filter((item) => !item.used && new Date(item.expiresAt) >= new Date()).length;
   const usedCodes = claimCodes.filter((item) => item.used).length;
   const expiredCodes = claimCodes.filter((item) => !item.used && new Date(item.expiresAt) < new Date()).length;
@@ -71,11 +69,8 @@ export function buildAdminDashboard(
     secondSubtitle: "Monthly receipt volume",
     secondItems: buildSeries(receipts, (item) => item.createdAt, () => 1),
     secondFormatter: (value) => `${value} receipts`,
-    statusTitle: "Receipt Payment Status",
-    statuses: [
-      { label: "Paid", value: paidReceipts.length, color: "#34d399" },
-      { label: "Pending", value: pendingReceipts.length, color: "#f59e0b" },
-    ],
+    statusTitle: "Payment Status",
+    statuses: buildPaymentStatusItems(payments),
     activityTitle: "Recent Activity",
     activity: buildAdminActivity(receipts, payments, claimCodes),
     tableOneTitle: "Recent Receipts",
@@ -320,8 +315,22 @@ export function formatCurrency(value: number) {
 
 export function formatDate(value?: string) {
   if (!value) return "-";
-  const date = parseDashboardDate(value);
+  const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+}
+
+function buildPaymentStatusItems(payments: Payment[]) {
+  const counts = new Map<string, number>();
+  payments.forEach((item) => {
+    const key = capitalize(item.status || "Unknown");
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+
+  return Array.from(counts.entries()).map(([label, value], index) => ({
+    label,
+    value,
+    color: ["#60a5fa", "#34d399", "#f59e0b", "#f87171"][index % 4],
+  }));
 }
 
 function buildAdminActivity(receipts: Receipt[], payments: Payment[], claimCodes: ClaimCode[]) {
@@ -362,7 +371,7 @@ function buildSeries<T>(rows: T[], getDate: (row: T) => string | undefined, getV
   rows.forEach((row) => {
     const rawDate = getDate(row);
     if (!rawDate) return;
-    const date = parseDashboardDate(rawDate);
+    const date = new Date(rawDate);
     if (Number.isNaN(date.getTime())) return;
     const bucket = buckets.find((item) => item.key === `${date.getFullYear()}-${date.getMonth()}`);
     if (bucket) bucket.value += getValue(row);
@@ -387,7 +396,7 @@ function countToday<T>(rows: T[], getDate: (row: T) => string | undefined) {
   return rows.filter((row) => {
     const rawDate = getDate(row);
     if (!rawDate) return false;
-    const date = parseDashboardDate(rawDate);
+    const date = new Date(rawDate);
     return (
       !Number.isNaN(date.getTime()) &&
       date.getFullYear() === today.getFullYear() &&
@@ -419,37 +428,6 @@ function capitalize(value: string) {
 
 function toTime(value?: string) {
   if (!value) return 0;
-  const date = parseDashboardDate(value);
+  const date = new Date(value);
   return Number.isNaN(date.getTime()) ? 0 : date.getTime();
-}
-
-function parseDashboardDate(value: string) {
-  const normalized = value
-    .trim()
-    .replace(/[០-៩]/g, (digit) => String("០១២៣៤៥៦៧៨៩".indexOf(digit)));
-  const direct = new Date(normalized);
-  if (!Number.isNaN(direct.getTime())) return direct;
-
-  const match = normalized.match(
-    /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i
-  );
-  if (!match) return direct;
-
-  const first = Number(match[1]);
-  const second = Number(match[2]);
-  const year = Number(match[3]);
-  const dayFirst = first > 12;
-  const month = dayFirst ? second : first;
-  const day = dayFirst ? first : second;
-  let hour = Number(match[4] || 0);
-  const minute = Number(match[5] || 0);
-  const secondValue = Number(match[6] || 0);
-  const meridiem = (match[7] || "").toUpperCase();
-  if (meridiem === "PM" && hour < 12) hour += 12;
-  if (meridiem === "AM" && hour === 12) hour = 0;
-
-  const parsed = new Date(year, month - 1, day, hour, minute, secondValue);
-  return parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day
-    ? parsed
-    : new Date(Number.NaN);
 }

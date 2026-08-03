@@ -88,6 +88,31 @@ export default function ReceiptList() {
     };
   }, []);
 
+  async function handleSearch() {
+    try {
+      setLoading(true);
+      setErr("");
+
+      let url = "/api/reception/receipts/search";
+      const params = new URLSearchParams();
+
+      if (searchName.trim()) params.append("studentName", searchName.trim());
+      if (searchId.trim() && searchId.trim().toUpperCase() !== "CITO") {
+        params.append("studentId", searchId.trim());
+      }
+
+      const query = params.toString();
+      if (query) url += `?${query}`;
+
+      const res = await apiFetch<ReceiptRecord[]>(url);
+      setItems(res || []);
+    } catch (error: unknown) {
+      setErr(getErrorMessage(error, "Failed to search receipts"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleReset() {
     try {
       setLoading(true);
@@ -169,85 +194,14 @@ export default function ReceiptList() {
   }, [items]);
 
   const filteredItems = useMemo(() => {
-    const nameQuery = searchName.trim().toLocaleLowerCase();
-    const idQuery = searchId.trim().toLocaleUpperCase();
-    const hasIdQuery = idQuery !== "" && idQuery !== "CITO";
-
-    return items.filter((item) => {
-      const searchableIds = [item.studentId, item.studentCode]
-        .filter((value): value is string => Boolean(value))
-        .flatMap((value) => [value, normalizeDisplayId(value)])
-        .map((value) => value.toLocaleUpperCase());
-      const matchesType =
-        activeTypeFilter === "ALL" ||
-        normalizeReceiptType(item.receiptType) === activeTypeFilter;
-      const matchesName =
-        !nameQuery ||
-        String(item.studentName || "").toLocaleLowerCase().includes(nameQuery);
-      const matchesId =
-        !hasIdQuery ||
-        searchableIds.some((value) => value.includes(idQuery));
-
-      return matchesType && matchesName && matchesId;
-    });
-  }, [activeTypeFilter, items, searchId, searchName]);
-
-  const pendingBakongReceiptIds = useMemo(
-    () =>
-      items
-        .filter(
-          (item) =>
-            Boolean(item.bakongTranId?.trim()) &&
-            String(item.paymentStatus || "").toLocaleLowerCase() !== "paid"
-        )
-        .map((item) => item.id)
-        .join(","),
-    [items]
-  );
-
-  useEffect(() => {
-    if (!pendingBakongReceiptIds) return;
-
-    const receiptIds = pendingBakongReceiptIds.split(",").map(Number);
-    let cancelled = false;
-    let checking = false;
-
-    async function verifyPendingPayments() {
-      if (checking) return;
-      checking = true;
-
-      try {
-        const results = await Promise.allSettled(
-          receiptIds.map((id) =>
-            apiFetch<ReceiptRecord>(`/api/reception/receipts/${id}/payment-status`)
-          )
-        );
-
-        if (cancelled) return;
-
-        const verified = new Map<number, ReceiptRecord>();
-        results.forEach((result) => {
-          if (result.status === "fulfilled") verified.set(result.value.id, result.value);
-        });
-
-        if (verified.size > 0) {
-          setItems((current) =>
-            current.map((item) => verified.get(item.id) || item)
-          );
-        }
-      } finally {
-        checking = false;
-      }
+    if (activeTypeFilter === "ALL") {
+      return items;
     }
 
-    void verifyPendingPayments();
-    const timer = window.setInterval(() => void verifyPendingPayments(), 5000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, [pendingBakongReceiptIds]);
+    return items.filter(
+      (item) => normalizeReceiptType(item.receiptType) === activeTypeFilter
+    );
+  }, [activeTypeFilter, items]);
 
   if (loading) {
     return <div style={loadingStyle}>Loading receipts...</div>;
@@ -307,20 +261,18 @@ export default function ReceiptList() {
 
           <input
             type="text"
-            placeholder="Search CITO ID"
+            placeholder="CITO2026001"
             value={searchId}
-            onChange={(e) => setSearchId(e.target.value.toLocaleUpperCase())}
+            onChange={(e) => setSearchId(e.target.value)}
             style={searchInputStyle}
-            aria-label="Search by CITO student ID"
           />
 
+          <button onClick={() => void handleSearch()} style={primaryButtonStyle}>
+            Search
+          </button>
           <button onClick={() => void handleReset()} style={secondaryButtonStyle}>
             Reset
           </button>
-
-          <span aria-live="polite" style={{ color: "#93c5fd", alignSelf: "center" }}>
-            {filteredItems.length} related receipt{filteredItems.length === 1 ? "" : "s"}
-          </span>
         </div>
 
         <div style={{ overflowX: "auto" }}>

@@ -219,7 +219,7 @@ export default function ReceptionistDailyMoney() {
           {range === "DAY" && renderDayTree(filteredDays)}
           {range === "WEEK" && renderWeekTree(filteredDays)}
           {range === "MONTH" && renderMonthTree(weekBuckets)}
-          {range === "YEAR" && <YearTree months={yearBuckets} />}
+          {range === "YEAR" && renderYearTree(yearBuckets)}
         </div>
       )}
     </div>
@@ -357,26 +357,7 @@ function renderMonthTree(weeks: WeekBucket[]) {
   );
 }
 
-function YearTree({ months }: { months: MonthBucket[] }) {
-  const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
-  const [expandedWeek, setExpandedWeek] = useState<string | null>(null);
-  const [expandedDay, setExpandedDay] = useState<string | null>(null);
-
-  function toggleMonth(monthKey: string) {
-    setExpandedMonth((current) => (current === monthKey ? null : monthKey));
-    setExpandedWeek(null);
-    setExpandedDay(null);
-  }
-
-  function toggleWeek(weekKey: string) {
-    setExpandedWeek((current) => (current === weekKey ? null : weekKey));
-    setExpandedDay(null);
-  }
-
-  function toggleDay(dayKey: string) {
-    setExpandedDay((current) => (current === dayKey ? null : dayKey));
-  }
-
+function renderYearTree(months: MonthBucket[]) {
   return (
     <div style={bucketCardStyle}>
       <div style={bucketHeaderStyle}>
@@ -387,128 +368,45 @@ function YearTree({ months }: { months: MonthBucket[] }) {
       </div>
 
       <div style={treeColumnStyle}>
-        {months.map((month) => {
-          const monthIsExpanded = expandedMonth === month.key;
-
-          return (
+        {months.map((month) => (
           <div key={month.key} style={treeBranchCardStyle}>
-            <button
-              type="button"
-              aria-expanded={monthIsExpanded}
-              onClick={() => toggleMonth(month.key)}
-              style={{
-                ...treeBranchHeaderStyle,
-                width: "100%",
-                border: 0,
-                padding: 0,
-                color: "inherit",
-                background: "transparent",
-                cursor: "pointer",
-                textAlign: "left",
-              }}
-            >
+            <div style={treeBranchHeaderStyle}>
               <div>
-                <div style={treeBranchTitleStyle}>
-                  {monthIsExpanded ? "▾" : "▸"} {month.label}
-                </div>
+                <div style={treeBranchTitleStyle}>{month.label}</div>
                 <div style={transactionMetaStyle}>{month.count} transaction(s)</div>
               </div>
               <div style={treeBranchValueStyle}>{formatCurrency(month.total)}</div>
-            </button>
+            </div>
 
-            {monthIsExpanded && <div style={treeChildColumnStyle}>
-              {month.weeks.map((week) => {
-                const weekKey = `${month.key}:${week.key}`;
-                const weekIsExpanded = expandedWeek === weekKey;
-
-                return (
+            <div style={treeChildColumnStyle}>
+              {month.weeks.map((week) => (
                 <div key={week.key} style={nestedCardStyle}>
-                  <button
-                    type="button"
-                    aria-expanded={weekIsExpanded}
-                    onClick={() => toggleWeek(weekKey)}
-                    style={{
-                      ...nestedRowStyle,
-                      width: "100%",
-                      border: 0,
-                      padding: 0,
-                      color: "inherit",
-                      background: "transparent",
-                      cursor: "pointer",
-                      textAlign: "left",
-                    }}
-                  >
+                  <div style={nestedRowStyle}>
                     <div>
-                      <div style={{ fontWeight: 700 }}>
-                        {weekIsExpanded ? "▾" : "▸"} {week.label}
-                      </div>
+                      <div style={{ fontWeight: 700 }}>{week.label}</div>
                       <div style={transactionMetaStyle}>{week.count} transaction(s)</div>
                     </div>
                     <div style={{ fontWeight: 700 }}>{formatCurrency(week.total)}</div>
-                  </button>
+                  </div>
 
-                  {weekIsExpanded && <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
-                    {week.days.map((day) => {
-                      const dayKey = `${weekKey}:${day.dayKey}`;
-                      const dayIsExpanded = expandedDay === dayKey;
-
-                      return (
-                        <div key={day.dayKey} style={nestedCardStyle}>
-                          <button
-                            type="button"
-                            aria-expanded={dayIsExpanded}
-                            onClick={() => toggleDay(dayKey)}
-                            style={{
-                              ...nestedRowStyle,
-                              width: "100%",
-                              border: 0,
-                              padding: 0,
-                              color: "inherit",
-                              background: "transparent",
-                              cursor: "pointer",
-                              textAlign: "left",
-                            }}
-                          >
-                            <div>
-                              <div style={{ fontWeight: 700 }}>
-                                {dayIsExpanded ? "▾" : "▸"} {day.dayLabel}
-                              </div>
-                              <div style={transactionMetaStyle}>{day.count} transaction(s)</div>
-                            </div>
-                            <div style={{ textAlign: "right", fontWeight: 700 }}>
-                              {formatCurrency(day.total)}
-                            </div>
-                          </button>
-
-                          {dayIsExpanded && (
-                            <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
-                              {day.items.map((item) => (
-                                <div key={`${day.dayKey}-${item.id}`} style={treeLeafRowStyle}>
-                                  <div>
-                                    <div style={{ fontWeight: 700 }}>{item.studentName}</div>
-                                    <div style={transactionMetaStyle}>Student ID: {item.studentId}</div>
-                                    {item.studentCode && (
-                                      <div style={transactionMetaStyle}>Code: {item.studentCode}</div>
-                                    )}
-                                    <div style={transactionMetaStyle}>Course: {item.courseName}</div>
-                                  </div>
-                                  <div style={{ textAlign: "right" }}>
-                                    <div style={{ fontWeight: 700 }}>{formatCurrency(item.amount)}</div>
-                                    <div style={transactionMetaStyle}>{item.timeLabel}</div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
+                  <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
+                    {week.days.map((day) => (
+                      <div key={day.dayKey} style={treeLeafRowStyle}>
+                        <div>
+                          <div style={{ fontWeight: 700 }}>{day.dayLabel}</div>
+                          <div style={transactionMetaStyle}>{day.count} transaction(s)</div>
                         </div>
-                      );
-                    })}
-                  </div>}
+                        <div style={{ textAlign: "right", fontWeight: 700 }}>
+                          {formatCurrency(day.total)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              )})}
-            </div>}
+              ))}
+            </div>
           </div>
-        )})}
+        ))}
       </div>
     </div>
   );
