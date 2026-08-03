@@ -612,13 +612,14 @@ function AppContent() {
       >
         {showSidebar && !sidebarCollapsed && (
           <div
+            className="app-main-sidebar-glow"
             aria-hidden="true"
             style={{
-              position: "absolute",
+              position: "fixed",
               top: 0,
-              left: 0,
+              left: 272,
               width: 34,
-              height: "100%",
+              height: "100dvh",
               pointerEvents: "none",
               background:
                 "linear-gradient(90deg, rgba(109, 163, 255, 0.1) 0%, rgba(109, 163, 255, 0.04) 40%, transparent 100%)",
