@@ -360,14 +360,21 @@ function renderMonthTree(weeks: WeekBucket[]) {
 function YearTree({ months }: { months: MonthBucket[] }) {
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
   const [expandedWeek, setExpandedWeek] = useState<string | null>(null);
+  const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
   function toggleMonth(monthKey: string) {
     setExpandedMonth((current) => (current === monthKey ? null : monthKey));
     setExpandedWeek(null);
+    setExpandedDay(null);
   }
 
   function toggleWeek(weekKey: string) {
     setExpandedWeek((current) => (current === weekKey ? null : weekKey));
+    setExpandedDay(null);
+  }
+
+  function toggleDay(dayKey: string) {
+    setExpandedDay((current) => (current === dayKey ? null : dayKey));
   }
 
   return (
@@ -441,17 +448,61 @@ function YearTree({ months }: { months: MonthBucket[] }) {
                   </button>
 
                   {weekIsExpanded && <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
-                    {week.days.map((day) => (
-                      <div key={day.dayKey} style={treeLeafRowStyle}>
-                        <div>
-                          <div style={{ fontWeight: 700 }}>{day.dayLabel}</div>
-                          <div style={transactionMetaStyle}>{day.count} transaction(s)</div>
+                    {week.days.map((day) => {
+                      const dayKey = `${weekKey}:${day.dayKey}`;
+                      const dayIsExpanded = expandedDay === dayKey;
+
+                      return (
+                        <div key={day.dayKey} style={nestedCardStyle}>
+                          <button
+                            type="button"
+                            aria-expanded={dayIsExpanded}
+                            onClick={() => toggleDay(dayKey)}
+                            style={{
+                              ...nestedRowStyle,
+                              width: "100%",
+                              border: 0,
+                              padding: 0,
+                              color: "inherit",
+                              background: "transparent",
+                              cursor: "pointer",
+                              textAlign: "left",
+                            }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: 700 }}>
+                                {dayIsExpanded ? "▾" : "▸"} {day.dayLabel}
+                              </div>
+                              <div style={transactionMetaStyle}>{day.count} transaction(s)</div>
+                            </div>
+                            <div style={{ textAlign: "right", fontWeight: 700 }}>
+                              {formatCurrency(day.total)}
+                            </div>
+                          </button>
+
+                          {dayIsExpanded && (
+                            <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
+                              {day.items.map((item) => (
+                                <div key={`${day.dayKey}-${item.id}`} style={treeLeafRowStyle}>
+                                  <div>
+                                    <div style={{ fontWeight: 700 }}>{item.studentName}</div>
+                                    <div style={transactionMetaStyle}>Student ID: {item.studentId}</div>
+                                    {item.studentCode && (
+                                      <div style={transactionMetaStyle}>Code: {item.studentCode}</div>
+                                    )}
+                                    <div style={transactionMetaStyle}>Course: {item.courseName}</div>
+                                  </div>
+                                  <div style={{ textAlign: "right" }}>
+                                    <div style={{ fontWeight: 700 }}>{formatCurrency(item.amount)}</div>
+                                    <div style={transactionMetaStyle}>{item.timeLabel}</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <div style={{ textAlign: "right", fontWeight: 700 }}>
-                          {formatCurrency(day.total)}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>}
                 </div>
               )})}
