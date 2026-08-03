@@ -174,6 +174,10 @@ export default function ReceiptList() {
     const hasIdQuery = idQuery !== "" && idQuery !== "CITO";
 
     return items.filter((item) => {
+      const searchableIds = [item.studentId, item.studentCode]
+        .filter((value): value is string => Boolean(value))
+        .flatMap((value) => [value, normalizeDisplayId(value)])
+        .map((value) => value.toLocaleUpperCase());
       const matchesType =
         activeTypeFilter === "ALL" ||
         normalizeReceiptType(item.receiptType) === activeTypeFilter;
@@ -182,9 +186,7 @@ export default function ReceiptList() {
         String(item.studentName || "").toLocaleLowerCase().includes(nameQuery);
       const matchesId =
         !hasIdQuery ||
-        normalizeDisplayId(item.studentId || item.studentCode)
-          .toLocaleUpperCase()
-          .includes(idQuery);
+        searchableIds.some((value) => value.includes(idQuery));
 
       return matchesType && matchesName && matchesId;
     });
@@ -248,10 +250,11 @@ export default function ReceiptList() {
 
           <input
             type="text"
-            placeholder="CITO2026001"
+            placeholder="Search CITO ID"
             value={searchId}
-            onChange={(e) => setSearchId(e.target.value)}
+            onChange={(e) => setSearchId(e.target.value.toLocaleUpperCase())}
             style={searchInputStyle}
+            aria-label="Search by CITO student ID"
           />
 
           <button onClick={() => void handleReset()} style={secondaryButtonStyle}>
