@@ -215,6 +215,25 @@ export default function CitoReceiptForm() {
     }
   }
 
+  function selectReceiptType(value: string) {
+    setCourseQuery("");
+    setIsCoursePickerOpen(false);
+    setQrImage("");
+    setQrText("");
+    setBakongTranId("");
+    setForm((prev) => ({
+      ...prev,
+      receiptType: value as ReceiptType,
+      studentCode: "",
+      courseName: "",
+      bookPrice: "",
+      programPrice: "",
+      totalPrice: "",
+      schedule: "",
+      monthlyPeriod: value === "MONTHLY" ? prev.monthlyPeriod || buildDefaultMonthlyPeriod() : "",
+    }));
+  }
+
   function selectCourse(name: string) {
     setError("");
     const entry = onlineCourses.find((c) => c.title === name);
@@ -401,10 +420,15 @@ export default function CitoReceiptForm() {
           <div style={formGridStyle}>
             <div style={fieldBlockStyle}>
               <label style={labelStyle}>Receipt Type</label>
-              <select name="receiptType" value={form.receiptType} onChange={handleChange} style={inputStyle}>
-                <option value="COURSE">Course</option>
-                <option value="MONTHLY">Monthly</option>
-              </select>
+              <StyledFormSelect
+                value={form.receiptType}
+                options={[
+                  { value: "COURSE", label: "Course" },
+                  { value: "MONTHLY", label: "Monthly" },
+                ]}
+                onChange={selectReceiptType}
+                ariaLabel="Receipt type"
+              />
             </div>
 
             {form.receiptType === "MONTHLY" && (
@@ -567,11 +591,16 @@ export default function CitoReceiptForm() {
 
             <div style={fieldBlockWideStyle}>
               <label style={labelStyle}>Schedule</label>
-              <select name="schedule" value={form.schedule} onChange={handleChange} style={inputStyle}>
-                <option value="">Select schedule</option>
-                <option value="Monday to Friday">Monday to Friday</option>
-                <option value="Saturday to Sunday">Saturday to Sunday</option>
-              </select>
+              <StyledFormSelect
+                value={form.schedule}
+                placeholder="Select schedule"
+                options={[
+                  { value: "Monday to Friday", label: "Monday to Friday" },
+                  { value: "Saturday to Sunday", label: "Saturday to Sunday" },
+                ]}
+                onChange={(value) => setForm((prev) => ({ ...prev, schedule: value }))}
+                ariaLabel="Schedule"
+              />
             </div>
 
             <div style={fieldBlockStyle}>
@@ -619,11 +648,16 @@ export default function CitoReceiptForm() {
 
             <div style={fieldBlockStyle}>
               <label style={labelStyle}>Gender</label>
-              <select name="gender" value={form.gender} onChange={handleChange} style={inputStyle}>
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
+              <StyledFormSelect
+                value={form.gender}
+                placeholder="Select gender"
+                options={[
+                  { value: "Male", label: "Male" },
+                  { value: "Female", label: "Female" },
+                ]}
+                onChange={(value) => setForm((prev) => ({ ...prev, gender: value }))}
+                ariaLabel="Gender"
+              />
             </div>
 
             <div style={fieldBlockStyle}>
@@ -696,6 +730,95 @@ export default function CitoReceiptForm() {
           )}
         </aside>
       </div>
+    </div>
+  );
+}
+
+type StyledSelectOption = {
+  value: string;
+  label: string;
+};
+
+function StyledFormSelect({
+  value,
+  placeholder,
+  options,
+  onChange,
+  ariaLabel,
+}: {
+  value: string;
+  placeholder?: string;
+  options: StyledSelectOption[];
+  onChange: (value: string) => void;
+  ariaLabel: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const shellRef = useRef<HTMLDivElement | null>(null);
+  const selected = options.find((option) => option.value === value);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function closeWhenOutside(event: MouseEvent) {
+      if (!shellRef.current?.contains(event.target as Node)) setOpen(false);
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+
+    document.addEventListener("mousedown", closeWhenOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeWhenOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+
+  return (
+    <div ref={shellRef} style={coursePickerShellStyle}>
+      <button
+        type="button"
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        style={selectTriggerStyle}
+      >
+        <span style={{ color: selected ? "var(--app-input-text)" : "var(--app-muted)" }}>
+          {selected?.label || placeholder || "Select"}
+        </span>
+        <span style={pickerChevronStyle}>{open ? "▴" : "▾"}</span>
+      </button>
+
+      {open && (
+        <div role="listbox" aria-label={ariaLabel} style={selectDropdownStyle}>
+          <div style={selectDropdownListStyle}>
+            {options.map((option) => {
+              const isSelected = option.value === value;
+              return (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  key={option.value}
+                  onClick={() => {
+                    onChange(option.value);
+                    setOpen(false);
+                  }}
+                  style={{
+                    ...selectOptionStyle,
+                    ...(isSelected ? courseMatchButtonSelectedStyle : null),
+                  }}
+                >
+                  <span>{option.label}</span>
+                  {isSelected && <span style={selectCheckStyle}>✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -876,6 +999,42 @@ const courseMatchButtonStyle: CSSProperties = {
 const courseMatchButtonSelectedStyle: CSSProperties = {
   border: "1px solid rgba(96, 165, 250, 0.45)",
   background: "rgba(96, 165, 250, 0.12)",
+};
+
+const selectTriggerStyle: CSSProperties = {
+  ...inputStyle,
+  minHeight: 44,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 12,
+  textAlign: "left",
+  cursor: "pointer",
+};
+
+const selectDropdownStyle: CSSProperties = {
+  ...courseDropdownStyle,
+  top: "calc(100% + 8px)",
+};
+
+const selectDropdownListStyle: CSSProperties = {
+  padding: 8,
+  display: "grid",
+  gap: 6,
+};
+
+const selectOptionStyle: CSSProperties = {
+  ...courseMatchButtonStyle,
+  minHeight: 42,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 12,
+};
+
+const selectCheckStyle: CSSProperties = {
+  color: "var(--app-accent-soft)",
+  fontWeight: 900,
 };
 
 const courseOptionRowStyle: CSSProperties = {
