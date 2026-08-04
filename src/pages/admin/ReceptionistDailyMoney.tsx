@@ -217,9 +217,9 @@ export default function ReceptionistDailyMoney() {
       {user && filteredDays.length > 0 && (
         <div style={{ display: "grid", gap: 14 }}>
           {range === "DAY" && renderDayTree(filteredDays)}
-          {range === "WEEK" && renderWeekTree(filteredDays)}
-          {range === "MONTH" && renderMonthTree(weekBuckets)}
-          {range === "YEAR" && renderYearTree(yearBuckets)}
+          {range === "WEEK" && <WeekTree weeks={weekBuckets} />}
+          {range === "MONTH" && <MonthTree weeks={weekBuckets} />}
+          {range === "YEAR" && <YearTree months={yearBuckets} />}
         </div>
       )}
     </div>
@@ -259,157 +259,164 @@ function renderDayTree(days: ReceptionistDayEntry[]) {
   ));
 }
 
-function renderWeekTree(days: ReceptionistDayEntry[]) {
+function TransactionRows({ day }: { day: ReceptionistDayEntry }) {
+  return (
+    <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
+      {day.items.map((item) => (
+        <div key={`${day.dayKey}-${item.id}`} style={treeLeafRowStyle}>
+          <div>
+            <div style={{ fontWeight: 700 }}>{item.studentName}</div>
+            <div style={transactionMetaStyle}>Student ID: {item.studentId}</div>
+            {item.studentCode ? (
+              <div style={transactionMetaStyle}>Code: {item.studentCode}</div>
+            ) : null}
+            <div style={transactionMetaStyle}>Course: {item.courseName}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontWeight: 700 }}>{formatCurrency(item.amount)}</div>
+            <div style={transactionMetaStyle}>{item.timeLabel}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DayAccordion({ day }: { day: ReceptionistDayEntry }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div style={nestedCardStyle}>
+      <button
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((value) => !value)}
+        style={accordionButtonStyle(nestedRowStyle)}
+      >
+        <div>
+          <div style={{ fontWeight: 700 }}>{expanded ? "▾" : "▸"} {day.dayLabel}</div>
+          <div style={transactionMetaStyle}>{day.count} transaction(s)</div>
+        </div>
+        <div style={{ fontWeight: 700 }}>{formatCurrency(day.total)}</div>
+      </button>
+      {expanded && <TransactionRows day={day} />}
+    </div>
+  );
+}
+
+function WeekAccordion({ week }: { week: WeekBucket }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div style={treeBranchCardStyle}>
+      <button
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((value) => !value)}
+        style={accordionButtonStyle(treeBranchHeaderStyle)}
+      >
+        <div>
+          <div style={treeBranchTitleStyle}>{expanded ? "▾" : "▸"} {week.label}</div>
+          <div style={transactionMetaStyle}>{week.count} transaction(s)</div>
+        </div>
+        <div style={treeBranchValueStyle}>{formatCurrency(week.total)}</div>
+      </button>
+      {expanded && (
+        <div style={treeChildColumnStyle}>
+          {week.days.map((day) => <DayAccordion key={day.dayKey} day={day} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WeekTree({ weeks }: { weeks: WeekBucket[] }) {
   return (
     <div style={bucketCardStyle}>
       <div style={bucketHeaderStyle}>
         <div>
           <div style={bucketTitleStyle}>This Week</div>
-          <div style={bucketMetaStyle}>Each day with its paid transactions</div>
+          <div style={bucketMetaStyle}>Select a week, then a day to view transactions</div>
         </div>
       </div>
-
       <div style={treeColumnStyle}>
-        {days.map((day) => (
-          <div key={day.dayKey} style={treeBranchCardStyle}>
-            <div style={treeBranchHeaderStyle}>
-              <div>
-                <div style={treeBranchTitleStyle}>{day.dayLabel}</div>
-                <div style={transactionMetaStyle}>{day.count} transaction(s)</div>
-              </div>
-              <div style={treeBranchValueStyle}>{formatCurrency(day.total)}</div>
-            </div>
-
-            <div style={treeChildColumnStyle}>
-              {day.items.map((item) => (
-                <div key={`${day.dayKey}-${item.id}`} style={treeLeafRowStyle}>
-                  <div>
-                    <div style={{ fontWeight: 700 }}>{item.studentName}</div>
-                    <div style={transactionMetaStyle}>{item.courseName}</div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontWeight: 700 }}>{formatCurrency(item.amount)}</div>
-                    <div style={transactionMetaStyle}>{item.timeLabel}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+        {weeks.map((week) => <WeekAccordion key={week.key} week={week} />)}
       </div>
     </div>
   );
 }
 
-function renderMonthTree(weeks: WeekBucket[]) {
+function MonthTree({ weeks }: { weeks: WeekBucket[] }) {
   return (
     <div style={bucketCardStyle}>
       <div style={bucketHeaderStyle}>
         <div>
           <div style={bucketTitleStyle}>This Month</div>
-          <div style={bucketMetaStyle}>Weekly tree with daily breakdown</div>
+          <div style={bucketMetaStyle}>Select a week, then a day to view transactions</div>
         </div>
       </div>
 
       <div style={treeColumnStyle}>
-        {weeks.map((week) => (
-          <div key={week.key} style={treeBranchCardStyle}>
-            <div style={treeBranchHeaderStyle}>
-              <div>
-                <div style={treeBranchTitleStyle}>{week.label}</div>
-                <div style={transactionMetaStyle}>{week.count} transaction(s)</div>
-              </div>
-              <div style={treeBranchValueStyle}>{formatCurrency(week.total)}</div>
-            </div>
-
-            <div style={treeChildColumnStyle}>
-              {week.days.map((day) => (
-                <div key={day.dayKey} style={nestedCardStyle}>
-                  <div style={nestedRowStyle}>
-                    <div>
-                      <div style={{ fontWeight: 700 }}>{day.dayLabel}</div>
-                      <div style={transactionMetaStyle}>{day.count} transaction(s)</div>
-                    </div>
-                    <div style={{ fontWeight: 700 }}>{formatCurrency(day.total)}</div>
-                  </div>
-
-                  <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
-                    {day.items.map((item) => (
-                      <div key={`${day.dayKey}-${item.id}`} style={treeLeafRowStyle}>
-                        <div>
-                          <div style={{ fontWeight: 700 }}>{item.studentName}</div>
-                          <div style={transactionMetaStyle}>{item.courseName}</div>
-                        </div>
-                        <div style={{ textAlign: "right" }}>
-                          <div style={{ fontWeight: 700 }}>{formatCurrency(item.amount)}</div>
-                          <div style={transactionMetaStyle}>{item.timeLabel}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+        {weeks.map((week) => <WeekAccordion key={week.key} week={week} />)}
       </div>
     </div>
   );
 }
 
-function renderYearTree(months: MonthBucket[]) {
+function MonthAccordion({ month }: { month: MonthBucket }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div style={treeBranchCardStyle}>
+      <button
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((value) => !value)}
+        style={accordionButtonStyle(treeBranchHeaderStyle)}
+      >
+        <div>
+          <div style={treeBranchTitleStyle}>{expanded ? "▾" : "▸"} {month.label}</div>
+          <div style={transactionMetaStyle}>{month.count} transaction(s)</div>
+        </div>
+        <div style={treeBranchValueStyle}>{formatCurrency(month.total)}</div>
+      </button>
+      {expanded && (
+        <div style={treeChildColumnStyle}>
+          {month.weeks.map((week) => <WeekAccordion key={week.key} week={week} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function YearTree({ months }: { months: MonthBucket[] }) {
   return (
     <div style={bucketCardStyle}>
       <div style={bucketHeaderStyle}>
         <div>
           <div style={bucketTitleStyle}>Year Decomposition Tree</div>
-          <div style={bucketMetaStyle}>Month to week to day income flow</div>
+          <div style={bucketMetaStyle}>Select month, week, and day to view transactions</div>
         </div>
       </div>
 
       <div style={treeColumnStyle}>
-        {months.map((month) => (
-          <div key={month.key} style={treeBranchCardStyle}>
-            <div style={treeBranchHeaderStyle}>
-              <div>
-                <div style={treeBranchTitleStyle}>{month.label}</div>
-                <div style={transactionMetaStyle}>{month.count} transaction(s)</div>
-              </div>
-              <div style={treeBranchValueStyle}>{formatCurrency(month.total)}</div>
-            </div>
-
-            <div style={treeChildColumnStyle}>
-              {month.weeks.map((week) => (
-                <div key={week.key} style={nestedCardStyle}>
-                  <div style={nestedRowStyle}>
-                    <div>
-                      <div style={{ fontWeight: 700 }}>{week.label}</div>
-                      <div style={transactionMetaStyle}>{week.count} transaction(s)</div>
-                    </div>
-                    <div style={{ fontWeight: 700 }}>{formatCurrency(week.total)}</div>
-                  </div>
-
-                  <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
-                    {week.days.map((day) => (
-                      <div key={day.dayKey} style={treeLeafRowStyle}>
-                        <div>
-                          <div style={{ fontWeight: 700 }}>{day.dayLabel}</div>
-                          <div style={transactionMetaStyle}>{day.count} transaction(s)</div>
-                        </div>
-                        <div style={{ textAlign: "right", fontWeight: 700 }}>
-                          {formatCurrency(day.total)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+        {months.map((month) => <MonthAccordion key={month.key} month={month} />)}
       </div>
     </div>
   );
+}
+
+function accordionButtonStyle(base: React.CSSProperties): React.CSSProperties {
+  return {
+    ...base,
+    width: "100%",
+    border: 0,
+    padding: 0,
+    color: "inherit",
+    background: "transparent",
+    cursor: "pointer",
+    textAlign: "left",
+  };
 }
 
 function normalizeRange(value: string | null): RangeView {
