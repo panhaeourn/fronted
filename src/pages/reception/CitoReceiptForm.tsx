@@ -1003,33 +1003,43 @@ const courseMatchButtonSelectedStyle: CSSProperties = {
 
 const selectTriggerStyle: CSSProperties = {
   ...inputStyle,
-  minHeight: 44,
+  minHeight: 42,
+  padding: "9px 14px",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  gap: 12,
+  gap: 10,
+  fontSize: 14,
+  fontWeight: 600,
   textAlign: "left",
   cursor: "pointer",
 };
 
 const selectDropdownStyle: CSSProperties = {
   ...courseDropdownStyle,
-  top: "calc(100% + 8px)",
+  top: "calc(100% + 6px)",
+  borderRadius: 14,
+  boxShadow: "0 14px 30px rgba(2, 8, 23, 0.32), 0 0 0 1px rgba(96, 165, 250, 0.06)",
 };
 
 const selectDropdownListStyle: CSSProperties = {
-  padding: 8,
+  padding: 6,
   display: "grid",
-  gap: 6,
+  gap: 4,
 };
 
 const selectOptionStyle: CSSProperties = {
   ...courseMatchButtonStyle,
-  minHeight: 42,
+  minHeight: 36,
+  padding: "8px 11px",
+  borderRadius: 10,
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  gap: 12,
+  gap: 10,
+  fontSize: 14,
+  fontWeight: 600,
+  boxShadow: "none",
 };
 
 const selectCheckStyle: CSSProperties = {
