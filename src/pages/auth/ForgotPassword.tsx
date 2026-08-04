@@ -271,21 +271,9 @@ export default function ForgotPassword() {
           <div style={headerStyle}>
             <div style={eyebrowStyle}>Account Recovery</div>
             <h2 style={titleStyle}>Forgot Password</h2>
-            <p style={subtitleStyle}>
-              Use this page only if you created a CITO password. If you normally use the Google
-              button, go back to login and continue with Google.
-            </p>
           </div>
 
           <div style={stackStyle}>
-            <div style={accountTypeNoteStyle}>
-              <div style={accountTypeTitleStyle}>Which sign-in method do you use?</div>
-              <div style={accountTypeTextStyle}>
-                CITO account: reset your password here. Google account: use Continue with Google
-                on the login page, or manage your Google Account from Google.
-              </div>
-            </div>
-
             <label style={labelStyle}>Email or phone number</label>
             <input
               value={identifier}
@@ -389,36 +377,9 @@ const titleStyle: CSSProperties = {
   fontSize: 27,
 };
 
-const subtitleStyle: CSSProperties = {
-  color: "var(--app-subtle-text)",
-  margin: "10px 0 0",
-  lineHeight: 1.7,
-};
-
 const stackStyle: CSSProperties = {
   display: "grid",
   gap: 12,
-};
-
-const accountTypeNoteStyle: CSSProperties = {
-  padding: "14px 16px",
-  borderRadius: 16,
-  background: "rgba(96, 165, 250, 0.12)",
-  border: "1px solid rgba(96, 165, 250, 0.24)",
-  boxShadow: "var(--app-glow-soft)",
-};
-
-const accountTypeTitleStyle: CSSProperties = {
-  color: "var(--app-heading)",
-  fontWeight: 800,
-  fontSize: 14,
-};
-
-const accountTypeTextStyle: CSSProperties = {
-  marginTop: 6,
-  color: "var(--app-subtle-text)",
-  lineHeight: 1.6,
-  fontSize: 13,
 };
 
 const labelStyle: CSSProperties = {
