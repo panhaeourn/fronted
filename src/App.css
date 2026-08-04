@@ -278,6 +278,10 @@ button:not(:disabled):active {
 }
 
 @media (max-width: 820px) {
+  .app-main-sidebar-glow {
+    display: none;
+  }
+
   .app-shell:not(.app-shell--print) {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
