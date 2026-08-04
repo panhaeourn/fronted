@@ -118,7 +118,6 @@ const translations = {
       "Support: contact Eourn Panha by phone, Telegram, or Facebook for assistance.",
 
     "auth.welcomeBack": "Welcome Back",
-    "auth.joinPlatform": "Join The Platform",
     "auth.loginTitle": "Login",
     "auth.registerTitle": "Register",
     "auth.loginSubtitle":
@@ -259,7 +258,6 @@ const translations = {
     "settings.help5": "ជំនួយ៖ ទាក់ទង Eourn Panha តាមទូរស័ព្ទ Telegram ឬ Facebook សម្រាប់ជំនួយ។",
 
     "auth.welcomeBack": "សូមស្វាគមន៍ត្រឡប់មកវិញ",
-    "auth.joinPlatform": "ចូលរួមជាមួយប្រព័ន្ធ",
     "auth.loginTitle": "ចូលគណនី",
     "auth.registerTitle": "បង្កើតគណនី",
     "auth.loginSubtitle":

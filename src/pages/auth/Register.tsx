@@ -95,7 +95,6 @@ export default function Register() {
       <div style={singleShellStyle}>
         <section style={formCardStyle}>
           <div style={cardHeaderStyle}>
-            <div style={eyebrowStyle}>{t("auth.joinPlatform")}</div>
             <h2 style={cardTitleStyle}>{t("auth.registerTitle")}</h2>
             <p style={cardTextStyle}>{t("auth.registerSubtitle")}</p>
           </div>
@@ -192,13 +191,6 @@ const formCardStyle: React.CSSProperties = {
   background: "var(--app-panel-bg)",
   border: "var(--app-panel-border)",
   boxShadow: "var(--app-panel-shadow)",
-};
-
-const eyebrowStyle: React.CSSProperties = {
-  color: "var(--app-muted)",
-  fontSize: 13,
-  letterSpacing: 1,
-  textTransform: "uppercase",
 };
 
 const cardHeaderStyle: React.CSSProperties = {
