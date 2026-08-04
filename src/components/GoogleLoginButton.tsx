@@ -34,17 +34,20 @@ const buttonStyle: React.CSSProperties = {
 };
 
 const iconWrapStyle: React.CSSProperties = {
-  width: 24,
-  height: 24,
+  width: 28,
+  height: 28,
+  borderRadius: 999,
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
+  background: "var(--app-input-bg)",
+  boxShadow: "var(--app-glow-soft)",
   flexShrink: 0,
 };
 
 const iconStyle: React.CSSProperties = {
-  width: 22,
-  height: 22,
+  width: 20,
+  height: 20,
   display: "block",
 };
 
