@@ -149,7 +149,7 @@ export default function ReceptionistDailyMoney() {
         </button>
         <div>
           <h1 style={{ margin: 0 }}>{isSelfView ? `My ${getPageTitle(range)}` : getPageTitle(range)}</h1>
-          {range !== "YEAR" && (
+          {range !== "YEAR" && getPageDescription(range) && (
             <p style={{ margin: "6px 0 0", color: "var(--app-muted)", fontSize: 14 }}>
               {getPageDescription(range)}
             </p>
@@ -336,7 +336,6 @@ function WeekTree({ weeks }: { weeks: WeekBucket[] }) {
       <div style={bucketHeaderStyle}>
         <div>
           <div style={bucketTitleStyle}>This Week</div>
-          <div style={bucketMetaStyle}>Select a week, then a day to view transactions</div>
         </div>
       </div>
       <div style={treeColumnStyle}>
@@ -352,7 +351,6 @@ function MonthTree({ weeks }: { weeks: WeekBucket[] }) {
       <div style={bucketHeaderStyle}>
         <div>
           <div style={bucketTitleStyle}>This Month</div>
-          <div style={bucketMetaStyle}>Select a week, then a day to view transactions</div>
         </div>
       </div>
 
@@ -395,7 +393,6 @@ function YearTree({ months }: { months: MonthBucket[] }) {
       <div style={bucketHeaderStyle}>
         <div>
           <div style={bucketTitleStyle}>Year Decomposition Tree</div>
-          <div style={bucketMetaStyle}>Select month, week, and day to view transactions</div>
         </div>
       </div>
 
@@ -569,7 +566,7 @@ function getPageTitle(range: RangeView) {
 function getPageDescription(range: RangeView) {
   switch (range) {
     case "DAY":
-      return "See today's paid income and every payment transaction.";
+      return "";
     case "WEEK":
       return "See this week's paid income broken down by day.";
     case "MONTH":
