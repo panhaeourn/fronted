@@ -69,48 +69,58 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const headers: Record<string, string> = {
-    ...((options.headers as Record<string, string>) || {}),
-  };
+  const stateChanging = isStateChangingMethod(options.method);
 
-  if (isStateChangingMethod(options.method)) {
-    const csrf = await getCsrfToken();
-    headers[csrf.headerName] = csrf.token;
-  }
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const headers: Record<string, string> = {
+      ...((options.headers as Record<string, string>) || {}),
+    };
 
-  const isFormData = options.body instanceof FormData;
-
-  if (!isFormData) {
-    const hasContentType = Object.keys(headers).some(
-      (k) => k.toLowerCase() === "content-type"
-    );
-
-    if (!hasContentType) {
-      headers["Content-Type"] = "application/json";
+    if (stateChanging) {
+      const csrf = await getCsrfToken();
+      headers[csrf.headerName] = csrf.token;
     }
-  }
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-    credentials: "include",
-  });
+    const isFormData = options.body instanceof FormData;
 
-  const text = await res.text().catch(() => "");
-  let json: unknown = null;
+    if (!isFormData) {
+      const hasContentType = Object.keys(headers).some(
+        (k) => k.toLowerCase() === "content-type"
+      );
 
-  if (text) {
-    try {
-      json = JSON.parse(text);
-    } catch {
-      json = null;
+      if (!hasContentType) {
+        headers["Content-Type"] = "application/json";
+      }
     }
-  }
 
-  if (!res.ok) {
-    if (res.status === 403 && isStateChangingMethod(options.method)) {
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+      credentials: "include",
+    });
+
+    const text = await res.text().catch(() => "");
+    let json: unknown = null;
+
+    if (text) {
+      try {
+        json = JSON.parse(text);
+      } catch {
+        json = null;
+      }
+    }
+
+    if (res.ok) {
+      return json as T;
+    }
+
+    if (res.status === 403 && stateChanging) {
       csrfToken = null;
+      if (attempt === 0) {
+        continue;
+      }
     }
+
     let msg = `${res.status} ${res.statusText}`;
     const errorBody = readApiErrorBody(json);
 
@@ -132,5 +142,5 @@ export async function apiFetch<T>(
     throw new Error(msg);
   }
 
-  return json as T;
+  throw new Error("Request failed after refreshing request security");
 }
