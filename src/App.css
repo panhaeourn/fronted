@@ -51,17 +51,14 @@ canvas {
 
 .app-sidebar {
   grid-area: sidebar;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(147, 197, 253, 0.42) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .app-sidebar::-webkit-scrollbar {
-  width: 8px;
-}
-
-.app-sidebar::-webkit-scrollbar-thumb {
-  background: rgba(147, 197, 253, 0.32);
-  border-radius: 999px;
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .course-detail-page,
