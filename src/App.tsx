@@ -246,7 +246,7 @@ function AppContent() {
             flexDirection: "column",
             justifyContent: "space-between",
             flexShrink: 0,
-            height: "calc(100vh - 32px)",
+            height: "calc(100dvh - 32px)",
             boxSizing: "border-box",
             border: "var(--app-sidebar-border)",
             boxShadow:
@@ -255,7 +255,9 @@ function AppContent() {
             position: "relative",
             zIndex: 2,
             borderRadius: 28,
-            overflow: "hidden",
+            overflowX: "hidden",
+            overflowY: "auto",
+            overscrollBehavior: "contain",
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
