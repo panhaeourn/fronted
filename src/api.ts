@@ -11,7 +11,7 @@ type ApiErrorBody = {
   };
 };
 
-type CsrfResponse = {
+export type CsrfResponse = {
   headerName: string;
   token: string;
 };
@@ -35,6 +35,16 @@ async function getCsrfToken(): Promise<CsrfResponse> {
 
   csrfToken = (await response.json()) as CsrfResponse;
   return csrfToken;
+}
+
+export async function getCsrfRequestHeader(
+  forceRefresh = false
+): Promise<CsrfResponse> {
+  if (forceRefresh) {
+    csrfToken = null;
+  }
+
+  return getCsrfToken();
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {

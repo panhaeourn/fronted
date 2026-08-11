@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { apiFetch, API_BASE } from "../../api";
+import { apiFetch, API_BASE, getCsrfRequestHeader } from "../../api";
 import type { CourseRecord } from "../../lib/domain-types";
 import { getErrorMessage } from "../../lib/errors";
 import {
@@ -711,15 +711,45 @@ export default function UploadCourseVideo() {
   );
 }
 
-function uploadCourseVideo(
+async function uploadCourseVideo(
   courseId: string,
   formData: FormData,
   onProgress: (progress: number) => void
+) {
+  try {
+    const csrf = await getCsrfRequestHeader();
+    await uploadCourseVideoAttempt(courseId, formData, onProgress, csrf);
+  } catch (error: unknown) {
+    if (!(error instanceof UploadRequestError) || error.status !== 403) {
+      throw error;
+    }
+
+    const csrf = await getCsrfRequestHeader(true);
+    await uploadCourseVideoAttempt(courseId, formData, onProgress, csrf);
+  }
+}
+
+class UploadRequestError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "UploadRequestError";
+    this.status = status;
+  }
+}
+
+function uploadCourseVideoAttempt(
+  courseId: string,
+  formData: FormData,
+  onProgress: (progress: number) => void,
+  csrf: { headerName: string; token: string }
 ) {
   return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${API_BASE}/api/course-videos/${courseId}/upload`);
     xhr.withCredentials = true;
+    xhr.setRequestHeader(csrf.headerName, csrf.token);
 
     xhr.upload.onprogress = (event) => {
       if (!event.lengthComputable) return;
@@ -740,16 +770,22 @@ function uploadCourseVideo(
       try {
         const json = JSON.parse(xhr.responseText);
         reject(
-          new Error(
+          new UploadRequestError(
             json?.message ||
               json?.error ||
               json?.status?.message ||
               xhr.responseText ||
-              "Upload failed"
+              "Upload failed",
+            xhr.status
           )
         );
       } catch {
-        reject(new Error(xhr.responseText || "Upload failed"));
+        reject(
+          new UploadRequestError(
+            xhr.responseText || "Upload failed",
+            xhr.status
+          )
+        );
       }
     };
 
