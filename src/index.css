@@ -120,6 +120,14 @@ body {
   color: var(--app-text);
 }
 
+html.language-km body,
+html.language-km button,
+html.language-km input,
+html.language-km select,
+html.language-km textarea {
+  font-family: "Noto Sans Khmer", "Khmer OS System", "Leelawadee UI", "Segoe UI", sans-serif;
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;

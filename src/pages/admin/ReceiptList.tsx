@@ -231,7 +231,7 @@ export default function ReceiptList() {
     <div style={pageStyle}>
       <div style={headerStyle}>
         <div>
-          <h1 style={titleStyleSm}>All Receipts</h1>
+          <h1 style={titleStyleSm}>All Students</h1>
         </div>
 
         <button onClick={() => void handleReset()} style={primaryButtonStyle}>

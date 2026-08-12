@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { applyKhmerInterface, restoreEnglishInterface } from "./khmerInterface";
 
 export type AppLanguage = "en" | "km";
 
@@ -24,7 +25,7 @@ const translations = {
     "app.manageCourse": "Manage Course",
     "app.manageReceptionist": "Manage Receptionist",
     "app.paymentHistory": "Payment History",
-    "app.allReceipts": "All Receipts",
+    "app.allReceipts": "All Students",
     "app.newReceipt": "New CITO Receipt",
     "app.receiptList": "Receipt List",
     "app.studentMoneySummary": "Student Money Summary",
@@ -171,7 +172,7 @@ const translations = {
     "app.manageCourse": "គ្រប់គ្រងវគ្គសិក្សា",
     "app.manageReceptionist": "គ្រប់គ្រងអ្នកទទួលភ្ញៀវ",
     "app.paymentHistory": "ប្រវត្តិបង់ប្រាក់",
-    "app.allReceipts": "បង្កាន់ដៃទាំងអស់",
+    "app.allReceipts": "សិស្សទាំងអស់",
     "app.newReceipt": "បង្កើតបង្កាន់ដៃ CITO ថ្មី",
     "app.receiptList": "បញ្ជីបង្កាន់ដៃ",
     "app.studentMoneySummary": "Student Money Summary",
@@ -322,6 +323,25 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem("settings-language", language);
     document.documentElement.setAttribute("lang", language === "km" ? "km" : "en");
+    document.documentElement.classList.toggle("language-km", language === "km");
+
+    const applyLanguage = () => {
+      if (language === "km") applyKhmerInterface();
+      else restoreEnglishInterface();
+    };
+    applyLanguage();
+
+    let scheduled = false;
+    const observer = new MutationObserver(() => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        applyLanguage();
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, [language]);
 
   const value = useMemo<LanguageContextValue>(
