@@ -301,38 +301,18 @@ export default function Courses() {
         <div
           style={{
             marginBottom: 22,
-            padding: "clamp(18px, 2.4vw, 28px)",
-            borderRadius: 26,
-            background:
-              "radial-gradient(circle at 92% 8%, rgba(61, 118, 255, 0.2), transparent 24%), radial-gradient(circle at 72% 100%, rgba(33, 211, 255, 0.1), transparent 28%), var(--app-panel-bg)",
+            padding: 20,
+            borderRadius: 22,
+            background: "var(--app-panel-bg)",
             border: "var(--app-panel-border)",
             boxShadow: "var(--app-panel-shadow)",
           }}
         >
-          <div style={courseCreatorLayoutStyle}>
-            <CreateCourseForm
-              onCreated={(course) =>
-                setCourses((prev) => sortCoursesNewestFirst([course, ...prev]))
-              }
-            />
-            <aside style={courseCreatorAsideStyle}>
-              <div style={courseCreatorAsideGlowStyle} />
-              <div style={{ position: "relative" }}>
-                <span style={courseCreatorBadgeStyle}>Next steps</span>
-                <h3 style={{ margin: "18px 0 10px", fontSize: 22, color: "var(--app-heading)" }}>
-                  Build the learning experience
-                </h3>
-                <p style={{ margin: 0, color: "var(--app-muted)", lineHeight: 1.7, fontSize: 14 }}>
-                  After creating the course, add the teacher profile and upload lesson videos from the course card.
-                </p>
-              </div>
-              <div style={{ position: "relative", display: "grid", gap: 12 }}>
-                <CreatorStep number="01" label="Create course details" active />
-                <CreatorStep number="02" label="Upload teacher photo" />
-                <CreatorStep number="03" label="Add lesson videos" />
-              </div>
-            </aside>
-          </div>
+          <CreateCourseForm
+            onCreated={(course) =>
+              setCourses((prev) => sortCoursesNewestFirst([course, ...prev]))
+            }
+          />
         </div>
       )}
 
@@ -582,46 +562,6 @@ export default function Courses() {
     </div>
   );
 }
-
-function CreatorStep({ number, label, active = false }: { number: string; label: string; active?: boolean }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 12px", borderRadius: 14, background: active ? "rgba(59,130,246,.14)" : "rgba(255,255,255,.025)", border: active ? "1px solid rgba(96,165,250,.24)" : "1px solid rgba(148,163,184,.1)" }}>
-      <span style={{ width: 30, height: 30, borderRadius: 10, display: "inline-flex", alignItems: "center", justifyContent: "center", background: active ? "linear-gradient(135deg,#4f7cff,#41c7f4)" : "var(--app-secondary-bg)", color: active ? "#fff" : "var(--app-muted)", fontSize: 10, fontWeight: 900 }}>{number}</span>
-      <span style={{ color: active ? "var(--app-heading)" : "var(--app-muted)", fontSize: 13, fontWeight: 700 }}>{label}</span>
-    </div>
-  );
-}
-
-const courseCreatorLayoutStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
-  gap: "clamp(22px, 3vw, 40px)",
-  alignItems: "stretch",
-};
-
-const courseCreatorAsideStyle: React.CSSProperties = {
-  position: "relative",
-  overflow: "hidden",
-  padding: 22,
-  borderRadius: 20,
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "space-between",
-  gap: 28,
-  background: "linear-gradient(160deg, rgba(34,55,115,.36), rgba(7,18,43,.22))",
-  border: "1px solid rgba(125,211,252,.16)",
-};
-
-const courseCreatorAsideGlowStyle: React.CSSProperties = {
-  position: "absolute", width: 180, height: 180, borderRadius: "50%", right: -70, top: -70,
-  background: "radial-gradient(circle, rgba(56,189,248,.28), transparent 68%)", filter: "blur(8px)",
-};
-
-const courseCreatorBadgeStyle: React.CSSProperties = {
-  display: "inline-flex", padding: "6px 10px", borderRadius: 999, color: "#9bdcff",
-  background: "rgba(14,165,233,.12)", border: "1px solid rgba(125,211,252,.16)",
-  fontSize: 10, fontWeight: 900, letterSpacing: ".1em", textTransform: "uppercase",
-};
 
 function getCourseTeacherPhotoMap(courses: CourseRecord[]) {
   const localPhotos = getTeacherPhotoMap(courses.map((course) => course.id));
