@@ -66,6 +66,8 @@ export default function ReceiptList() {
   const [selectedMonthlyReceipt, setSelectedMonthlyReceipt] = useState<ReceiptRecord | null>(null);
   const [receiptToDelete, setReceiptToDelete] = useState<number | null>(null);
   const [receiptToMarkPaid, setReceiptToMarkPaid] = useState<number | null>(null);
+  const [receiptToEdit, setReceiptToEdit] = useState<ReceiptRecord | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   async function loadReceipts(ignore = false) {
     try {
@@ -157,6 +159,24 @@ export default function ReceiptList() {
       setErr(error instanceof Error ? error.message : "Failed to update payment status");
     } finally {
       setPayingId(null);
+    }
+  }
+
+  async function handleStudentUpdate(id: number, updates: StudentEditValues) {
+    try {
+      setSavingEdit(true);
+      setErr("");
+      const updated = await apiFetch<ReceiptRecord>(`/api/reception/receipts/${id}/student`, {
+        method: "PATCH",
+        body: JSON.stringify(updates),
+      });
+      setItems((current) => current.map((item) => (item.id === id ? updated : item)));
+      setReceiptToEdit(null);
+    } catch (error: unknown) {
+      setErr(getErrorMessage(error, "Failed to update student information"));
+      throw error;
+    } finally {
+      setSavingEdit(false);
     }
   }
 
@@ -398,6 +418,13 @@ export default function ReceiptList() {
                           Detail
                         </Link>
 
+                        <button
+                          onClick={() => setReceiptToEdit(receipt)}
+                          style={secondaryButtonStyle}
+                        >
+                          Edit
+                        </button>
+
                         {normalizeReceiptType(receipt.receiptType) === "MONTHLY" && (
                           <button
                             onClick={() => setSelectedMonthlyReceipt(receipt)}
@@ -455,6 +482,15 @@ export default function ReceiptList() {
         />
       )}
 
+      {receiptToEdit && (
+        <StudentEditModal
+          receipt={receiptToEdit}
+          saving={savingEdit}
+          onClose={() => setReceiptToEdit(null)}
+          onSave={(values) => handleStudentUpdate(receiptToEdit.id, values)}
+        />
+      )}
+
       <ConfirmDialog
         open={receiptToDelete !== null}
         title="Delete receipt?"
@@ -484,6 +520,137 @@ export default function ReceiptList() {
         }}
       />
     </div>
+  );
+}
+
+type StudentEditValues = {
+  studentName: string;
+  studentNameEnglish: string;
+  studentNameKhmer: string;
+  gender: string;
+  phone: string;
+  contactInfo: string;
+  email: string;
+  address: string;
+};
+
+function StudentEditModal({
+  receipt,
+  saving,
+  onClose,
+  onSave,
+}: {
+  receipt: ReceiptRecord;
+  saving: boolean;
+  onClose: () => void;
+  onSave: (values: StudentEditValues) => Promise<void>;
+}) {
+  const [values, setValues] = useState<StudentEditValues>({
+    studentName: receipt.studentName || "",
+    studentNameEnglish: receipt.studentNameEnglish || "",
+    studentNameKhmer: receipt.studentNameKhmer || "",
+    gender: receipt.gender || "",
+    phone: receipt.phone || "",
+    contactInfo: receipt.contactInfo || "",
+    email: receipt.email || "",
+    address: receipt.address || "",
+  });
+  const [formError, setFormError] = useState("");
+
+  function update(field: keyof StudentEditValues, value: string) {
+    setValues((current) => ({ ...current, [field]: value }));
+  }
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!values.studentName.trim()) {
+      setFormError("Student name is required.");
+      return;
+    }
+    setFormError("");
+    try {
+      await onSave(values);
+    } catch {
+      setFormError("Could not save the changes. Please check the information and try again.");
+    }
+  }
+
+  const inputStyle = {
+    ...searchInputStyle,
+    width: "100%",
+    height: 42,
+    boxSizing: "border-box" as const,
+  };
+
+  return (
+    <div style={modalOverlayStyle} onClick={saving ? undefined : onClose}>
+      <form
+        style={{ ...modalCardStyle, maxWidth: 760 }}
+        onClick={(event) => event.stopPropagation()}
+        onSubmit={(event) => void submit(event)}
+      >
+        <div style={modalHeaderStyle}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 22 }}>Edit Student Information</h3>
+            <div style={{ color: "#9ab0d3", marginTop: 6 }}>
+              {normalizeDisplayId(receipt.studentId || receipt.studentCode)} · Payment information will not change
+            </div>
+          </div>
+          <button type="button" onClick={onClose} disabled={saving} style={secondaryButtonStyle}>
+            Close
+          </button>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+          <EditField label="Student name *" value={values.studentName} onChange={(value) => update("studentName", value)} style={inputStyle} />
+          <EditField label="English name" value={values.studentNameEnglish} onChange={(value) => update("studentNameEnglish", value)} style={inputStyle} />
+          <EditField label="Khmer name" value={values.studentNameKhmer} onChange={(value) => update("studentNameKhmer", value)} style={inputStyle} />
+          <label style={{ display: "grid", gap: 7, color: "var(--app-text)" }}>
+            <span style={{ fontWeight: 700, fontSize: 13 }}>Gender</span>
+            <select value={values.gender} onChange={(event) => update("gender", event.target.value)} style={inputStyle}>
+              <option value="">Not specified</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <EditField label="Phone" value={values.phone} onChange={(value) => update("phone", value)} style={inputStyle} />
+          <EditField label="Email" type="email" value={values.email} onChange={(value) => update("email", value)} style={inputStyle} />
+          <EditField label="Contact information" value={values.contactInfo} onChange={(value) => update("contactInfo", value)} style={inputStyle} />
+          <EditField label="Address" value={values.address} onChange={(value) => update("address", value)} style={inputStyle} />
+        </div>
+
+        {formError && <div style={errorStyle}>{formError}</div>}
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+          <button type="button" onClick={onClose} disabled={saving} style={secondaryButtonStyle}>Cancel</button>
+          <button type="submit" disabled={saving} style={{ ...primaryButtonStyle, minWidth: 120 }}>
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function EditField({
+  label,
+  value,
+  onChange,
+  type = "text",
+  style,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  style: React.CSSProperties;
+}) {
+  return (
+    <label style={{ display: "grid", gap: 7, color: "var(--app-text)" }}>
+      <span style={{ fontWeight: 700, fontSize: 13 }}>{label}</span>
+      <input type={type} value={value} onChange={(event) => onChange(event.target.value)} style={style} />
+    </label>
   );
 }
 

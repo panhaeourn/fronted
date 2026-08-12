@@ -259,10 +259,7 @@ export default function CertificateStudio() {
     let printRoot: HTMLDivElement | null = null;
 
     try {
-      const certificates = await ensureCertificatesIssued();
-      if (certificates.some((certificate) => !certificate.published)) {
-        throw new Error("Position the QR, then click Push to public before saving the PDF.");
-      }
+      await ensureCertificatesIssued();
       setPrintStatus("Preparing PDF...");
       const certificateList = document.querySelector<HTMLElement>(".certificate-list");
       if (!certificateList) throw new Error("Certificate list is not available");
@@ -395,7 +392,7 @@ export default function CertificateStudio() {
           <button
             className="certificate-button certificate-button--primary"
             type="button"
-            disabled={!allCertificatesPublished || Boolean(printStatus) || issuing || publishing}
+            disabled={rows.length === 0 || Boolean(printStatus) || issuing || publishing}
             onClick={() => void savePdf()}
           >
             {printStatus || "Save PDF"}
