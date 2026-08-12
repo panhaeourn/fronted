@@ -572,7 +572,7 @@
 }
 
 .certificate-fill[data-position="name-khmer"] { left: 16.45%; top: 42.35%; width: 6.35%; padding-inline: .3%; }
-.certificate-fill[data-position="gender"] { left: 23.45%; top: 42.35%; width: 2.8%; text-align: center; }
+.certificate-fill[data-position="gender"] { left: 25%; top: 42.35%; width: 3.4%; text-align: center; }
 .certificate-fill[data-position="birth-day-khmer"] { left: 37.25%; top: 42.35%; width: 3.2%; }
 .certificate-fill[data-position="birth-month-khmer"] { left: 42.3%; top: 42.35%; width: 3%; }
 .certificate-fill[data-position="birth-year-khmer"] { left: 47.65%; top: 42.35%; width: 4.9%; }
