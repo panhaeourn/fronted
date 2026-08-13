@@ -172,11 +172,13 @@ export default function AdminPaymentHistory() {
           value={formatCurrency(summary.totalRevenue)}
           accent="#34d399"
         />
-        <SummaryGlowCard
-          label="Pending Income"
-          value={formatCurrency(summary.pendingRevenue)}
-          accent="#f59e0b"
-        />
+        {scope !== "online" && (
+          <SummaryGlowCard
+            label="Pending Income"
+            value={formatCurrency(summary.pendingRevenue)}
+            accent="#f59e0b"
+          />
+        )}
         <SummaryGlowCard
           label="Paid Records"
           value={summary.paidCount.toLocaleString()}
