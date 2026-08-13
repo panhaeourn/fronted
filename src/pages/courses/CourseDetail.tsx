@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { apiFetch, API_BASE } from "../../api";
 import { useAuth } from "../../lib/auth-context";
@@ -25,6 +25,7 @@ type CourseVideo = {
   fileName?: string;
   videoUrl?: string;
   sortOrder?: number;
+  viewCount?: number;
 };
 
 const coursePriceFormatter = new Intl.NumberFormat("en-US", {
@@ -48,6 +49,7 @@ export default function CourseDetail() {
   const [deleteErr, setDeleteErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const countedVideoIds = useRef(new Set<number>());
   const isLightTheme =
     typeof document !== "undefined" &&
     document.documentElement.getAttribute("data-theme") === "light";
@@ -99,6 +101,18 @@ export default function CourseDetail() {
 
     return "";
   }, [selectedVideo]);
+
+  function recordView() {
+    if (isAdmin || !selectedVideo || countedVideoIds.current.has(selectedVideo.id)) return;
+    countedVideoIds.current.add(selectedVideo.id);
+    void apiFetch<{ viewCount: number }>(`/api/course-videos/${selectedVideo.id}/view`, { method: "POST" })
+      .then((result) => {
+        setVideos((current) => current.map((video) =>
+          video.id === selectedVideo.id ? { ...video, viewCount: result.viewCount } : video
+        ));
+      })
+      .catch(() => countedVideoIds.current.delete(selectedVideo.id));
+  }
 
   async function handleDeleteVideo(video: CourseVideo) {
     const lessonIndex = videos.findIndex((item) => item.id === video.id);
@@ -192,6 +206,7 @@ export default function CourseDetail() {
                 disablePictureInPicture
                 preload="auto"
                 playsInline
+                onPlay={recordView}
                 onContextMenu={(event) => event.preventDefault()}
                 style={videoStyle}
               >
@@ -294,6 +309,9 @@ export default function CourseDetail() {
                         }}
                       >
                         {video.title || `Video ${index + 1}`}
+                      </div>
+                      <div style={{ marginTop: 6, color: "var(--app-muted)", fontSize: 12, fontWeight: 700 }}>
+                        {(video.viewCount ?? 0).toLocaleString()} views
                       </div>
                     </div>
                     </button>
