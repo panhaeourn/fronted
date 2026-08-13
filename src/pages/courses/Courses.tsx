@@ -31,6 +31,20 @@ type AlertState = {
   tone: "success" | "error" | "info";
 };
 
+type CourseAnalytics = {
+  courseId: number;
+  courseTitle: string;
+  enrollmentCount: number;
+  students: Array<{ userId: number; name: string; email: string; enrolledAt: string }>;
+  videos: Array<{
+    videoId: number;
+    title?: string;
+    totalPlays: number;
+    uniqueViewers: number;
+    viewers: Array<{ userId: number; name: string; email: string; playCount: number; lastViewedAt: string }>;
+  }>;
+};
+
 const courseCardHeight = 420;
 const coursePriceFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -59,6 +73,9 @@ export default function Courses() {
   const [payAmount, setPayAmount] = useState<number>(0);
   const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
   const [alertState, setAlertState] = useState<AlertState | null>(null);
+  const [analytics, setAnalytics] = useState<CourseAnalytics | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState("");
 
   async function loadCourses() {
     setErr("");
@@ -136,6 +153,18 @@ export default function Courses() {
 
   function handleUploadVideo(courseId: number) {
     navigate(`/courses/${courseId}/upload`);
+  }
+
+  async function openAnalytics(courseId: number) {
+    setAnalyticsError("");
+    setAnalyticsLoading(true);
+    try {
+      setAnalytics(await apiFetch<CourseAnalytics>(`/api/admin/courses/${courseId}/analytics`));
+    } catch (error: unknown) {
+      setAnalyticsError(getErrorMessage(error, "Failed to load course analytics"));
+    } finally {
+      setAnalyticsLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -508,6 +537,12 @@ export default function Courses() {
                       >
                         Upload
                       </button>
+                      <button
+                        onClick={() => void openAnalytics(course.id)}
+                        style={{ ...secondaryActionStyle, gridColumn: "1 / -1" }}
+                      >
+                        Students &amp; Views
+                      </button>
                     </>
                   )}
                 </div>
@@ -559,9 +594,96 @@ export default function Courses() {
         tone={alertState?.tone || "info"}
         onClose={() => setAlertState(null)}
       />
+
+      {(analyticsLoading || analytics || analyticsError) && (
+        <CourseAnalyticsDialog
+          analytics={analytics}
+          loading={analyticsLoading}
+          error={analyticsError}
+          onClose={() => {
+            setAnalytics(null);
+            setAnalyticsError("");
+            setAnalyticsLoading(false);
+          }}
+        />
+      )}
     </div>
   );
 }
+
+function CourseAnalyticsDialog({ analytics, loading, error, onClose }: {
+  analytics: CourseAnalytics | null;
+  loading: boolean;
+  error: string;
+  onClose: () => void;
+}) {
+  return (
+    <div role="dialog" aria-modal="true" style={analyticsBackdropStyle} onClick={onClose}>
+      <section style={analyticsDialogStyle} onClick={(event) => event.stopPropagation()}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center" }}>
+          <div>
+            <div style={{ color: "var(--app-accent-soft)", fontWeight: 800, fontSize: 12 }}>COURSE ANALYTICS</div>
+            <h2 style={{ margin: "6px 0 0" }}>{analytics?.courseTitle || "Loading course..."}</h2>
+          </div>
+          <button type="button" onClick={onClose} style={secondaryActionStyle}>Close</button>
+        </div>
+        {loading && <div style={{ padding: "32px 0", color: "var(--app-muted)" }}>Loading students and views...</div>}
+        {error && <div style={{ marginTop: 20, color: "var(--app-danger-text)" }}>{error}</div>}
+        {analytics && !loading && (
+          <div style={{ display: "grid", gap: 20, marginTop: 22 }}>
+            <section>
+              <h3 style={{ margin: "0 0 12px" }}>Enrolled Students ({analytics.enrollmentCount})</h3>
+              <div style={analyticsListStyle}>
+                {analytics.students.map((student) => (
+                  <div key={student.userId} style={analyticsRowStyle}>
+                    <div><strong>{student.name || "Student"}</strong><div style={analyticsMutedStyle}>{student.email}</div></div>
+                    <span style={analyticsMutedStyle}>{formatAnalyticsDate(student.enrolledAt)}</span>
+                  </div>
+                ))}
+                {analytics.students.length === 0 && <div style={analyticsEmptyStyle}>No students enrolled yet.</div>}
+              </div>
+            </section>
+            <section>
+              <h3 style={{ margin: "0 0 12px" }}>Video Views</h3>
+              <div style={{ display: "grid", gap: 12 }}>
+                {analytics.videos.map((video, index) => (
+                  <details key={video.videoId} style={analyticsVideoStyle}>
+                    <summary style={{ cursor: "pointer", fontWeight: 800 }}>
+                      {video.title || `Lesson ${index + 1}`} — {video.totalPlays} plays · {video.uniqueViewers} viewers
+                    </summary>
+                    <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
+                      {video.viewers.map((viewer) => (
+                        <div key={viewer.userId} style={analyticsRowStyle}>
+                          <div><strong>{viewer.name || "Student"}</strong><div style={analyticsMutedStyle}>{viewer.email}</div></div>
+                          <span style={analyticsMutedStyle}>{viewer.playCount} plays · {formatAnalyticsDate(viewer.lastViewedAt)}</span>
+                        </div>
+                      ))}
+                      {video.viewers.length === 0 && <div style={analyticsEmptyStyle}>No student views yet.</div>}
+                    </div>
+                  </details>
+                ))}
+                {analytics.videos.length === 0 && <div style={analyticsEmptyStyle}>No videos uploaded yet.</div>}
+              </div>
+            </section>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function formatAnalyticsDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleString();
+}
+
+const analyticsBackdropStyle: React.CSSProperties = { position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 20, background: "rgba(2,6,23,.76)", backdropFilter: "blur(8px)" };
+const analyticsDialogStyle: React.CSSProperties = { width: "min(920px, 100%)", maxHeight: "88vh", overflowY: "auto", padding: 24, borderRadius: 24, color: "var(--app-heading)", background: "var(--app-panel-bg)", border: "var(--app-panel-border)", boxShadow: "0 28px 90px rgba(0,0,0,.45)" };
+const analyticsListStyle: React.CSSProperties = { display: "grid", gap: 8, maxHeight: 240, overflowY: "auto" };
+const analyticsRowStyle: React.CSSProperties = { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, padding: "11px 13px", borderRadius: 13, background: "var(--app-card-solid-bg)", border: "1px solid rgba(148,163,184,.14)" };
+const analyticsVideoStyle: React.CSSProperties = { padding: 15, borderRadius: 16, background: "var(--app-card-solid-bg)", border: "1px solid rgba(96,165,250,.18)" };
+const analyticsMutedStyle: React.CSSProperties = { color: "var(--app-muted)", fontSize: 12 };
+const analyticsEmptyStyle: React.CSSProperties = { padding: 14, color: "var(--app-muted)" };
 
 function getCourseTeacherPhotoMap(courses: CourseRecord[]) {
   const localPhotos = getTeacherPhotoMap(courses.map((course) => course.id));

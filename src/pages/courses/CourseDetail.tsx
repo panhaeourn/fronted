@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { apiFetch, API_BASE } from "../../api";
 import { useAuth } from "../../lib/auth-context";
@@ -48,6 +48,7 @@ export default function CourseDetail() {
   const [deleteErr, setDeleteErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const trackedVideoId = useRef<number | null>(null);
   const isLightTheme =
     typeof document !== "undefined" &&
     document.documentElement.getAttribute("data-theme") === "light";
@@ -99,6 +100,15 @@ export default function CourseDetail() {
 
     return "";
   }, [selectedVideo]);
+
+  function recordVideoView() {
+    if (isAdmin || !selectedVideo || trackedVideoId.current === selectedVideo.id) return;
+    trackedVideoId.current = selectedVideo.id;
+    void apiFetch<void>(`/api/course-videos/${selectedVideo.id}/view`, { method: "POST" })
+      .catch(() => {
+        trackedVideoId.current = null;
+      });
+  }
 
   async function handleDeleteVideo(video: CourseVideo) {
     const lessonIndex = videos.findIndex((item) => item.id === video.id);
@@ -192,6 +202,7 @@ export default function CourseDetail() {
                 disablePictureInPicture
                 preload="auto"
                 playsInline
+                onPlay={recordVideoView}
                 onContextMenu={(event) => event.preventDefault()}
                 style={videoStyle}
               >
