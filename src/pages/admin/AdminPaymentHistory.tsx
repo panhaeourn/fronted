@@ -130,7 +130,10 @@ export default function AdminPaymentHistory() {
       <div style={filterBarStyle}>
         <div style={filterGroupStyle}>
           <span style={filterLabelStyle}>Show</span>
-          <FilterButton active={scope === "all"} onClick={() => setScope("all")}>All Transactions</FilterButton>
+          <FilterButton active={scope === "all"} onClick={() => {
+            setScope("all");
+            setCourseId("all");
+          }}>All Transactions</FilterButton>
           <FilterButton active={scope === "online"} onClick={() => setScope("online")}>Online Enrollments</FilterButton>
         </div>
         <div style={filterGroupStyle}>
@@ -139,24 +142,23 @@ export default function AdminPaymentHistory() {
           <FilterButton active={period === "today"} onClick={() => setPeriod("today")}>Today</FilterButton>
           <FilterButton active={period === "week"} onClick={() => setPeriod("week")}>This Week</FilterButton>
         </div>
-        <label style={courseFilterStyle}>
-          <span style={filterLabelStyle}>Course</span>
-          <select
-            value={courseId}
-            onChange={(event) => {
-              setCourseId(event.target.value);
-              if (event.target.value !== "all") setScope("online");
-            }}
-            style={courseSelectStyle}
-          >
-            <option value="all">All Courses ({courseOptions.reduce((sum, course) => sum + course.count, 0)})</option>
-            {courseOptions.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.name} ({course.count})
-              </option>
-            ))}
-          </select>
-        </label>
+        {scope === "online" && (
+          <label style={courseFilterStyle}>
+            <span style={filterLabelStyle}>Course</span>
+            <select
+              value={courseId}
+              onChange={(event) => setCourseId(event.target.value)}
+              style={courseSelectStyle}
+            >
+              <option value="all">All Courses ({courseOptions.reduce((sum, course) => sum + course.count, 0)})</option>
+              {courseOptions.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.name} ({course.count})
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
 
       <div style={statsGridStyle}>
