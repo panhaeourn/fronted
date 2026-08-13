@@ -26,6 +26,8 @@ export default function AdminPaymentHistory() {
   const [rows, setRows] = useState<PaymentHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  const [scope, setScope] = useState<"all" | "online">("all");
+  const [period, setPeriod] = useState<"all" | "today" | "week">("all");
 
   useEffect(() => {
     void load();
@@ -44,16 +46,39 @@ export default function AdminPaymentHistory() {
     }
   }
 
+  const filteredRows = useMemo(() => {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart);
+    const dayFromMonday = (todayStart.getDay() + 6) % 7;
+    weekStart.setDate(todayStart.getDate() - dayFromMonday);
+
+    return rows.filter((row) => {
+      const onlineEnrollment =
+        (row.paymentType || "").toUpperCase() === "COURSE" &&
+        Boolean(row.courseId) &&
+        isPaidStatus(row.status);
+      if (scope === "online" && !onlineEnrollment) return false;
+      if (period === "all") return true;
+
+      const rawDate = row.paidAt || row.createdAt;
+      if (!rawDate) return false;
+      const date = new Date(rawDate);
+      if (Number.isNaN(date.getTime())) return false;
+      return period === "today" ? date >= todayStart : date >= weekStart;
+    });
+  }, [period, rows, scope]);
+
   const summary = useMemo(() => {
-    const paidRows = rows.filter((row) =>
+    const paidRows = filteredRows.filter((row) =>
       ["paid", "success", "completed"].includes((row.status || "").toLowerCase())
     );
-    const pendingRows = rows.filter(
+    const pendingRows = filteredRows.filter(
       (row) => !["paid", "success", "completed"].includes((row.status || "").toLowerCase())
     );
 
     return {
-      totalPayments: rows.length,
+      totalPayments: filteredRows.length,
       paidCount: paidRows.length,
       pendingCount: pendingRows.length,
       totalRevenue: paidRows.reduce(
@@ -65,7 +90,7 @@ export default function AdminPaymentHistory() {
         0
       ),
     };
-  }, [rows]);
+  }, [filteredRows]);
 
   if (loading) {
     return <div style={loadingStyle}>Loading payment history...</div>;
@@ -84,6 +109,20 @@ export default function AdminPaymentHistory() {
       </div>
 
       {err && <div style={errorStyle}>{err}</div>}
+
+      <div style={filterBarStyle}>
+        <div style={filterGroupStyle}>
+          <span style={filterLabelStyle}>Show</span>
+          <FilterButton active={scope === "all"} onClick={() => setScope("all")}>All Transactions</FilterButton>
+          <FilterButton active={scope === "online"} onClick={() => setScope("online")}>Online Enrollments</FilterButton>
+        </div>
+        <div style={filterGroupStyle}>
+          <span style={filterLabelStyle}>Period</span>
+          <FilterButton active={period === "all"} onClick={() => setPeriod("all")}>All Time</FilterButton>
+          <FilterButton active={period === "today"} onClick={() => setPeriod("today")}>Today</FilterButton>
+          <FilterButton active={period === "week"} onClick={() => setPeriod("week")}>This Week</FilterButton>
+        </div>
+      </div>
 
       <div style={statsGridStyle}>
         <SummaryGlowCard
@@ -134,14 +173,14 @@ export default function AdminPaymentHistory() {
               </tr>
             </thead>
             <tbody>
-              {rows.length === 0 ? (
+              {filteredRows.length === 0 ? (
                 <tr>
                   <td colSpan={10} style={emptyCellStyle}>
                     No payment history found.
                   </td>
                 </tr>
               ) : (
-                rows.map((row) => (
+                filteredRows.map((row) => (
                   <tr key={row.id}>
                     <td style={tdStyle}>#{row.id}</td>
                     <td style={tdStyle}>
@@ -194,6 +233,34 @@ export default function AdminPaymentHistory() {
     </div>
   );
 }
+
+function FilterButton({ active, onClick, children }: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button type="button" onClick={onClick} style={{ ...filterButtonStyle, ...(active ? filterButtonActiveStyle : {}) }}>
+      {children}
+    </button>
+  );
+}
+
+const filterBarStyle: React.CSSProperties = {
+  display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14,
+  flexWrap: "wrap", marginBottom: 18, padding: 14, borderRadius: 18,
+  background: "var(--app-panel-bg)", border: "var(--app-panel-border)", boxShadow: "var(--app-glow-soft)",
+};
+const filterGroupStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" };
+const filterLabelStyle: React.CSSProperties = { color: "var(--app-muted)", fontSize: 12, fontWeight: 800, marginRight: 2 };
+const filterButtonStyle: React.CSSProperties = {
+  minHeight: 38, padding: "8px 13px", borderRadius: 12, cursor: "pointer", fontWeight: 750,
+  color: "var(--app-heading)", background: "var(--app-secondary-bg)", border: "1px solid rgba(148,163,184,.18)",
+};
+const filterButtonActiveStyle: React.CSSProperties = {
+  color: "#fff", background: "linear-gradient(135deg,#4f7cff,#41c7f4)", borderColor: "rgba(125,211,252,.4)",
+  boxShadow: "0 10px 24px rgba(59,130,246,.24)",
+};
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("en-US", {
