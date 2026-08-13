@@ -47,6 +47,8 @@ export default function ReceptionistDailyMoney() {
 
   const idNum = userId ? Number(userId) : NaN;
   const range = normalizeRange(searchParams.get("range"));
+  const currentYear = new Date().getFullYear();
+  const selectedYear = normalizeYear(searchParams.get("year"), currentYear);
   const isSelfView = !userId;
 
   useEffect(() => {
@@ -116,11 +118,27 @@ export default function ReceptionistDailyMoney() {
     [normalizedRows]
   );
 
-  const allDays = user
-    ? groupedByReceptionist.get(user.email.trim().toLowerCase()) || []
-    : [];
+  const allDays = useMemo(
+    () =>
+      user
+        ? groupedByReceptionist.get(user.email.trim().toLowerCase()) || []
+        : [],
+    [groupedByReceptionist, user]
+  );
 
-  const filteredDays = useMemo(() => filterDaysByRange(allDays, range), [allDays, range]);
+  const availableYears = useMemo(() => {
+    const years = new Set([currentYear - 1, currentYear, currentYear + 1]);
+    allDays.forEach((day) => {
+      const year = Number(day.dayKey.slice(0, 4));
+      if (Number.isInteger(year)) years.add(year);
+    });
+    return [...years].sort((a, b) => b - a);
+  }, [allDays, currentYear]);
+
+  const filteredDays = useMemo(
+    () => filterDaysByRange(allDays, range, selectedYear),
+    [allDays, range, selectedYear]
+  );
   const weekBuckets = useMemo(() => buildWeekBuckets(filteredDays), [filteredDays]);
   const yearBuckets = useMemo(() => buildYearBuckets(filteredDays), [filteredDays]);
   const total = filteredDays.reduce((sum, day) => sum + day.total, 0);
@@ -186,6 +204,25 @@ export default function ReceptionistDailyMoney() {
                   {formatRangeLabel(item)}
                 </Link>
               ))}
+              {range === "YEAR" && (
+                <label style={yearFilterStyle}>
+                  <span>Year</span>
+                  <select
+                    value={selectedYear}
+                    onChange={(event) => {
+                      const base = isSelfView
+                        ? "/reception/money"
+                        : `/admin/receptionists/${user.id}/money`;
+                      navigate(`${base}?range=YEAR&year=${event.target.value}`);
+                    }}
+                    style={yearSelectStyle}
+                  >
+                    {availableYears.map((year) => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
             </div>
           </div>
 
@@ -219,7 +256,7 @@ export default function ReceptionistDailyMoney() {
           {range === "DAY" && renderDayTree(filteredDays)}
           {range === "WEEK" && <WeekTree weeks={weekBuckets} />}
           {range === "MONTH" && <MonthTree weeks={weekBuckets} />}
-          {range === "YEAR" && <YearTree months={yearBuckets} />}
+          {range === "YEAR" && <YearTree months={yearBuckets} year={selectedYear} />}
         </div>
       )}
     </div>
@@ -387,12 +424,12 @@ function MonthAccordion({ month }: { month: MonthBucket }) {
   );
 }
 
-function YearTree({ months }: { months: MonthBucket[] }) {
+function YearTree({ months, year }: { months: MonthBucket[]; year: number }) {
   return (
     <div style={bucketCardStyle}>
       <div style={bucketHeaderStyle}>
         <div>
-          <div style={bucketTitleStyle}>Year Decomposition Tree</div>
+          <div style={bucketTitleStyle}>{year} Decomposition Tree</div>
         </div>
       </div>
 
@@ -424,6 +461,11 @@ function normalizeRange(value: string | null): RangeView {
   return "DAY";
 }
 
+function normalizeYear(value: string | null, fallback: number) {
+  const year = Number(value);
+  return Number.isInteger(year) && year >= 2000 && year <= 2200 ? year : fallback;
+}
+
 function startOfToday() {
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -443,12 +485,13 @@ function endOfWeek(date: Date) {
   return value;
 }
 
-function filterDaysByRange(days: ReceptionistDayEntry[], range: RangeView) {
+function filterDaysByRange(days: ReceptionistDayEntry[], range: RangeView, selectedYear: number) {
   const now = new Date();
   const today = startOfToday();
   const weekStart = startOfWeek(now);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const yearStart = new Date(now.getFullYear(), 0, 1);
+  const yearStart = new Date(selectedYear, 0, 1);
+  const yearEnd = new Date(selectedYear, 11, 31, 23, 59, 59, 999);
 
   return days.filter((entry) => {
     const entryDate = new Date(`${entry.dayKey}T00:00:00`);
@@ -457,7 +500,7 @@ function filterDaysByRange(days: ReceptionistDayEntry[], range: RangeView) {
     if (range === "DAY") return entryDate.getTime() === today.getTime();
     if (range === "WEEK") return entryDate >= weekStart && entryDate <= now;
     if (range === "MONTH") return entryDate >= monthStart && entryDate <= now;
-    return entryDate >= yearStart && entryDate <= now;
+    return entryDate >= yearStart && entryDate <= yearEnd;
   });
 }
 
@@ -800,6 +843,17 @@ const activeFilterChipStyle: React.CSSProperties = {
     "linear-gradient(135deg, rgba(61, 118, 255, 1), rgba(33, 211, 255, 0.92))",
   color: "#ffffff",
   border: "1px solid rgba(191, 219, 254, 0.28)",
+};
+
+const yearFilterStyle: React.CSSProperties = {
+  display: "inline-flex", alignItems: "center", gap: 8, marginLeft: 4,
+  color: "var(--app-muted)", fontSize: 12, fontWeight: 800,
+};
+
+const yearSelectStyle: React.CSSProperties = {
+  minHeight: 36, padding: "7px 34px 7px 12px", borderRadius: 999,
+  border: "1px solid var(--app-border-soft)", background: "var(--app-card-solid-bg)",
+  color: "var(--app-heading)", fontWeight: 800, cursor: "pointer",
 };
 
 function formatCurrency(value: number) {
