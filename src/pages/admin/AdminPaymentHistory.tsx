@@ -28,6 +28,7 @@ export default function AdminPaymentHistory() {
   const [err, setErr] = useState("");
   const [scope, setScope] = useState<"all" | "online">("all");
   const [period, setPeriod] = useState<"all" | "today" | "week">("all");
+  const [courseId, setCourseId] = useState("all");
 
   useEffect(() => {
     void load();
@@ -46,6 +47,21 @@ export default function AdminPaymentHistory() {
     }
   }
 
+  const courseOptions = useMemo(() => {
+    const counts = new Map<string, { id: string; name: string; count: number }>();
+    rows.forEach((row) => {
+      if (!row.courseId || !isPaidStatus(row.status)) return;
+      const id = String(row.courseId);
+      const current = counts.get(id);
+      counts.set(id, {
+        id,
+        name: row.courseName || `Course ${id}`,
+        count: (current?.count || 0) + 1,
+      });
+    });
+    return [...counts.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [rows]);
+
   const filteredRows = useMemo(() => {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -59,6 +75,7 @@ export default function AdminPaymentHistory() {
         Boolean(row.courseId) &&
         isPaidStatus(row.status);
       if (scope === "online" && !onlineEnrollment) return false;
+      if (courseId !== "all" && String(row.courseId || "") !== courseId) return false;
       if (period === "all") return true;
 
       const rawDate = row.paidAt || row.createdAt;
@@ -67,7 +84,7 @@ export default function AdminPaymentHistory() {
       if (Number.isNaN(date.getTime())) return false;
       return period === "today" ? date >= todayStart : date >= weekStart;
     });
-  }, [period, rows, scope]);
+  }, [courseId, period, rows, scope]);
 
   const summary = useMemo(() => {
     const paidRows = filteredRows.filter((row) =>
@@ -122,6 +139,24 @@ export default function AdminPaymentHistory() {
           <FilterButton active={period === "today"} onClick={() => setPeriod("today")}>Today</FilterButton>
           <FilterButton active={period === "week"} onClick={() => setPeriod("week")}>This Week</FilterButton>
         </div>
+        <label style={courseFilterStyle}>
+          <span style={filterLabelStyle}>Course</span>
+          <select
+            value={courseId}
+            onChange={(event) => {
+              setCourseId(event.target.value);
+              if (event.target.value !== "all") setScope("online");
+            }}
+            style={courseSelectStyle}
+          >
+            <option value="all">All Courses ({courseOptions.reduce((sum, course) => sum + course.count, 0)})</option>
+            {courseOptions.map((course) => (
+              <option key={course.id} value={course.id}>
+                {course.name} ({course.count})
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <div style={statsGridStyle}>
@@ -252,6 +287,12 @@ const filterBarStyle: React.CSSProperties = {
   background: "var(--app-panel-bg)", border: "var(--app-panel-border)", boxShadow: "var(--app-glow-soft)",
 };
 const filterGroupStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" };
+const courseFilterStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" };
+const courseSelectStyle: React.CSSProperties = {
+  minHeight: 40, minWidth: 220, padding: "8px 36px 8px 12px", borderRadius: 12,
+  color: "var(--app-heading)", background: "var(--app-input-bg)", border: "1px solid var(--app-input-border)",
+  fontWeight: 700, cursor: "pointer",
+};
 const filterLabelStyle: React.CSSProperties = { color: "var(--app-muted)", fontSize: 12, fontWeight: 800, marginRight: 2 };
 const filterButtonStyle: React.CSSProperties = {
   minHeight: 38, padding: "8px 13px", borderRadius: 12, cursor: "pointer", fontWeight: 750,
