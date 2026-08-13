@@ -27,6 +27,11 @@ type CourseVideo = {
   sortOrder?: number;
 };
 
+type CourseAnalytics = {
+  enrollmentCount: number;
+  videos: Array<{ videoId: number; totalPlays: number; uniqueViewers: number }>;
+};
+
 const coursePriceFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -49,6 +54,7 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const trackedVideoId = useRef<number | null>(null);
+  const [analytics, setAnalytics] = useState<CourseAnalytics | null>(null);
   const isLightTheme =
     typeof document !== "undefined" &&
     document.documentElement.getAttribute("data-theme") === "light";
@@ -78,6 +84,13 @@ export default function CourseDetail() {
       }
     })();
   }, [id]);
+
+  useEffect(() => {
+    if (!isAdmin || !id) return;
+    void apiFetch<CourseAnalytics>(`/api/admin/courses/${id}/analytics`)
+      .then(setAnalytics)
+      .catch(() => setAnalytics(null));
+  }, [id, isAdmin]);
 
   const selectedVideo = useMemo(
     () => videos.find((v) => v.id === selectedVideoId) || videos[0] || null,
@@ -168,8 +181,8 @@ export default function CourseDetail() {
           accent="#60a5fa"
         />
         <InfoCard
-          label="Status"
-          value={course.enrolled ? "Enrolled" : "Locked"}
+          label={isAdmin ? "Enrolled" : "Status"}
+          value={isAdmin ? String(analytics?.enrollmentCount ?? 0) : course.enrolled ? "Enrolled" : "Locked"}
           accent={course.enrolled ? "#34d399" : "#f87171"}
         />
         <InfoCard
@@ -306,6 +319,11 @@ export default function CourseDetail() {
                       >
                         {video.title || `Video ${index + 1}`}
                       </div>
+                      {isAdmin && (
+                        <div style={{ marginTop: 6, color: active && isLightTheme ? "#2563eb" : "var(--app-muted)", fontSize: 12, fontWeight: 700 }}>
+                          {analytics?.videos.find((item) => item.videoId === video.id)?.uniqueViewers ?? 0} viewers · {analytics?.videos.find((item) => item.videoId === video.id)?.totalPlays ?? 0} views
+                        </div>
+                      )}
                     </div>
                     </button>
 
