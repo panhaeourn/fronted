@@ -29,7 +29,7 @@ type CourseVideo = {
 
 type VideoViewStats = {
   views: number;
-  uniqueViewers: number;
+  uniqueViewers?: number | null;
   totalWatchSeconds: number;
   progressSeconds: number;
   completed: boolean;
@@ -273,7 +273,7 @@ export default function CourseDetail() {
               {viewStats && (
                 <div style={viewMetaStyle}>
                   <span>{viewStats.views.toLocaleString()} views</span>
-                  {isAdmin && (
+                  {isAdmin && typeof viewStats.uniqueViewers === "number" && (
                     <span>{viewStats.uniqueViewers.toLocaleString()} unique viewers</span>
                   )}
                   {viewStats.completed && <span>Completed</span>}
