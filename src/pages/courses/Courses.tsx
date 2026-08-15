@@ -13,8 +13,11 @@ import {
   removeTeacherPhoto,
 } from "../../lib/courseTeacherPhoto";
 
-function sortCoursesNewestFirst(list: CourseRecord[]) {
-  return [...list].sort((a, b) => b.id - a.id);
+function sortCoursesByPopularity(list: CourseRecord[]) {
+  return [...list].sort((a, b) => {
+    const purchaseDifference = (b.purchaseCount ?? 0) - (a.purchaseCount ?? 0);
+    return purchaseDifference !== 0 ? purchaseDifference : b.id - a.id;
+  });
 }
 
 type MeUser = {
@@ -66,7 +69,7 @@ export default function Courses() {
 
     try {
       const list = await apiFetch<CourseRecord[]>("/api/courses");
-      const sorted = sortCoursesNewestFirst(list || []);
+      const sorted = sortCoursesByPopularity(list || []);
       setCourses(sorted);
       setTeacherPhotos(getCourseTeacherPhotoMap(sorted));
     } catch (error: unknown) {
@@ -310,7 +313,7 @@ export default function Courses() {
         >
           <CreateCourseForm
             onCreated={(course) =>
-              setCourses((prev) => sortCoursesNewestFirst([course, ...prev]))
+              setCourses((prev) => sortCoursesByPopularity([course, ...prev]))
             }
           />
         </div>
