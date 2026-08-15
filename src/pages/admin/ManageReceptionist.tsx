@@ -37,6 +37,9 @@ export default function ManageReceptionist() {
   const [customTo, setCustomTo] = useState("");
   const [appliedCustomFrom, setAppliedCustomFrom] = useState("");
   const [appliedCustomTo, setAppliedCustomTo] = useState("");
+  const [timelineDrag, setTimelineDrag] = useState<{
+    clientX: number; start: number; end: number; width: number;
+  } | null>(null);
 
   const activeCodes = codes.filter(
     (item) => !item.used && new Date(item.expiresAt) >= new Date()
@@ -130,6 +133,21 @@ export default function ManageReceptionist() {
     const date = timestampToDateInput(next);
     setCustomTo(date);
     setAppliedCustomTo(date);
+  }
+
+  function moveTimelineSelection(clientX: number) {
+    if (!timelineDrag) return;
+    const day = 86_400_000;
+    const rawDelta = ((clientX - timelineDrag.clientX) / Math.max(1, timelineDrag.width)) * timelineSpan;
+    let delta = Math.round(rawDelta / day) * day;
+    delta = Math.max(delta, timelineBounds.min - timelineDrag.start);
+    delta = Math.min(delta, timelineBounds.max - timelineDrag.end);
+    const from = timestampToDateInput(timelineDrag.start + delta);
+    const to = timestampToDateInput(timelineDrag.end + delta);
+    setCustomFrom(from);
+    setCustomTo(to);
+    setAppliedCustomFrom(from);
+    setAppliedCustomTo(to);
   }
 
   async function loadData() {
@@ -274,12 +292,27 @@ export default function ManageReceptionist() {
               </div>
               <div style={timelineDateRowStyle}>
                 <span>{formatShortDate(timestampToDateInput(timelineBounds.min))}</span>
-                <strong style={selectedDatePillStyle}>{formatShortDate(customFrom)} – {formatShortDate(customTo)}</strong>
+                <strong style={selectedDatePillStyle}>{formatShortDate(customFrom)} {"–"} {formatShortDate(customTo)}</strong>
                 <span style={{ textAlign: "right" }}>{formatShortDate(timestampToDateInput(timelineBounds.max))}</span>
               </div>
               <div style={timelineTrackWrapStyle}>
                 <div style={timelineTrackStyle} />
-                <div style={{ ...timelineSelectionStyle, left: `${selectedLeft}%`, width: `${selectedWidth}%` }} />
+                <div
+                  style={{ ...timelineSelectionStyle, left: `${selectedLeft}%`, width: `${selectedWidth}%` }}
+                  title="Drag to move the selected duration"
+                  onPointerDown={(event) => {
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    setTimelineDrag({
+                      clientX: event.clientX,
+                      start: timelineStart,
+                      end: timelineEnd,
+                      width: event.currentTarget.parentElement?.getBoundingClientRect().width || 1,
+                    });
+                  }}
+                  onPointerMove={(event) => moveTimelineSelection(event.clientX)}
+                  onPointerUp={() => setTimelineDrag(null)}
+                  onPointerCancel={() => setTimelineDrag(null)}
+                />
                 <input
                   className="income-timeline-range"
                   aria-label="Income range start date"
@@ -288,6 +321,7 @@ export default function ManageReceptionist() {
                   max={timelineBounds.max}
                   step={86_400_000}
                   value={timelineStart}
+                  style={{ zIndex: timelineStart >= timelineEnd ? 5 : 4 }}
                   onChange={(event) => updateTimelineStart(Number(event.target.value))}
                 />
                 <input
@@ -298,12 +332,13 @@ export default function ManageReceptionist() {
                   max={timelineBounds.max}
                   step={86_400_000}
                   value={timelineEnd}
+                  style={{ zIndex: 3 }}
                   onChange={(event) => updateTimelineEnd(Number(event.target.value))}
                 />
               </div>
               <div style={timelineFooterStyle}>
                 <span>Earliest income</span>
-                <span>{countInclusiveDays(timelineStart, timelineEnd)} day period</span>
+                <span>{countInclusiveDays(timelineStart, timelineEnd)} day period · drag green bar to move</span>
                 <span style={{ textAlign: "right" }}>Latest income</span>
               </div>
             </div>
@@ -469,14 +504,14 @@ const selectedDatePillStyle: React.CSSProperties = {
   padding: "6px 11px", borderRadius: 999, color: "#2563eb", background: "rgba(59,130,246,.11)",
   border: "1px solid rgba(59,130,246,.16)", fontSize: 11, whiteSpace: "nowrap",
 };
-const timelineTrackWrapStyle: React.CSSProperties = { position: "relative", height: 38, margin: "0 2px" };
+const timelineTrackWrapStyle: React.CSSProperties = { position: "relative", height: 42, margin: "0 13px" };
 const timelineTrackStyle: React.CSSProperties = {
-  position: "absolute", top: 16, left: 0, right: 0, height: 7, borderRadius: 999,
+  position: "absolute", top: 18, left: 0, right: 0, height: 7, borderRadius: 999,
   background: "repeating-linear-gradient(90deg,#172033 0,#172033 calc(10% - 1px),#334155 calc(10% - 1px),#334155 10%)",
   boxShadow: "inset 0 1px 2px rgba(0,0,0,.35)",
 };
 const timelineSelectionStyle: React.CSSProperties = {
-  position: "absolute", top: 12, height: 15, borderRadius: 999,
+  position: "absolute", zIndex: 2, top: 14, height: 15, borderRadius: 999, cursor: "grab", touchAction: "none",
   background: "linear-gradient(90deg,#4f7cff,#41c7f4 48%,#22c55e)",
   boxShadow: "0 4px 13px rgba(59,130,246,.27),0 0 0 3px rgba(65,199,244,.1)",
 };
