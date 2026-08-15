@@ -46,9 +46,11 @@ export function ReceptionistSummaryCard({
     <div style={receptionistCardStyle}>
       <div style={receptionistHeaderStyle}>
         <div>
-          <div><b>{user.username || "No username"}</b></div>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
+            <b>{user.username || "No username"}</b>
+            <span style={receptionistRoleStyle}>{user.role}</span>
+          </div>
           <div>{user.email}</div>
-          <div style={receptionistRoleStyle}>{user.role}</div>
         </div>
 
         <button onClick={onRemove} style={dangerButtonStyle}>

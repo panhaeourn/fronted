@@ -292,7 +292,6 @@ export default function ManageReceptionist() {
               <div style={timelineHeaderStyle}>
                 <div>
                   <div style={timelineTitleStyle}>Income timeline</div>
-                  <div style={timelineSubtitleStyle}>Drag the handles to choose a reporting period</div>
                 </div>
                 <div style={timelineLegendStyle}>
                   <span style={timelineLegendItemStyle}><i style={allTimeDotStyle} />All time</span>
@@ -353,10 +352,6 @@ export default function ManageReceptionist() {
             </div>
           )}
         </div>
-
-        {overallRange === "CUSTOM" && appliedCustomFrom && appliedCustomTo && (
-          <div style={appliedRangeStyle}>All income from {formatShortDate(appliedCustomFrom)} to {formatShortDate(appliedCustomTo)}</div>
-        )}
 
         <div style={overallSummaryGridStyle}>
           <OverallMetric label="Total Income" value={formatCurrency(overallSummary.income)} accent="#34d399" />
@@ -496,7 +491,6 @@ const timelineHeaderStyle: React.CSSProperties = {
   display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap",
 };
 const timelineTitleStyle: React.CSSProperties = { color: "var(--app-heading)", fontSize: 13, fontWeight: 850 };
-const timelineSubtitleStyle: React.CSSProperties = { marginTop: 2, color: "var(--app-muted)", fontSize: 11 };
 const timelineLegendStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: 12 };
 const timelineLegendItemStyle: React.CSSProperties = {
   display: "inline-flex", alignItems: "center", gap: 5, color: "var(--app-muted)", fontSize: 10, fontWeight: 750,
@@ -526,10 +520,6 @@ const timelineSelectionStyle: React.CSSProperties = {
 };
 const timelineFooterStyle: React.CSSProperties = {
   display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 8, color: "var(--app-muted)", fontSize: 10, fontWeight: 700,
-};
-const appliedRangeStyle: React.CSSProperties = {
-  width: "fit-content", margin: "-7px 0 14px", padding: "6px 10px", borderRadius: 999, color: "#2563eb",
-  background: "rgba(59,130,246,.1)", fontSize: 12, fontWeight: 800,
 };
 const overallRangeButtonStyle: React.CSSProperties = {
   minHeight: 38, padding: "8px 14px", borderRadius: 999, cursor: "pointer", fontWeight: 800,

@@ -101,7 +101,17 @@ export const receptionistHeaderStyle: CSSProperties = {
 };
 
 export const receptionistRoleStyle: CSSProperties = {
-  color: "var(--app-muted-strong)",
+  display: "inline-flex",
+  alignItems: "center",
+  minHeight: 24,
+  padding: "3px 9px",
+  borderRadius: 999,
+  color: "#60a5fa",
+  background: "rgba(59, 130, 246, 0.12)",
+  border: "1px solid rgba(96, 165, 250, 0.22)",
+  fontSize: 10,
+  fontWeight: 850,
+  letterSpacing: ".05em",
 };
 
 export const summaryWrapStyle: CSSProperties = {
