@@ -273,7 +273,9 @@ export default function CourseDetail() {
               {viewStats && (
                 <div style={viewMetaStyle}>
                   <span>{viewStats.views.toLocaleString()} views</span>
-                  <span>{viewStats.uniqueViewers.toLocaleString()} unique viewers</span>
+                  {isAdmin && (
+                    <span>{viewStats.uniqueViewers.toLocaleString()} unique viewers</span>
+                  )}
                   {viewStats.completed && <span>Completed</span>}
                 </div>
               )}
