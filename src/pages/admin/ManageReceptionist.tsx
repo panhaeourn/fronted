@@ -35,6 +35,8 @@ export default function ManageReceptionist() {
   const [overallRange, setOverallRange] = useState<RangeView | "CUSTOM">("DAY");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
+  const [appliedCustomFrom, setAppliedCustomFrom] = useState("");
+  const [appliedCustomTo, setAppliedCustomTo] = useState("");
 
   const activeCodes = codes.filter(
     (item) => !item.used && new Date(item.expiresAt) >= new Date()
@@ -63,8 +65,8 @@ export default function ManageReceptionist() {
       }
       if (overallRange === "YEAR") return date.getFullYear() === now.getFullYear();
 
-      const from = customFrom ? new Date(`${customFrom}T00:00:00`) : null;
-      const to = customTo ? new Date(`${customTo}T23:59:59.999`) : null;
+      const from = appliedCustomFrom ? new Date(`${appliedCustomFrom}T00:00:00`) : null;
+      const to = appliedCustomTo ? new Date(`${appliedCustomTo}T23:59:59.999`) : null;
       if (from && date < from) return false;
       if (to && date > to) return false;
       return Boolean(from || to);
@@ -83,7 +85,23 @@ export default function ManageReceptionist() {
         history.some((day) => days.includes(day))
       ).length,
     };
-  }, [customFrom, customTo, overallRange, receiptHistoryByReceptionist]);
+  }, [appliedCustomFrom, appliedCustomTo, overallRange, receiptHistoryByReceptionist]);
+
+  const customRangeInvalid = Boolean(customFrom && customTo && customFrom > customTo);
+  const customRangeReady = Boolean(customFrom && customTo && !customRangeInvalid);
+
+  function applyCustomRange() {
+    if (!customRangeReady) return;
+    setAppliedCustomFrom(customFrom);
+    setAppliedCustomTo(customTo);
+  }
+
+  function resetCustomRange() {
+    setCustomFrom("");
+    setCustomTo("");
+    setAppliedCustomFrom("");
+    setAppliedCustomTo("");
+  }
 
   async function loadData() {
     try {
@@ -189,9 +207,11 @@ export default function ManageReceptionist() {
 
       <div style={sectionPanelStyle}>
         <div style={overallHeaderStyle}>
-          <div>
-            <h2 style={{ ...sectionHeadingStyle, marginBottom: 4 }}>All Receptionists Income</h2>
-          </div>
+          <h2 style={{ ...sectionHeadingStyle, marginBottom: 0 }}>All Receptionists Income</h2>
+        </div>
+
+        <div style={durationToolbarStyle}>
+          <span style={durationLabelStyle}>Duration</span>
           <div style={overallRangeStyle}>
             {(["DAY", "WEEK", "MONTH", "YEAR"] as RangeView[]).map((item) => (
               <button
@@ -211,24 +231,37 @@ export default function ManageReceptionist() {
               Custom
             </button>
           </div>
+          {overallRange === "CUSTOM" && (
+            <div style={customRangeControlsStyle}>
+              <label style={customDateLabelStyle}>
+                <span>From</span>
+                <input type="date" max={customTo || undefined} value={customFrom} onChange={(event) => setCustomFrom(event.target.value)} style={customDateInputStyle} />
+              </label>
+              <div aria-hidden="true" style={dateArrowStyle}>→</div>
+              <label style={customDateLabelStyle}>
+                <span>To</span>
+                <input type="date" min={customFrom || undefined} value={customTo} onChange={(event) => setCustomTo(event.target.value)} style={customDateInputStyle} />
+              </label>
+              <button
+                type="button"
+                disabled={!customRangeReady}
+                onClick={applyCustomRange}
+                style={{ ...applyRangeButtonStyle, opacity: customRangeReady ? 1 : 0.5, cursor: customRangeReady ? "pointer" : "not-allowed" }}
+              >
+                Apply
+              </button>
+              {(customFrom || customTo || appliedCustomFrom || appliedCustomTo) && (
+                <button type="button" onClick={resetCustomRange} style={resetRangeButtonStyle}>Reset</button>
+              )}
+            </div>
+          )}
+          {overallRange === "CUSTOM" && customRangeInvalid && (
+            <div style={customRangeErrorStyle}>End date must be on or after the start date.</div>
+          )}
         </div>
 
-        {overallRange === "CUSTOM" && (
-          <div style={customRangeStyle}>
-            <label style={customDateLabelStyle}>
-              <span>From</span>
-              <input type="date" value={customFrom} onChange={(event) => setCustomFrom(event.target.value)} style={customDateInputStyle} />
-            </label>
-            <label style={customDateLabelStyle}>
-              <span>To</span>
-              <input type="date" min={customFrom || undefined} value={customTo} onChange={(event) => setCustomTo(event.target.value)} style={customDateInputStyle} />
-            </label>
-            {(customFrom || customTo) && (
-              <button type="button" onClick={() => { setCustomFrom(""); setCustomTo(""); }} style={overallRangeButtonStyle}>
-                Clear
-              </button>
-            )}
-          </div>
+        {overallRange === "CUSTOM" && !customRangeInvalid && appliedCustomFrom && appliedCustomTo && (
+          <div style={appliedRangeStyle}>All income from {formatShortDate(appliedCustomFrom)} to {formatShortDate(appliedCustomTo)}</div>
         )}
 
         <div style={overallSummaryGridStyle}>
@@ -327,21 +360,48 @@ function formatCurrency(value: number) {
   }).format(value || 0);
 }
 
+function formatShortDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" })
+    .format(new Date(`${value}T00:00:00`));
+}
+
 const overallHeaderStyle: React.CSSProperties = {
   display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14,
-  flexWrap: "wrap", marginBottom: 16,
+  flexWrap: "wrap", marginBottom: 12,
 };
 const overallRangeStyle: React.CSSProperties = { display: "flex", gap: 8, flexWrap: "wrap" };
-const customRangeStyle: React.CSSProperties = {
-  display: "flex", alignItems: "end", gap: 12, flexWrap: "wrap", marginBottom: 16,
-  padding: 14, borderRadius: 15, background: "var(--app-card-solid-bg)", border: "1px solid var(--app-border-soft)",
+const durationToolbarStyle: React.CSSProperties = {
+  display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 16,
+  padding: "12px 14px", borderRadius: 15, background: "var(--app-card-solid-bg)",
+  border: "1px solid var(--app-border-soft)",
+};
+const durationLabelStyle: React.CSSProperties = {
+  color: "var(--app-muted)", fontSize: 12, fontWeight: 850, letterSpacing: ".05em", textTransform: "uppercase",
+};
+const customRangeControlsStyle: React.CSSProperties = {
+  display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginLeft: "auto",
 };
 const customDateLabelStyle: React.CSSProperties = {
-  display: "grid", gap: 6, color: "var(--app-muted)", fontSize: 12, fontWeight: 800,
+  display: "flex", alignItems: "center", gap: 7,
+  color: "var(--app-muted)", fontSize: 12, fontWeight: 800,
 };
 const customDateInputStyle: React.CSSProperties = {
-  minHeight: 40, padding: "8px 12px", borderRadius: 11, color: "var(--app-heading)",
+  width: 150, minHeight: 40, boxSizing: "border-box", padding: "7px 10px", borderRadius: 10, color: "var(--app-heading)",
   background: "var(--app-input-bg)", border: "1px solid var(--app-input-border)", fontWeight: 700,
+};
+const dateArrowStyle: React.CSSProperties = { color: "var(--app-muted)", fontWeight: 900 };
+const applyRangeButtonStyle: React.CSSProperties = {
+  minHeight: 42, padding: "9px 20px", border: 0, borderRadius: 11, color: "#fff", fontWeight: 850,
+  background: "linear-gradient(135deg,#4f7cff,#41c7f4)", boxShadow: "0 9px 20px rgba(59,130,246,.2)",
+};
+const resetRangeButtonStyle: React.CSSProperties = {
+  minHeight: 42, padding: "9px 16px", borderRadius: 11, cursor: "pointer", fontWeight: 800,
+  color: "var(--app-heading)", background: "transparent", border: "1px solid var(--app-border-soft)",
+};
+const customRangeErrorStyle: React.CSSProperties = { flexBasis: "100%", color: "#ef4444", fontSize: 12, fontWeight: 750 };
+const appliedRangeStyle: React.CSSProperties = {
+  width: "fit-content", margin: "-7px 0 14px", padding: "6px 10px", borderRadius: 999, color: "#2563eb",
+  background: "rgba(59,130,246,.1)", fontSize: 12, fontWeight: 800,
 };
 const overallRangeButtonStyle: React.CSSProperties = {
   minHeight: 38, padding: "8px 14px", borderRadius: 999, cursor: "pointer", fontWeight: 800,
