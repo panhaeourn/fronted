@@ -386,6 +386,50 @@ export default function Courses() {
 
               <div style={{ flex: 1, position: "relative" }}>
                 <div
+                  aria-label={`${course.purchaseCount ?? 0} online purchases`}
+                  title={`${course.purchaseCount ?? 0} online purchases`}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    zIndex: 2,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    minWidth: 42,
+                    justifyContent: "center",
+                    padding: "6px 10px",
+                    border: "1px solid rgba(191, 219, 254, 0.34)",
+                    borderRadius: 999,
+                    background: "rgba(7, 17, 42, 0.74)",
+                    color: "#ffffff",
+                    fontSize: 13,
+                    fontWeight: 800,
+                    lineHeight: 1,
+                    boxShadow: "0 8px 20px rgba(0, 0, 0, 0.26)",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <svg
+                    aria-hidden="true"
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  <span>{course.purchaseCount ?? 0}</span>
+                </div>
+
+                <div
                   style={{
                     display: "inline-flex",
                     padding: "6px 10px",

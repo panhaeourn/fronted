@@ -6,6 +6,7 @@ export type CourseRecord = {
   description?: string;
   price?: number;
   enrolled?: boolean;
+  purchaseCount?: number;
   teacherPhotoFileName?: string;
   teacherPhotoUrl?: string;
   teacherPhotoPositionX?: number;
