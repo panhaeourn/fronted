@@ -3,15 +3,9 @@ import { Link } from "react-router-dom";
 import type { ReceptionistUser } from "../../lib/domain-types";
 import type { ReceptionistDayEntry } from "../../lib/receptionistDailyReceipts";
 import {
-  buildMonthBuckets,
-  buildWeekBuckets,
   filterDaysByRange,
   formatCurrency,
   formatRangeLabel,
-  getLatestSummaryValue,
-  getSummaryBucketCount,
-  getSummaryBucketLabel,
-  getSummaryLatestLabel,
   type RangeView,
 } from "./manageReceptionistSupport";
 import {
@@ -24,11 +18,7 @@ import {
   receptionistHeaderStyle,
   receptionistRoleStyle,
   summaryActionsStyle,
-  summaryGridStyle,
   summaryHeaderStyle,
-  summaryMiniCardStyle,
-  summaryMiniLabelStyle,
-  summaryMiniValueStyle,
   summaryTitleStackStyle,
   summaryTitleStyle,
   summaryWrapStyle,
@@ -50,10 +40,7 @@ export function ReceptionistSummaryCard({
   onRemove: () => void;
 }) {
   const filteredDays = useMemo(() => filterDaysByRange(allDays, range), [allDays, range]);
-  const weekBuckets = useMemo(() => buildWeekBuckets(filteredDays), [filteredDays]);
-  const monthBuckets = useMemo(() => buildMonthBuckets(filteredDays), [filteredDays]);
   const total = filteredDays.reduce((sum, day) => sum + day.total, 0);
-  const studentsPaid = filteredDays.reduce((sum, day) => sum + day.count, 0);
 
   return (
     <div style={receptionistCardStyle}>
@@ -97,28 +84,9 @@ export function ReceptionistSummaryCard({
           </div>
         </div>
 
-        {filteredDays.length === 0 ? (
+        {filteredDays.length === 0 && (
           <div style={emptySummaryStyle}>
             No payment history in this {formatRangeLabel(range).toLowerCase()} yet.
-          </div>
-        ) : (
-          <div style={summaryGridStyle}>
-            <div style={summaryMiniCardStyle}>
-              <div style={summaryMiniLabelStyle}>{getSummaryBucketLabel(range)}</div>
-              <div style={summaryMiniValueStyle}>
-                {getSummaryBucketCount(range, filteredDays, weekBuckets, monthBuckets)}
-              </div>
-            </div>
-            <div style={summaryMiniCardStyle}>
-              <div style={summaryMiniLabelStyle}>Students Paid</div>
-              <div style={summaryMiniValueStyle}>{studentsPaid}</div>
-            </div>
-            <div style={summaryMiniCardStyle}>
-              <div style={summaryMiniLabelStyle}>{getSummaryLatestLabel(range)}</div>
-              <div style={{ ...summaryMiniValueStyle, fontSize: 16 }}>
-                {getLatestSummaryValue(range, filteredDays, weekBuckets, monthBuckets)}
-              </div>
-            </div>
           </div>
         )}
       </div>

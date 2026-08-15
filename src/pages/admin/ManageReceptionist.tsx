@@ -32,7 +32,9 @@ export default function ManageReceptionist() {
   const [err, setErr] = useState("");
   const [userToRemove, setUserToRemove] = useState<number | null>(null);
   const [rangeByUser, setRangeByUser] = useState<Record<number, RangeView>>({});
-  const [overallRange, setOverallRange] = useState<RangeView>("DAY");
+  const [overallRange, setOverallRange] = useState<RangeView | "CUSTOM">("DAY");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
 
   const activeCodes = codes.filter(
     (item) => !item.used && new Date(item.expiresAt) >= new Date()
@@ -59,7 +61,13 @@ export default function ManageReceptionist() {
       if (overallRange === "MONTH") {
         return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
       }
-      return date.getFullYear() === now.getFullYear();
+      if (overallRange === "YEAR") return date.getFullYear() === now.getFullYear();
+
+      const from = customFrom ? new Date(`${customFrom}T00:00:00`) : null;
+      const to = customTo ? new Date(`${customTo}T23:59:59.999`) : null;
+      if (from && date < from) return false;
+      if (to && date > to) return false;
+      return Boolean(from || to);
     });
 
     const studentIds = new Set<string>();
@@ -75,7 +83,7 @@ export default function ManageReceptionist() {
         history.some((day) => days.includes(day))
       ).length,
     };
-  }, [overallRange, receiptHistoryByReceptionist]);
+  }, [customFrom, customTo, overallRange, receiptHistoryByReceptionist]);
 
   async function loadData() {
     try {
@@ -183,7 +191,6 @@ export default function ManageReceptionist() {
         <div style={overallHeaderStyle}>
           <div>
             <h2 style={{ ...sectionHeadingStyle, marginBottom: 4 }}>All Receptionists Income</h2>
-            <div style={overallSubtitleStyle}>Combined paid income from every receptionist</div>
           </div>
           <div style={overallRangeStyle}>
             {(["DAY", "WEEK", "MONTH", "YEAR"] as RangeView[]).map((item) => (
@@ -196,8 +203,33 @@ export default function ManageReceptionist() {
                 {item.charAt(0) + item.slice(1).toLowerCase()}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => setOverallRange("CUSTOM")}
+              style={overallRange === "CUSTOM" ? overallRangeActiveStyle : overallRangeButtonStyle}
+            >
+              Custom
+            </button>
           </div>
         </div>
+
+        {overallRange === "CUSTOM" && (
+          <div style={customRangeStyle}>
+            <label style={customDateLabelStyle}>
+              <span>From</span>
+              <input type="date" value={customFrom} onChange={(event) => setCustomFrom(event.target.value)} style={customDateInputStyle} />
+            </label>
+            <label style={customDateLabelStyle}>
+              <span>To</span>
+              <input type="date" min={customFrom || undefined} value={customTo} onChange={(event) => setCustomTo(event.target.value)} style={customDateInputStyle} />
+            </label>
+            {(customFrom || customTo) && (
+              <button type="button" onClick={() => { setCustomFrom(""); setCustomTo(""); }} style={overallRangeButtonStyle}>
+                Clear
+              </button>
+            )}
+          </div>
+        )}
 
         <div style={overallSummaryGridStyle}>
           <OverallMetric label="Total Income" value={formatCurrency(overallSummary.income)} accent="#34d399" />
@@ -299,8 +331,18 @@ const overallHeaderStyle: React.CSSProperties = {
   display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14,
   flexWrap: "wrap", marginBottom: 16,
 };
-const overallSubtitleStyle: React.CSSProperties = { color: "var(--app-muted)", fontSize: 13 };
 const overallRangeStyle: React.CSSProperties = { display: "flex", gap: 8, flexWrap: "wrap" };
+const customRangeStyle: React.CSSProperties = {
+  display: "flex", alignItems: "end", gap: 12, flexWrap: "wrap", marginBottom: 16,
+  padding: 14, borderRadius: 15, background: "var(--app-card-solid-bg)", border: "1px solid var(--app-border-soft)",
+};
+const customDateLabelStyle: React.CSSProperties = {
+  display: "grid", gap: 6, color: "var(--app-muted)", fontSize: 12, fontWeight: 800,
+};
+const customDateInputStyle: React.CSSProperties = {
+  minHeight: 40, padding: "8px 12px", borderRadius: 11, color: "var(--app-heading)",
+  background: "var(--app-input-bg)", border: "1px solid var(--app-input-border)", fontWeight: 700,
+};
 const overallRangeButtonStyle: React.CSSProperties = {
   minHeight: 38, padding: "8px 14px", borderRadius: 999, cursor: "pointer", fontWeight: 800,
   color: "var(--app-heading)", background: "var(--app-secondary-bg)", border: "1px solid var(--app-border-soft)",
