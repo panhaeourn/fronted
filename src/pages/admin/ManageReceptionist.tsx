@@ -50,8 +50,17 @@ export default function ManageReceptionist() {
     [paymentRows]
   );
 
+  const currentReceiptHistoryByReceptionist = useMemo(() => {
+    const currentEmails = new Set(
+      receptionists.map((user) => user.email.trim().toLowerCase()).filter(Boolean)
+    );
+    return new Map(
+      [...receiptHistoryByReceptionist.entries()].filter(([email]) => currentEmails.has(email))
+    );
+  }, [receiptHistoryByReceptionist, receptionists]);
+
   const timelineBounds = useMemo(() => {
-    const timestamps = [...receiptHistoryByReceptionist.values()].flat()
+    const timestamps = [...currentReceiptHistoryByReceptionist.values()].flat()
       .map((day) => new Date(`${day.dayKey}T00:00:00`).getTime())
       .filter(Number.isFinite);
     const today = new Date();
@@ -61,11 +70,11 @@ export default function ManageReceptionist() {
       min: timestamps.length ? Math.min(...timestamps) : fallbackMin,
       max: timestamps.length ? Math.max(...timestamps) : fallbackMax,
     };
-  }, [receiptHistoryByReceptionist]);
+  }, [currentReceiptHistoryByReceptionist]);
 
   const overallSummary = useMemo(() => {
     const now = new Date();
-    const days = [...receiptHistoryByReceptionist.values()].flat().filter((day) => {
+    const days = [...currentReceiptHistoryByReceptionist.values()].flat().filter((day) => {
       const date = new Date(`${day.dayKey}T00:00:00`);
       if (Number.isNaN(date.getTime())) return false;
       if (overallRange === "DAY") {
@@ -97,11 +106,11 @@ export default function ManageReceptionist() {
       income: days.reduce((sum, day) => sum + day.total, 0),
       transactions: days.reduce((sum, day) => sum + day.count, 0),
       students: studentIds.size,
-      receptionists: [...receiptHistoryByReceptionist.values()].filter((history) =>
+      receptionists: [...currentReceiptHistoryByReceptionist.values()].filter((history) =>
         history.some((day) => days.includes(day))
       ).length,
     };
-  }, [appliedCustomFrom, appliedCustomTo, overallRange, receiptHistoryByReceptionist]);
+  }, [appliedCustomFrom, appliedCustomTo, currentReceiptHistoryByReceptionist, overallRange]);
 
   const timelineStart = customFrom ? dateInputToTimestamp(customFrom) : timelineBounds.min;
   const timelineEnd = customTo ? dateInputToTimestamp(customTo) : timelineBounds.max;
@@ -368,7 +377,7 @@ export default function ManageReceptionist() {
               <ReceptionistSummaryCard
                 key={user.id}
                 user={user}
-                allDays={receiptHistoryByReceptionist.get(user.email.trim().toLowerCase()) || []}
+                allDays={currentReceiptHistoryByReceptionist.get(user.email.trim().toLowerCase()) || []}
                 range={rangeByUser[user.id] || "DAY"}
                 onRangeChange={(nextRange) =>
                   setRangeByUser((prev) => ({ ...prev, [user.id]: nextRange }))
