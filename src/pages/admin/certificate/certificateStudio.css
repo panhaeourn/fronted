@@ -281,11 +281,6 @@
   margin-top: 0;
 }
 
-.certificate-position-actions {
-  display: grid;
-  gap: 9px;
-}
-
 .certificate-upload-card:hover {
   transform: translateY(-2px);
   border-color: rgba(96, 165, 250, 0.58);
@@ -624,13 +619,9 @@
   color: #071737;
   text-align: center;
   box-shadow: 0 2px 8px rgba(7, 23, 55, .12);
-  cursor: grab;
-  touch-action: none;
+  cursor: default;
+  pointer-events: none;
   user-select: none;
-}
-
-.certificate-verification-block:active {
-  cursor: grabbing;
 }
 
 .certificate-verification-qr {
@@ -638,20 +629,6 @@
   width: 100%;
   height: auto;
   aspect-ratio: 1;
-}
-
-.certificate-stamp {
-  position: absolute;
-  z-index: 4;
-  height: auto;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  filter: saturate(.94) contrast(1.02);
-}
-
-.certificate-stamp:active {
-  cursor: grabbing;
 }
 
 .certificate-pdf-exporting .cito-certificate-sheet {
@@ -946,10 +923,6 @@
   .certificate-fill.is-selected {
     outline: 0;
     background: transparent;
-  }
-
-  .certificate-stamp {
-    cursor: default;
   }
 
   body.certificate-pdf-exporting > #root {
