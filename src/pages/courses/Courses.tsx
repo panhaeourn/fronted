@@ -398,63 +398,45 @@ export default function Courses() {
                     zIndex: 2,
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: 7,
-                    minWidth: 48,
+                    gap: 6,
+                    minWidth: 42,
                     justifyContent: "center",
-                    padding: "4px 10px 4px 4px",
-                    border: "1px solid rgba(147, 197, 253, 0.38)",
+                    padding: "6px 10px",
+                    border: "1px solid rgba(191, 219, 254, 0.18)",
                     borderRadius: 999,
-                    background:
-                      "linear-gradient(135deg, rgba(10, 20, 48, 0.88), rgba(22, 31, 66, 0.76))",
-                    color: "#ffffff",
+                    background: "rgba(96, 165, 250, 0.16)",
+                    color: "var(--app-accent-soft)",
                     fontSize: 13,
                     fontWeight: 800,
                     lineHeight: 1,
                     letterSpacing: "0.02em",
-                    boxShadow:
-                      "0 8px 22px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.12)",
-                    backdropFilter: "blur(12px)",
+                    boxShadow: "0 6px 16px rgba(0, 0, 0, 0.18)",
+                    backdropFilter: "blur(8px)",
                   }}
                 >
-                  <span
-                    style={{
-                      width: 25,
-                      height: 25,
-                      borderRadius: "50%",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#ffffff",
-                      background:
-                        "linear-gradient(135deg, #4f7cff 8%, #59c7ef 52%, #8b5cf6 100%)",
-                      boxShadow:
-                        "0 4px 12px rgba(79, 124, 255, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.3)",
-                    }}
+                  <svg
+                    aria-hidden="true"
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
                   >
-                    <svg
-                      aria-hidden="true"
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                    >
-                      <circle cx="9" cy="8" r="3" fill="currentColor" />
-                      <circle cx="16.5" cy="9" r="2.4" fill="currentColor" opacity="0.72" />
-                      <path
-                        d="M3.5 18.8c.35-3.25 2.25-5.1 5.5-5.1s5.15 1.85 5.5 5.1"
-                        stroke="currentColor"
-                        strokeWidth="2.25"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M15 14.4c2.8.05 4.55 1.5 4.9 4.05"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        opacity="0.72"
-                      />
-                    </svg>
-                  </span>
+                    <circle cx="9" cy="8" r="3" fill="currentColor" />
+                    <circle cx="16.5" cy="9" r="2.4" fill="currentColor" opacity="0.72" />
+                    <path
+                      d="M3.5 18.8c.35-3.25 2.25-5.1 5.5-5.1s5.15 1.85 5.5 5.1"
+                      stroke="currentColor"
+                      strokeWidth="2.25"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M15 14.4c2.8.05 4.55 1.5 4.9 4.05"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      opacity="0.72"
+                    />
+                  </svg>
                   <span>{course.purchaseCount ?? 0}</span>
                 </div>
 
