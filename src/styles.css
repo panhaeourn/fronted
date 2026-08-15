@@ -19,3 +19,50 @@ body {
   margin-top: 16px;
   box-shadow: var(--app-panel-shadow);
 }
+.income-timeline-range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 34px;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  pointer-events: none;
+  outline: none;
+}
+
+.income-timeline-range::-webkit-slider-runnable-track {
+  height: 5px;
+  background: transparent;
+}
+
+.income-timeline-range::-webkit-slider-thumb {
+  width: 22px;
+  height: 22px;
+  margin-top: -9px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f7cff, #22c55e);
+  box-shadow: 0 3px 11px rgba(37, 99, 235, 0.38);
+  cursor: ew-resize;
+  pointer-events: auto;
+}
+
+.income-timeline-range::-moz-range-track {
+  height: 5px;
+  background: transparent;
+}
+
+.income-timeline-range::-moz-range-thumb {
+  width: 17px;
+  height: 17px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f7cff, #22c55e);
+  box-shadow: 0 3px 11px rgba(37, 99, 235, 0.38);
+  cursor: ew-resize;
+  pointer-events: auto;
+}

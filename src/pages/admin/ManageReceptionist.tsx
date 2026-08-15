@@ -47,6 +47,19 @@ export default function ManageReceptionist() {
     [paymentRows]
   );
 
+  const timelineBounds = useMemo(() => {
+    const timestamps = [...receiptHistoryByReceptionist.values()].flat()
+      .map((day) => new Date(`${day.dayKey}T00:00:00`).getTime())
+      .filter(Number.isFinite);
+    const today = new Date();
+    const fallbackMax = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+    const fallbackMin = new Date(today.getFullYear(), 0, 1).getTime();
+    return {
+      min: timestamps.length ? Math.min(...timestamps) : fallbackMin,
+      max: timestamps.length ? Math.max(...timestamps) : fallbackMax,
+    };
+  }, [receiptHistoryByReceptionist]);
+
   const overallSummary = useMemo(() => {
     const now = new Date();
     const days = [...receiptHistoryByReceptionist.values()].flat().filter((day) => {
@@ -87,20 +100,36 @@ export default function ManageReceptionist() {
     };
   }, [appliedCustomFrom, appliedCustomTo, overallRange, receiptHistoryByReceptionist]);
 
-  const customRangeInvalid = Boolean(customFrom && customTo && customFrom > customTo);
-  const customRangeReady = Boolean(customFrom && customTo && !customRangeInvalid);
+  const timelineStart = customFrom ? dateInputToTimestamp(customFrom) : timelineBounds.min;
+  const timelineEnd = customTo ? dateInputToTimestamp(customTo) : timelineBounds.max;
+  const timelineSpan = Math.max(1, timelineBounds.max - timelineBounds.min);
+  const selectedLeft = ((timelineStart - timelineBounds.min) / timelineSpan) * 100;
+  const selectedWidth = ((timelineEnd - timelineStart) / timelineSpan) * 100;
 
-  function applyCustomRange() {
-    if (!customRangeReady) return;
-    setAppliedCustomFrom(customFrom);
-    setAppliedCustomTo(customTo);
+  function openCustomTimeline() {
+    const from = timestampToDateInput(timelineBounds.min);
+    const to = timestampToDateInput(timelineBounds.max);
+    setOverallRange("CUSTOM");
+    if (!customFrom || !customTo) {
+      setCustomFrom(from);
+      setCustomTo(to);
+      setAppliedCustomFrom(from);
+      setAppliedCustomTo(to);
+    }
   }
 
-  function resetCustomRange() {
-    setCustomFrom("");
-    setCustomTo("");
-    setAppliedCustomFrom("");
-    setAppliedCustomTo("");
+  function updateTimelineStart(value: number) {
+    const next = Math.min(value, timelineEnd);
+    const date = timestampToDateInput(next);
+    setCustomFrom(date);
+    setAppliedCustomFrom(date);
+  }
+
+  function updateTimelineEnd(value: number) {
+    const next = Math.max(value, timelineStart);
+    const date = timestampToDateInput(next);
+    setCustomTo(date);
+    setAppliedCustomTo(date);
   }
 
   async function loadData() {
@@ -225,42 +254,63 @@ export default function ManageReceptionist() {
             ))}
             <button
               type="button"
-              onClick={() => setOverallRange("CUSTOM")}
+              onClick={openCustomTimeline}
               style={overallRange === "CUSTOM" ? overallRangeActiveStyle : overallRangeButtonStyle}
             >
               Custom
             </button>
           </div>
           {overallRange === "CUSTOM" && (
-            <div style={customRangeControlsStyle}>
-              <label style={customDateLabelStyle}>
-                <span>From</span>
-                <input type="date" max={customTo || undefined} value={customFrom} onChange={(event) => setCustomFrom(event.target.value)} style={customDateInputStyle} />
-              </label>
-              <div aria-hidden="true" style={dateArrowStyle}>→</div>
-              <label style={customDateLabelStyle}>
-                <span>To</span>
-                <input type="date" min={customFrom || undefined} value={customTo} onChange={(event) => setCustomTo(event.target.value)} style={customDateInputStyle} />
-              </label>
-              <button
-                type="button"
-                disabled={!customRangeReady}
-                onClick={applyCustomRange}
-                style={{ ...applyRangeButtonStyle, opacity: customRangeReady ? 1 : 0.5, cursor: customRangeReady ? "pointer" : "not-allowed" }}
-              >
-                Apply
-              </button>
-              {(customFrom || customTo || appliedCustomFrom || appliedCustomTo) && (
-                <button type="button" onClick={resetCustomRange} style={resetRangeButtonStyle}>Reset</button>
-              )}
+            <div style={timelineWrapStyle}>
+              <div style={timelineHeaderStyle}>
+                <div>
+                  <div style={timelineTitleStyle}>Income timeline</div>
+                  <div style={timelineSubtitleStyle}>Drag the handles to choose a reporting period</div>
+                </div>
+                <div style={timelineLegendStyle}>
+                  <span style={timelineLegendItemStyle}><i style={allTimeDotStyle} />All time</span>
+                  <span style={timelineLegendItemStyle}><i style={selectedDotStyle} />Selected</span>
+                </div>
+              </div>
+              <div style={timelineDateRowStyle}>
+                <span>{formatShortDate(timestampToDateInput(timelineBounds.min))}</span>
+                <strong style={selectedDatePillStyle}>{formatShortDate(customFrom)} – {formatShortDate(customTo)}</strong>
+                <span style={{ textAlign: "right" }}>{formatShortDate(timestampToDateInput(timelineBounds.max))}</span>
+              </div>
+              <div style={timelineTrackWrapStyle}>
+                <div style={timelineTrackStyle} />
+                <div style={{ ...timelineSelectionStyle, left: `${selectedLeft}%`, width: `${selectedWidth}%` }} />
+                <input
+                  className="income-timeline-range"
+                  aria-label="Income range start date"
+                  type="range"
+                  min={timelineBounds.min}
+                  max={timelineBounds.max}
+                  step={86_400_000}
+                  value={timelineStart}
+                  onChange={(event) => updateTimelineStart(Number(event.target.value))}
+                />
+                <input
+                  className="income-timeline-range"
+                  aria-label="Income range end date"
+                  type="range"
+                  min={timelineBounds.min}
+                  max={timelineBounds.max}
+                  step={86_400_000}
+                  value={timelineEnd}
+                  onChange={(event) => updateTimelineEnd(Number(event.target.value))}
+                />
+              </div>
+              <div style={timelineFooterStyle}>
+                <span>Earliest income</span>
+                <span>{countInclusiveDays(timelineStart, timelineEnd)} day period</span>
+                <span style={{ textAlign: "right" }}>Latest income</span>
+              </div>
             </div>
-          )}
-          {overallRange === "CUSTOM" && customRangeInvalid && (
-            <div style={customRangeErrorStyle}>End date must be on or after the start date.</div>
           )}
         </div>
 
-        {overallRange === "CUSTOM" && !customRangeInvalid && appliedCustomFrom && appliedCustomTo && (
+        {overallRange === "CUSTOM" && appliedCustomFrom && appliedCustomTo && (
           <div style={appliedRangeStyle}>All income from {formatShortDate(appliedCustomFrom)} to {formatShortDate(appliedCustomTo)}</div>
         )}
 
@@ -365,6 +415,21 @@ function formatShortDate(value: string) {
     .format(new Date(`${value}T00:00:00`));
 }
 
+function timestampToDateInput(value: number) {
+  const date = new Date(value);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function dateInputToTimestamp(value: string) {
+  return new Date(`${value}T00:00:00`).getTime();
+}
+
+function countInclusiveDays(start: number, end: number) {
+  return Math.max(1, Math.round((end - start) / 86_400_000) + 1).toLocaleString();
+}
+
 const overallHeaderStyle: React.CSSProperties = {
   display: "flex", justifyContent: "space-between", alignItems: "center", gap: 14,
   flexWrap: "wrap", marginBottom: 12,
@@ -378,27 +443,46 @@ const durationToolbarStyle: React.CSSProperties = {
 const durationLabelStyle: React.CSSProperties = {
   color: "var(--app-muted)", fontSize: 12, fontWeight: 850, letterSpacing: ".05em", textTransform: "uppercase",
 };
-const customRangeControlsStyle: React.CSSProperties = {
-  display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginLeft: "auto",
+const timelineWrapStyle: React.CSSProperties = {
+  flexBasis: "100%", display: "grid", gap: 11, padding: "14px 16px 12px", borderRadius: 14,
+  background: "linear-gradient(135deg,rgba(79,124,255,.08),rgba(65,199,244,.04))",
+  border: "1px solid rgba(96,165,250,.2)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.45)",
 };
-const customDateLabelStyle: React.CSSProperties = {
-  display: "flex", alignItems: "center", gap: 7,
-  color: "var(--app-muted)", fontSize: 12, fontWeight: 800,
+const timelineHeaderStyle: React.CSSProperties = {
+  display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap",
 };
-const customDateInputStyle: React.CSSProperties = {
-  width: 150, minHeight: 40, boxSizing: "border-box", padding: "7px 10px", borderRadius: 10, color: "var(--app-heading)",
-  background: "var(--app-input-bg)", border: "1px solid var(--app-input-border)", fontWeight: 700,
+const timelineTitleStyle: React.CSSProperties = { color: "var(--app-heading)", fontSize: 13, fontWeight: 850 };
+const timelineSubtitleStyle: React.CSSProperties = { marginTop: 2, color: "var(--app-muted)", fontSize: 11 };
+const timelineLegendStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: 12 };
+const timelineLegendItemStyle: React.CSSProperties = {
+  display: "inline-flex", alignItems: "center", gap: 5, color: "var(--app-muted)", fontSize: 10, fontWeight: 750,
 };
-const dateArrowStyle: React.CSSProperties = { color: "var(--app-muted)", fontWeight: 900 };
-const applyRangeButtonStyle: React.CSSProperties = {
-  minHeight: 42, padding: "9px 20px", border: 0, borderRadius: 11, color: "#fff", fontWeight: 850,
-  background: "linear-gradient(135deg,#4f7cff,#41c7f4)", boxShadow: "0 9px 20px rgba(59,130,246,.2)",
+const allTimeDotStyle: React.CSSProperties = { width: 9, height: 4, borderRadius: 99, background: "#172033" };
+const selectedDotStyle: React.CSSProperties = {
+  width: 9, height: 4, borderRadius: 99, background: "linear-gradient(90deg,#4f7cff,#22c55e)",
 };
-const resetRangeButtonStyle: React.CSSProperties = {
-  minHeight: 42, padding: "9px 16px", borderRadius: 11, cursor: "pointer", fontWeight: 800,
-  color: "var(--app-heading)", background: "transparent", border: "1px solid var(--app-border-soft)",
+const timelineDateRowStyle: React.CSSProperties = {
+  display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "center",
+  color: "var(--app-muted)", fontSize: 11, fontWeight: 750,
 };
-const customRangeErrorStyle: React.CSSProperties = { flexBasis: "100%", color: "#ef4444", fontSize: 12, fontWeight: 750 };
+const selectedDatePillStyle: React.CSSProperties = {
+  padding: "6px 11px", borderRadius: 999, color: "#2563eb", background: "rgba(59,130,246,.11)",
+  border: "1px solid rgba(59,130,246,.16)", fontSize: 11, whiteSpace: "nowrap",
+};
+const timelineTrackWrapStyle: React.CSSProperties = { position: "relative", height: 38, margin: "0 2px" };
+const timelineTrackStyle: React.CSSProperties = {
+  position: "absolute", top: 16, left: 0, right: 0, height: 7, borderRadius: 999,
+  background: "repeating-linear-gradient(90deg,#172033 0,#172033 calc(10% - 1px),#334155 calc(10% - 1px),#334155 10%)",
+  boxShadow: "inset 0 1px 2px rgba(0,0,0,.35)",
+};
+const timelineSelectionStyle: React.CSSProperties = {
+  position: "absolute", top: 12, height: 15, borderRadius: 999,
+  background: "linear-gradient(90deg,#4f7cff,#41c7f4 48%,#22c55e)",
+  boxShadow: "0 4px 13px rgba(59,130,246,.27),0 0 0 3px rgba(65,199,244,.1)",
+};
+const timelineFooterStyle: React.CSSProperties = {
+  display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 8, color: "var(--app-muted)", fontSize: 10, fontWeight: 700,
+};
 const appliedRangeStyle: React.CSSProperties = {
   width: "fit-content", margin: "-7px 0 14px", padding: "6px 10px", borderRadius: 999, color: "#2563eb",
   background: "rgba(59,130,246,.1)", fontSize: 12, fontWeight: 800,
