@@ -45,7 +45,7 @@ const initialFieldSettings: FieldSettings = {
   issueDate: { font: "", size: "" },
 };
 
-const fixedQr: QrPlacement = { x: 7.1, y: 67, width: 12.2 };
+const fixedQr: QrPlacement = { x: 7.1, y: 68, width: 12.2 };
 const a4LandscapeWidthPx = (297 / 25.4) * 96;
 const publicSiteUrl = (import.meta.env.VITE_PUBLIC_SITE_URL || "https://cito.study").replace(/\/$/, "");
 
