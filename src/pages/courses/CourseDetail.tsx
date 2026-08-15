@@ -36,6 +36,12 @@ type VideoViewStats = {
   viewCounted: boolean;
 };
 
+type VideoListStats = {
+  videoId: number;
+  views: number;
+  uniqueViewers?: number | null;
+};
+
 const coursePriceFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -58,6 +64,7 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [viewStats, setViewStats] = useState<VideoViewStats | null>(null);
+  const [playlistStats, setPlaylistStats] = useState<Record<number, VideoListStats>>({});
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const sessionIdRef = useRef(crypto.randomUUID());
   const heartbeatInFlightRef = useRef(false);
@@ -84,6 +91,16 @@ export default function CourseDetail() {
         if (videoData && videoData.length > 0) {
           setSelectedVideoId(videoData[0].id);
         }
+
+        apiFetch<VideoListStats[]>(`/api/course-videos/course/${id}/view-stats`)
+          .then((items) => {
+            setPlaylistStats(
+              Object.fromEntries((items || []).map((item) => [item.videoId, item]))
+            );
+          })
+          .catch(() => {
+            // Course playback should remain available if analytics is unavailable.
+          });
       } catch (e: unknown) {
         setErr(e instanceof Error ? e.message : "Failed to load course");
       } finally {
@@ -151,6 +168,14 @@ export default function CourseDetail() {
         }
       );
       setViewStats(stats);
+      setPlaylistStats((current) => ({
+        ...current,
+        [selectedVideo.id]: {
+          videoId: selectedVideo.id,
+          views: stats.views,
+          uniqueViewers: stats.uniqueViewers,
+        },
+      }));
     } catch {
       // Analytics failure must never interrupt the lesson.
     } finally {
@@ -291,6 +316,7 @@ export default function CourseDetail() {
             <div className="course-detail-playlist-list" style={playlistListStyle}>
               {videos.map((video, index) => {
                 const active = selectedVideo.id === video.id;
+                const stats = playlistStats[video.id];
 
                 return (
                   <div key={video.id} style={playlistItemWrapStyle}>
@@ -366,6 +392,12 @@ export default function CourseDetail() {
                         }}
                       >
                         {video.title || `Video ${index + 1}`}
+                      </div>
+                      <div style={playlistViewsStyle}>
+                        {(stats?.views || 0).toLocaleString()} views
+                        {isAdmin && typeof stats?.uniqueViewers === "number" && (
+                          <span> · {stats.uniqueViewers.toLocaleString()} unique</span>
+                        )}
                       </div>
                     </div>
                     </button>
@@ -645,4 +677,11 @@ const playlistVideoTitleStyle: React.CSSProperties = {
   lineHeight: 1.4,
   fontSize: 15,
   wordBreak: "break-word",
+};
+
+const playlistViewsStyle: React.CSSProperties = {
+  marginTop: 3,
+  color: "var(--app-muted)",
+  fontSize: 12,
+  lineHeight: 1.4,
 };
