@@ -68,7 +68,7 @@ export default function ManageReceptionist() {
     const fallbackMin = new Date(today.getFullYear(), 0, 1).getTime();
     return {
       min: timestamps.length ? Math.min(...timestamps) : fallbackMin,
-      max: timestamps.length ? Math.max(...timestamps) : fallbackMax,
+      max: timestamps.length ? Math.max(fallbackMax, ...timestamps) : fallbackMax,
     };
   }, [currentReceiptHistoryByReceptionist]);
 
@@ -348,7 +348,7 @@ export default function ManageReceptionist() {
               <div style={timelineFooterStyle}>
                 <span>Earliest income</span>
                 <span>{countInclusiveDays(timelineStart, timelineEnd)} day period · drag green bar to move</span>
-                <span style={{ textAlign: "right" }}>Latest income</span>
+                <span style={{ textAlign: "right" }}>Today</span>
               </div>
             </div>
           )}
