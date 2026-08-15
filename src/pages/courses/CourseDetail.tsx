@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { apiFetch, API_BASE } from "../../api";
 import { useAuth } from "../../lib/auth-context";
@@ -27,6 +27,15 @@ type CourseVideo = {
   sortOrder?: number;
 };
 
+type VideoViewStats = {
+  views: number;
+  uniqueViewers: number;
+  totalWatchSeconds: number;
+  progressSeconds: number;
+  completed: boolean;
+  viewCounted: boolean;
+};
+
 const coursePriceFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -48,6 +57,11 @@ export default function CourseDetail() {
   const [deleteErr, setDeleteErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [viewStats, setViewStats] = useState<VideoViewStats | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const sessionIdRef = useRef(crypto.randomUUID());
+  const heartbeatInFlightRef = useRef(false);
+  const lastHeartbeatAtRef = useRef(0);
   const isLightTheme =
     typeof document !== "undefined" &&
     document.documentElement.getAttribute("data-theme") === "light";
@@ -99,6 +113,50 @@ export default function CourseDetail() {
 
     return "";
   }, [selectedVideo]);
+
+  useEffect(() => {
+    if (!selectedVideo) return;
+    sessionIdRef.current = crypto.randomUUID();
+    lastHeartbeatAtRef.current = 0;
+    setViewStats(null);
+
+    apiFetch<VideoViewStats>(`/api/course-videos/${selectedVideo.id}/view-stats`)
+      .then(setViewStats)
+      .catch(() => {
+        // Playback should remain available if analytics is temporarily unavailable.
+      });
+  }, [selectedVideo]);
+
+  async function sendHeartbeat(force = false) {
+    const player = videoRef.current;
+    if (!selectedVideo || !player || !Number.isFinite(player.duration) || player.duration < 1) return;
+
+    const now = Date.now();
+    if (!force && now - lastHeartbeatAtRef.current < 10_000) return;
+    if (heartbeatInFlightRef.current) return;
+
+    heartbeatInFlightRef.current = true;
+    lastHeartbeatAtRef.current = now;
+    try {
+      const stats = await apiFetch<VideoViewStats>(
+        `/api/course-videos/${selectedVideo.id}/view-heartbeat`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: sessionIdRef.current,
+            positionSeconds: player.currentTime,
+            durationSeconds: player.duration,
+            playing: !player.seeking,
+          }),
+        }
+      );
+      setViewStats(stats);
+    } catch {
+      // Analytics failure must never interrupt the lesson.
+    } finally {
+      heartbeatInFlightRef.current = false;
+    }
+  }
 
   async function handleDeleteVideo(video: CourseVideo) {
     const lessonIndex = videos.findIndex((item) => item.id === video.id);
@@ -186,12 +244,17 @@ export default function CourseDetail() {
           <section className="course-detail-player-panel" style={panelStyle}>
             <div className="course-detail-video-frame" style={videoFrameStyle}>
               <video
+                ref={videoRef}
                 key={selectedVideo.id}
                 controls
                 controlsList="nodownload"
                 disablePictureInPicture
                 preload="auto"
                 playsInline
+                onPlay={() => void sendHeartbeat(true)}
+                onTimeUpdate={() => void sendHeartbeat(false)}
+                onPause={() => void sendHeartbeat(true)}
+                onEnded={() => void sendHeartbeat(true)}
                 onContextMenu={(event) => event.preventDefault()}
                 style={videoStyle}
               >
@@ -207,6 +270,13 @@ export default function CourseDetail() {
               <h2 className="course-detail-lesson-title" style={lessonTitleStyle}>
                 {selectedVideo.title || "Untitled Video"}
               </h2>
+              {viewStats && (
+                <div style={viewMetaStyle}>
+                  <span>{viewStats.views.toLocaleString()} views</span>
+                  <span>{viewStats.uniqueViewers.toLocaleString()} unique viewers</span>
+                  {viewStats.completed && <span>Completed</span>}
+                </div>
+              )}
               <p style={descriptionStyle}>
                 {course.description || "No description yet."}
               </p>
@@ -460,6 +530,15 @@ const lessonTitleStyle: React.CSSProperties = {
   margin: 0,
   fontSize: 28,
   color: "var(--app-heading)",
+};
+
+const viewMetaStyle: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 12,
+  marginTop: 10,
+  color: "var(--app-muted)",
+  fontSize: 13,
 };
 
 const descriptionStyle: React.CSSProperties = {
