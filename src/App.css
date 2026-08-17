@@ -123,17 +123,12 @@ button {
 .course-card-free-electric {
   isolation: isolate;
   border-color: rgba(107, 26, 236, 0.66) !important;
-  background:
-    radial-gradient(circle at 10% 5%, rgba(167, 139, 250, 0.34), transparent 34%),
-    radial-gradient(circle at 92% 92%, rgba(139, 92, 246, 0.26), transparent 38%),
-    linear-gradient(150deg, rgba(48, 43, 66, 0.98), rgba(15, 18, 31, 0.99) 62%) !important;
   box-shadow:
     0 20px 50px rgba(0, 0, 0, 0.32),
     0 0 5px rgba(225, 214, 255, 0.9),
-    0 0 16px rgba(167, 139, 250, 0.94),
-    0 0 42px rgba(107, 26, 236, 0.76),
-    0 0 88px rgba(107, 26, 236, 0.42),
-    inset 0 0 34px rgba(139, 92, 246, 0.16) !important;
+    0 0 14px rgba(139, 92, 246, 0.9),
+    0 0 34px rgba(107, 26, 236, 0.72),
+    0 0 68px rgba(56, 189, 248, 0.34) !important;
   animation: free-course-lightning-glow 2.8s ease-in-out infinite;
 }
 
@@ -195,9 +190,8 @@ button {
     0 30px 64px rgba(0, 0, 0, 0.36),
     0 0 6px rgba(255, 255, 255, 0.96),
     0 0 20px rgba(167, 139, 250, 0.98),
-    0 0 52px rgba(107, 26, 236, 0.9),
-    0 0 108px rgba(107, 26, 236, 0.54),
-    inset 0 0 42px rgba(167, 139, 250, 0.2) !important;
+    0 0 48px rgba(107, 26, 236, 0.86),
+    0 0 92px rgba(56, 189, 248, 0.48) !important;
 }
 
 @keyframes free-course-lightning-glow {
@@ -206,10 +200,9 @@ button {
     box-shadow:
       0 20px 50px rgba(0, 0, 0, 0.32),
       0 0 4px rgba(225, 214, 255, 0.82),
-      0 0 14px rgba(167, 139, 250, 0.82),
-      0 0 36px rgba(107, 26, 236, 0.62),
-      0 0 76px rgba(107, 26, 236, 0.34),
-      inset 0 0 30px rgba(139, 92, 246, 0.14);
+      0 0 12px rgba(139, 92, 246, 0.78),
+      0 0 30px rgba(107, 26, 236, 0.58),
+      0 0 58px rgba(56, 189, 248, 0.26);
   }
   48% {
     box-shadow:
@@ -217,17 +210,15 @@ button {
       0 0 7px rgba(255, 255, 255, 0.98),
       0 0 22px rgba(167, 139, 250, 0.98),
       0 0 52px rgba(107, 26, 236, 0.88),
-      0 0 104px rgba(107, 26, 236, 0.52),
-      inset 0 0 44px rgba(167, 139, 250, 0.22);
+      0 0 94px rgba(56, 189, 248, 0.46);
   }
   54% {
     box-shadow:
       0 20px 50px rgba(0, 0, 0, 0.32),
       0 0 5px rgba(225, 214, 255, 0.88),
-      0 0 15px rgba(167, 139, 250, 0.86),
+      0 0 15px rgba(139, 92, 246, 0.84),
       0 0 36px rgba(107, 26, 236, 0.68),
-      0 0 82px rgba(107, 26, 236, 0.4),
-      inset 0 0 34px rgba(139, 92, 246, 0.17);
+      0 0 66px rgba(56, 189, 248, 0.32);
   }
 }
 
