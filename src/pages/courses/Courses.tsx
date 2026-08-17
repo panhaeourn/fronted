@@ -5,6 +5,7 @@ import AlertDialog from "../../components/AlertDialog";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import CreateCourseForm from "../../components/CreateCourseForm";
 import BakongQrModal from "../../components/BakongQrModal";
+import ElectricCard from "../../components/ElectricCard";
 import type { CourseRecord } from "../../lib/domain-types";
 import { getErrorMessage } from "../../lib/errors";
 import {
@@ -335,8 +336,8 @@ export default function Courses() {
           const teacherPhoto = teacherPhotos[course.id];
 
           return (
+            <ElectricCard key={course.id} enabled={Boolean(course.freeAccess)}>
             <div
-              key={course.id}
               className="course-card-hover"
               style={{
                 position: "relative",
@@ -572,6 +573,7 @@ export default function Courses() {
                   )}
                 </div>
               </div>
+            </ElectricCard>
             );
         })}
 
