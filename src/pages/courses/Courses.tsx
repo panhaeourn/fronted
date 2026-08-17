@@ -15,6 +15,9 @@ import {
 
 function sortCoursesByPopularity(list: CourseRecord[]) {
   return [...list].sort((a, b) => {
+    const freeAccessDifference = Number(Boolean(b.freeAccess)) - Number(Boolean(a.freeAccess));
+    if (freeAccessDifference !== 0) return freeAccessDifference;
+
     const purchaseDifference = (b.purchaseCount ?? 0) - (a.purchaseCount ?? 0);
     return purchaseDifference !== 0 ? purchaseDifference : b.id - a.id;
   });
@@ -388,57 +391,59 @@ export default function Courses() {
               />
 
               <div style={{ flex: 1, position: "relative" }}>
-                <div
-                  aria-label={`${course.purchaseCount ?? 0} online purchases`}
-                  title={`${course.purchaseCount ?? 0} online purchases`}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    zIndex: 2,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    minWidth: 42,
-                    justifyContent: "center",
-                    padding: "6px 10px",
-                    border: "1px solid rgba(191, 219, 254, 0.18)",
-                    borderRadius: 999,
-                    background: "rgba(96, 165, 250, 0.16)",
-                    color: "var(--app-accent-soft)",
-                    fontSize: 13,
-                    fontWeight: 800,
-                    lineHeight: 1,
-                    letterSpacing: "0.02em",
-                    boxShadow: "0 6px 16px rgba(0, 0, 0, 0.18)",
-                    backdropFilter: "blur(8px)",
-                  }}
-                >
-                  <svg
-                    aria-hidden="true"
-                    width="15"
-                    height="15"
-                    viewBox="0 0 24 24"
-                    fill="none"
+                {!course.freeAccess && (
+                  <div
+                    aria-label={`${course.purchaseCount ?? 0} online purchases`}
+                    title={`${course.purchaseCount ?? 0} online purchases`}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      right: 0,
+                      zIndex: 2,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      minWidth: 42,
+                      justifyContent: "center",
+                      padding: "6px 10px",
+                      border: "1px solid rgba(191, 219, 254, 0.18)",
+                      borderRadius: 999,
+                      background: "rgba(96, 165, 250, 0.16)",
+                      color: "var(--app-accent-soft)",
+                      fontSize: 13,
+                      fontWeight: 800,
+                      lineHeight: 1,
+                      letterSpacing: "0.02em",
+                      boxShadow: "0 6px 16px rgba(0, 0, 0, 0.18)",
+                      backdropFilter: "blur(8px)",
+                    }}
                   >
-                    <circle cx="9" cy="8" r="3" fill="currentColor" />
-                    <circle cx="16.5" cy="9" r="2.4" fill="currentColor" opacity="0.72" />
-                    <path
-                      d="M3.5 18.8c.35-3.25 2.25-5.1 5.5-5.1s5.15 1.85 5.5 5.1"
-                      stroke="currentColor"
-                      strokeWidth="2.25"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M15 14.4c2.8.05 4.55 1.5 4.9 4.05"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      opacity="0.72"
-                    />
-                  </svg>
-                  <span>{course.purchaseCount ?? 0}</span>
-                </div>
+                    <svg
+                      aria-hidden="true"
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle cx="9" cy="8" r="3" fill="currentColor" />
+                      <circle cx="16.5" cy="9" r="2.4" fill="currentColor" opacity="0.72" />
+                      <path
+                        d="M3.5 18.8c.35-3.25 2.25-5.1 5.5-5.1s5.15 1.85 5.5 5.1"
+                        stroke="currentColor"
+                        strokeWidth="2.25"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M15 14.4c2.8.05 4.55 1.5 4.9 4.05"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        opacity="0.72"
+                      />
+                    </svg>
+                    <span>{course.purchaseCount ?? 0}</span>
+                  </div>
+                )}
 
                 <div
                   style={{
