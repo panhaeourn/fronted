@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { apiFetch, API_BASE, getCsrfRequestHeader } from "../../api";
+import { apiFetch, API_BASE } from "../../api";
 import type { CourseRecord } from "../../lib/domain-types";
 import { getErrorMessage } from "../../lib/errors";
 import {
@@ -45,12 +45,15 @@ export default function UploadCourseVideo() {
   const [photoSaving, setPhotoSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadSpeed, setUploadSpeed] = useState(0);
+  const [uploadEtaSeconds, setUploadEtaSeconds] = useState<number | null>(null);
   const [pageLoading, setPageLoading] = useState(false);
   const [err, setErr] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [photoAutoSaveMessage, setPhotoAutoSaveMessage] = useState("");
   const [currentUploadIndex, setCurrentUploadIndex] = useState<number | null>(null);
   const skipNextPhotoAutoSaveRef = useRef(true);
+  const activeUploadAbortRef = useRef<AbortController | null>(null);
   const activeFile =
     currentUploadIndex !== null ? files[currentUploadIndex] : files[0] || null;
   const totalUploadSize = files.reduce((sum, item) => sum + item.size, 0);
@@ -117,6 +120,8 @@ export default function UploadCourseVideo() {
     setErr("");
     setSuccessMessage("");
     setUploadProgress(0);
+    setUploadSpeed(0);
+    setUploadEtaSeconds(null);
     setCurrentUploadIndex(null);
     setFiles([]);
 
@@ -135,11 +140,19 @@ export default function UploadCourseVideo() {
       throw new Error("Course id is missing");
     }
 
-    const form = new FormData();
-    form.append("file", selectedFile);
-    form.append("title", uploadTitle);
-
-    await uploadCourseVideo(id, form, setUploadProgress);
+    const abortController = new AbortController();
+    activeUploadAbortRef.current = abortController;
+    await uploadCourseVideo(
+      id,
+      selectedFile,
+      uploadTitle,
+      setUploadProgress,
+      (speed, etaSeconds) => {
+        setUploadSpeed(speed);
+        setUploadEtaSeconds(etaSeconds);
+      },
+      abortController.signal
+    );
   }
 
   async function saveTeacherPhotoToCloudflare(
@@ -204,6 +217,8 @@ export default function UploadCourseVideo() {
         const selectedFile = files[index];
         setCurrentUploadIndex(index);
         setUploadProgress(0);
+        setUploadSpeed(0);
+        setUploadEtaSeconds(null);
 
         const fallbackTitle = selectedFile.name.replace(/\.[^/.]+$/, "");
         const uploadTitle =
@@ -233,6 +248,7 @@ export default function UploadCourseVideo() {
     } finally {
       setLoading(false);
       setCurrentUploadIndex(null);
+      activeUploadAbortRef.current = null;
     }
   }
 
@@ -262,8 +278,23 @@ export default function UploadCourseVideo() {
                       ? ` (${currentUploadIndex + 1} of ${files.length})`
                       : ""
                   }.`
-                : "Browser upload is complete. The backend is now saving the file to Cloudflare R2."}
+                : "Upload complete. Verifying the video and saving the lesson."}
             </div>
+            {uploadProgress < 100 && (
+              <div style={uploadTelemetryStyle}>
+                <span>{formatUploadSpeed(uploadSpeed)}</span>
+                <span>{formatUploadEta(uploadEtaSeconds)}</span>
+              </div>
+            )}
+            {uploadProgress < 100 && (
+              <button
+                type="button"
+                onClick={() => activeUploadAbortRef.current?.abort()}
+                style={cancelUploadButtonStyle}
+              >
+                Cancel upload
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -703,6 +734,10 @@ export default function UploadCourseVideo() {
                       ? "Uploading video file, please wait..."
                       : "Finalizing upload..."}
                   </div>
+                  <div style={uploadTelemetryStyle}>
+                    <span>{formatUploadSpeed(uploadSpeed)}</span>
+                    <span>{formatUploadEta(uploadEtaSeconds)}</span>
+                  </div>
                 </div>
               )}
             </form>
@@ -715,85 +750,201 @@ export default function UploadCourseVideo() {
 
 async function uploadCourseVideo(
   courseId: string,
-  formData: FormData,
-  onProgress: (progress: number) => void
-) {
-  try {
-    const csrf = await getCsrfRequestHeader();
-    await uploadCourseVideoAttempt(courseId, formData, onProgress, csrf);
-  } catch (error: unknown) {
-    if (!(error instanceof UploadRequestError) || error.status !== 403) {
-      throw error;
-    }
-
-    const csrf = await getCsrfRequestHeader(true);
-    await uploadCourseVideoAttempt(courseId, formData, onProgress, csrf);
-  }
-}
-
-class UploadRequestError extends Error {
-  readonly status: number;
-
-  constructor(message: string, status: number) {
-    super(message);
-    this.name = "UploadRequestError";
-    this.status = status;
-  }
-}
-
-function uploadCourseVideoAttempt(
-  courseId: string,
-  formData: FormData,
+  file: File,
+  title: string,
   onProgress: (progress: number) => void,
-  csrf: { headerName: string; token: string }
+  onTelemetry: (bytesPerSecond: number, etaSeconds: number | null) => void,
+  signal: AbortSignal
 ) {
-  return new Promise<void>((resolve, reject) => {
+  const session = await apiFetch<MultipartUploadSession>(
+    `/api/course-videos/${courseId}/multipart/start`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        fileName: file.name,
+        title,
+        contentType: file.type || "application/octet-stream",
+        fileSize: file.size,
+      }),
+    }
+  );
+
+  const loadedByPart = new Map<number, number>();
+  const completedParts: UploadedPart[] = [];
+  const startedAt = performance.now();
+  let smoothedSpeed = 0;
+
+  const updateProgress = (partNumber: number, loaded: number) => {
+    loadedByPart.set(partNumber, loaded);
+    const totalLoaded = Array.from(loadedByPart.values()).reduce((sum, value) => sum + value, 0);
+    const elapsedSeconds = Math.max((performance.now() - startedAt) / 1000, 0.1);
+    const currentSpeed = totalLoaded / elapsedSeconds;
+    smoothedSpeed = smoothedSpeed === 0 ? currentSpeed : smoothedSpeed * 0.8 + currentSpeed * 0.2;
+    const remaining = Math.max(0, file.size - totalLoaded);
+    const eta = smoothedSpeed > 0 ? Math.ceil(remaining / smoothedSpeed) : null;
+    onProgress(Math.min(99, Math.round((totalLoaded / file.size) * 100)));
+    onTelemetry(smoothedSpeed, eta);
+  };
+
+  try {
+    await runWithConcurrency(
+      Array.from({ length: session.partCount }, (_, index) => index + 1),
+      3,
+      async (partNumber) => {
+        const start = (partNumber - 1) * session.partSize;
+        const end = Math.min(file.size, start + session.partSize);
+        const blob = file.slice(start, end);
+        const eTag = await uploadPartWithRetry(
+          session.partUrls[partNumber - 1],
+          blob,
+          partNumber,
+          updateProgress,
+          signal
+        );
+        completedParts.push({ partNumber, eTag });
+        loadedByPart.set(partNumber, blob.size);
+      }
+    );
+
+    throwIfAborted(signal);
+    onProgress(100);
+    onTelemetry(smoothedSpeed, 0);
+    await apiFetch(`/api/course-videos/${courseId}/multipart/complete`, {
+      method: "POST",
+      body: JSON.stringify({
+        uploadId: session.uploadId,
+        objectKey: session.objectKey,
+        fileName: file.name,
+        title,
+        contentType: file.type || "application/octet-stream",
+        fileSize: file.size,
+        parts: completedParts,
+      }),
+    });
+  } catch (error) {
+    await apiFetch(`/api/course-videos/${courseId}/multipart/abort`, {
+      method: "POST",
+      body: JSON.stringify({ uploadId: session.uploadId, objectKey: session.objectKey }),
+    }).catch(() => undefined);
+    throw error;
+  }
+}
+
+type MultipartUploadSession = {
+  uploadId: string;
+  objectKey: string;
+  partSize: number;
+  partCount: number;
+  expiresInSeconds: number;
+  partUrls: string[];
+};
+
+type UploadedPart = { partNumber: number; eTag: string };
+
+async function uploadPartWithRetry(
+  url: string,
+  blob: Blob,
+  partNumber: number,
+  onProgress: (partNumber: number, loaded: number) => void,
+  signal: AbortSignal
+) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    throwIfAborted(signal);
+    try {
+      return await uploadPart(url, blob, partNumber, onProgress, signal);
+    } catch (error) {
+      lastError = error;
+      if (signal.aborted) throw error;
+      onProgress(partNumber, 0);
+      await waitWithAbort(500 * 2 ** attempt, signal);
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(`Part ${partNumber} failed`);
+}
+
+function uploadPart(
+  url: string,
+  blob: Blob,
+  partNumber: number,
+  onProgress: (partNumber: number, loaded: number) => void,
+  signal: AbortSignal
+) {
+  return new Promise<string>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${API_BASE}/api/course-videos/${courseId}/upload`);
-    xhr.withCredentials = true;
-    xhr.setRequestHeader(csrf.headerName, csrf.token);
+    xhr.open("PUT", url);
 
     xhr.upload.onprogress = (event) => {
-      if (!event.lengthComputable) return;
-      const progress = Math.min(
-        100,
-        Math.max(0, Math.round((event.loaded / event.total) * 100))
-      );
-      onProgress(progress);
+      onProgress(partNumber, event.loaded);
     };
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        onProgress(100);
-        resolve();
+        const eTag = xhr.getResponseHeader("ETag");
+        if (!eTag) {
+          reject(new Error("R2 did not return an ETag. Check the bucket CORS ExposeHeaders setting."));
+          return;
+        }
+        onProgress(partNumber, blob.size);
+        resolve(eTag);
         return;
       }
-
-      try {
-        const json = JSON.parse(xhr.responseText);
-        reject(
-          new UploadRequestError(
-            json?.message ||
-              json?.error ||
-              json?.status?.message ||
-              xhr.responseText ||
-              "Upload failed",
-            xhr.status
-          )
-        );
-      } catch {
-        reject(
-          new UploadRequestError(
-            xhr.responseText || "Upload failed",
-            xhr.status
-          )
-        );
-      }
+      reject(new Error(`R2 rejected part ${partNumber} (${xhr.status})`));
     };
 
-    xhr.onerror = () => reject(new Error("Upload failed"));
-    xhr.send(formData);
+    xhr.onerror = () => reject(new Error(`Network error uploading part ${partNumber}`));
+    xhr.onabort = () => reject(new DOMException("Upload cancelled", "AbortError"));
+    const abort = () => xhr.abort();
+    signal.addEventListener("abort", abort, { once: true });
+    xhr.onloadend = () => signal.removeEventListener("abort", abort);
+    xhr.send(blob);
   });
+}
+
+async function runWithConcurrency<T>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T) => Promise<void>
+) {
+  let nextIndex = 0;
+  const runners = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (nextIndex < items.length) {
+      const item = items[nextIndex++];
+      await worker(item);
+    }
+  });
+  await Promise.all(runners);
+}
+
+function waitWithAbort(milliseconds: number, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    const onAbort = () => {
+      window.clearTimeout(timeout);
+      reject(new DOMException("Upload cancelled", "AbortError"));
+    };
+    const timeout = window.setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, milliseconds);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+function throwIfAborted(signal: AbortSignal) {
+  if (signal.aborted) throw new DOMException("Upload cancelled", "AbortError");
+}
+
+function formatUploadSpeed(bytesPerSecond: number) {
+  if (!Number.isFinite(bytesPerSecond) || bytesPerSecond <= 0) return "Calculating speed...";
+  return `${(bytesPerSecond / 1024 / 1024).toFixed(1)} MB/s`;
+}
+
+function formatUploadEta(seconds: number | null) {
+  if (seconds === null || !Number.isFinite(seconds)) return "Estimating time remaining...";
+  if (seconds <= 1) return "Less than a second remaining";
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return minutes > 0 ? `${minutes}m ${remainder}s remaining` : `${remainder}s remaining`;
 }
 
 function getCourseTeacherPhotoConfig(course: CourseRecord): TeacherPhotoConfig {
@@ -1295,4 +1446,26 @@ const progressHintStyle: React.CSSProperties = {
   marginTop: 10,
   color: "var(--app-muted)",
   fontSize: 13,
+};
+
+const uploadTelemetryStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 14,
+  flexWrap: "wrap",
+  marginTop: 10,
+  color: "rgba(191, 219, 254, 0.88)",
+  fontSize: 13,
+  fontWeight: 700,
+};
+
+const cancelUploadButtonStyle: React.CSSProperties = {
+  marginTop: 16,
+  padding: "10px 16px",
+  borderRadius: 12,
+  border: "1px solid rgba(248, 113, 113, 0.48)",
+  background: "rgba(127, 29, 29, 0.4)",
+  color: "#fee2e2",
+  fontWeight: 700,
+  cursor: "pointer",
 };
