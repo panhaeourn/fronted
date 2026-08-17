@@ -377,17 +377,26 @@ export default function Courses() {
           return (
             <div
               key={course.id}
-              className={course.freeAccess ? "course-card-electric-shell" : undefined}
+              className={`course-card-hover${course.freeAccess ? " course-card-free-electric" : ""}`}
               style={{
                 position: "relative",
-                minWidth: 0,
+                overflow: "hidden",
+                border: "1px solid rgba(191, 219, 254, 0.24)",
+                borderRadius: 24,
+                padding: 20,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                gap: 18,
                 minHeight: courseCardHeight,
                 height: courseCardHeight,
+                background:
+                  "radial-gradient(circle at top right, rgba(73, 120, 255, 0.26), transparent 24%), var(--app-card-elevated-bg)",
+                boxShadow: "var(--app-panel-shadow)",
               }}
             >
               {course.freeAccess && (
                 <div className="free-course-electric-effect" aria-hidden="true">
-                  <div className="free-course-electric-background-glow" />
                   <div className="free-course-electric-border" />
                   <div className="free-course-electric-glow free-course-electric-glow--near" />
                   <div className="free-course-electric-glow free-course-electric-glow--far" />
@@ -396,25 +405,6 @@ export default function Courses() {
                 </div>
               )}
 
-              <div
-                className={`course-card-hover${course.freeAccess ? " course-card-free-electric" : ""}`}
-                style={{
-                  position: "relative",
-                  overflow: "hidden",
-                  border: "1px solid rgba(191, 219, 254, 0.24)",
-                  borderRadius: 24,
-                  padding: 20,
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  gap: 18,
-                  minHeight: courseCardHeight,
-                  height: courseCardHeight,
-                  background:
-                    "radial-gradient(circle at top right, rgba(73, 120, 255, 0.26), transparent 24%), var(--app-card-elevated-bg)",
-                  boxShadow: "var(--app-panel-shadow)",
-                }}
-              >
               {teacherPhoto?.src && (
                 <>
                   <div style={posterBackgroundStyle}>
@@ -631,7 +621,6 @@ export default function Courses() {
                     </>
                   )}
                 </div>
-              </div>
               </div>
             );
         })}
