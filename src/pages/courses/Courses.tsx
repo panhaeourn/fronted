@@ -163,46 +163,6 @@ export default function Courses() {
         color: "var(--app-heading)",
       }}
     >
-      <svg className="free-course-electric-svg" aria-hidden="true">
-        <defs>
-          <filter
-            id="free-course-turbulent-displace"
-            colorInterpolationFilters="sRGB"
-            x="-20%"
-            y="-20%"
-            width="140%"
-            height="140%"
-          >
-            <feTurbulence type="turbulence" baseFrequency=".02" numOctaves="10" result="noise1" seed="1" />
-            <feOffset in="noise1" result="offsetNoise1">
-              <animate attributeName="dy" values="700;0" dur="6s" repeatCount="indefinite" calcMode="linear" />
-            </feOffset>
-            <feTurbulence type="turbulence" baseFrequency=".02" numOctaves="10" result="noise2" seed="1" />
-            <feOffset in="noise2" result="offsetNoise2">
-              <animate attributeName="dy" values="0;-700" dur="6s" repeatCount="indefinite" calcMode="linear" />
-            </feOffset>
-            <feTurbulence type="turbulence" baseFrequency=".02" numOctaves="10" result="noise3" seed="2" />
-            <feOffset in="noise3" result="offsetNoise3">
-              <animate attributeName="dx" values="490;0" dur="6s" repeatCount="indefinite" calcMode="linear" />
-            </feOffset>
-            <feTurbulence type="turbulence" baseFrequency=".02" numOctaves="10" result="noise4" seed="2" />
-            <feOffset in="noise4" result="offsetNoise4">
-              <animate attributeName="dx" values="0;-490" dur="6s" repeatCount="indefinite" calcMode="linear" />
-            </feOffset>
-            <feComposite in="offsetNoise1" in2="offsetNoise2" result="part1" />
-            <feComposite in="offsetNoise3" in2="offsetNoise4" result="part2" />
-            <feBlend in="part1" in2="part2" mode="color-dodge" result="combinedNoise" />
-            <feDisplacementMap
-              in="SourceGraphic"
-              in2="combinedNoise"
-              scale="30"
-              xChannelSelector="R"
-              yChannelSelector="B"
-            />
-          </filter>
-        </defs>
-      </svg>
-
       <div
         style={{
           display: "flex",
@@ -377,7 +337,7 @@ export default function Courses() {
           return (
             <div
               key={course.id}
-              className={`course-card-hover${course.freeAccess ? " course-card-free-electric" : ""}`}
+              className="course-card-hover"
               style={{
                 position: "relative",
                 overflow: "hidden",
@@ -395,16 +355,6 @@ export default function Courses() {
                 boxShadow: "var(--app-panel-shadow)",
               }}
             >
-              {course.freeAccess && (
-                <div className="free-course-electric-effect" aria-hidden="true">
-                  <div className="free-course-electric-border" />
-                  <div className="free-course-electric-glow free-course-electric-glow--near" />
-                  <div className="free-course-electric-glow free-course-electric-glow--far" />
-                  <div className="free-course-electric-overlay free-course-electric-overlay--strong" />
-                  <div className="free-course-electric-overlay free-course-electric-overlay--soft" />
-                </div>
-              )}
-
               {teacherPhoto?.src && (
                 <>
                   <div style={posterBackgroundStyle}>
