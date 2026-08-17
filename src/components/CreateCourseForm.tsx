@@ -11,6 +11,7 @@ export default function CreateCourseForm({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState<number | "">(5);
+  const [freeAccess, setFreeAccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
@@ -24,7 +25,7 @@ export default function CreateCourseForm({
       return;
     }
 
-    if (price === "" || Number.isNaN(price) || price <= 0) {
+    if (!freeAccess && (price === "" || Number.isNaN(price) || price <= 0)) {
       setErr("Price must be > 0");
       return;
     }
@@ -38,6 +39,7 @@ export default function CreateCourseForm({
           title,
           description,
           price,
+          freeAccess,
         }),
       });
 
@@ -47,6 +49,7 @@ export default function CreateCourseForm({
       setTitle("");
       setDescription("");
       setPrice(5);
+      setFreeAccess(false);
     } catch (error: unknown) {
       console.error("CREATE COURSE ERROR:", error);
       setErr(getErrorMessage(error, "Failed to create course"));
@@ -98,14 +101,32 @@ export default function CreateCourseForm({
         <input
           type="number"
           placeholder="Price"
-          min={1}
+          min={freeAccess ? 0 : 1}
           step={0.01}
           value={price}
+          disabled={freeAccess}
           onChange={(e) =>
             setPrice(e.target.value === "" ? "" : Number(e.target.value))
           }
           style={inputStyle}
         />
+
+        <label style={freeCourseLabelStyle}>
+          <input
+            type="checkbox"
+            checked={freeAccess}
+            onChange={(event) => {
+              const checked = event.target.checked;
+              setFreeAccess(checked);
+              if (checked) setPrice(0);
+              else if (price === 0) setPrice(5);
+            }}
+          />
+          <span>
+            <strong>Free course</strong>
+            <small>Every signed-in user can watch without purchasing.</small>
+          </span>
+        </label>
 
         <button disabled={loading} type="submit" style={submitButtonStyle}>
           {loading ? "Creating..." : "Create"}
@@ -139,4 +160,15 @@ const submitButtonStyle: React.CSSProperties = {
   fontWeight: 700,
   boxShadow:
     "0 14px 30px rgba(33, 126, 255, 0.22), 0 0 28px rgba(96, 165, 250, 0.24)",
+};
+
+const freeCourseLabelStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "flex-start",
+  gap: 10,
+  padding: "12px 14px",
+  borderRadius: 14,
+  border: "1px solid var(--app-input-border)",
+  color: "var(--app-heading)",
+  cursor: "pointer",
 };

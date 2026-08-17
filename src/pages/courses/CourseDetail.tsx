@@ -17,6 +17,7 @@ type Course = {
   description?: string;
   price?: number;
   enrolled?: boolean;
+  freeAccess?: boolean;
 };
 
 type CourseVideo = {
@@ -237,12 +238,12 @@ export default function CourseDetail() {
       <div className="course-detail-stats" style={statsGridStyle}>
         <InfoCard
           label="Price"
-          value={formatCoursePrice(Number(course.price || 0))}
+          value={course.freeAccess ? "Free" : formatCoursePrice(Number(course.price || 0))}
           accent="#60a5fa"
         />
         <InfoCard
           label="Status"
-          value={course.enrolled ? "Enrolled" : "Locked"}
+          value={course.freeAccess ? "Free Access" : course.enrolled ? "Enrolled" : "Locked"}
           accent={course.enrolled ? "#34d399" : "#f87171"}
         />
         <InfoCard

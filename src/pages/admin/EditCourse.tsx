@@ -29,6 +29,7 @@ export default function EditCourse() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState<number | "">(5);
+  const [freeAccess, setFreeAccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
   const [err, setErr] = useState("");
@@ -44,6 +45,7 @@ export default function EditCourse() {
         setTitle(data.title || "");
         setDescription(data.description || "");
         setPrice(data.price ?? 5);
+        setFreeAccess(Boolean(data.freeAccess));
       } catch (error: unknown) {
         setErr(getErrorMessage(error, "Failed to load course"));
       } finally {
@@ -66,7 +68,7 @@ export default function EditCourse() {
       return;
     }
 
-    if (price === "" || Number(price) <= 0) {
+    if (!freeAccess && (price === "" || Number(price) <= 0)) {
       setErr("Price must be greater than 0");
       return;
     }
@@ -80,6 +82,7 @@ export default function EditCourse() {
           title,
           description,
           price,
+          freeAccess,
         }),
       });
 
@@ -124,7 +127,7 @@ export default function EditCourse() {
                 </div>
                 <div style={infoCardStyle}>
                 <div style={infoLabelStyle}>Current Price</div>
-                <div style={infoValueStyle}>{Number(price || 0).toFixed(2)} USD</div>
+                <div style={infoValueStyle}>{freeAccess ? "Free" : `${Number(price || 0).toFixed(2)} USD`}</div>
               </div>
             </div>
           </div>
@@ -165,16 +168,34 @@ export default function EditCourse() {
                 <label style={labelStyle}>Price</label>
                 <input
                   type="number"
-                  min={1}
+                  min={freeAccess ? 0 : 1}
                   step={0.01}
                   placeholder="Price"
                   value={price}
+                  disabled={freeAccess}
                   onChange={(e) =>
                     setPrice(e.target.value === "" ? "" : Number(e.target.value))
                   }
                   style={inputStyle}
                 />
               </div>
+
+              <label style={freeCourseLabelStyle}>
+                <input
+                  type="checkbox"
+                  checked={freeAccess}
+                  onChange={(event) => {
+                    const checked = event.target.checked;
+                    setFreeAccess(checked);
+                    if (checked) setPrice(0);
+                    else if (price === 0) setPrice(5);
+                  }}
+                />
+                <span>
+                  <strong>Free course</strong>
+                  <small>Every signed-in user can watch without purchasing.</small>
+                </span>
+              </label>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <button type="submit" disabled={loading} style={primaryButtonStyle}>
@@ -233,4 +254,15 @@ const textareaStyle: React.CSSProperties = {
   ...inputStyle,
   minHeight: 150,
   resize: "vertical",
+};
+
+const freeCourseLabelStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "flex-start",
+  gap: 10,
+  padding: "12px 14px",
+  borderRadius: 14,
+  border: "1px solid var(--app-input-border)",
+  color: "var(--app-heading)",
+  cursor: "pointer",
 };

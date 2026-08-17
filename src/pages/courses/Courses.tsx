@@ -452,7 +452,7 @@ export default function Courses() {
                     marginBottom: 14,
                   }}
                 >
-                  {course.enrolled ? "Unlocked" : "Available"}
+                  {course.freeAccess ? "Free Access" : course.enrolled ? "Unlocked" : "Available"}
                 </div>
 
                 <div
@@ -501,7 +501,7 @@ export default function Courses() {
                     textShadow: "0 2px 10px rgba(0, 0, 0, 0.72)",
                   }}
                 >
-                  {formatCoursePrice(Number(price))}
+                  {course.freeAccess ? "Free" : formatCoursePrice(Number(price))}
                 </div>
 
                 <div
@@ -517,7 +517,7 @@ export default function Courses() {
 
                 {course.enrolled && (
                   <div style={{ marginTop: 10, color: "#34d399", fontWeight: 700 }}>
-                    Enrolled
+                    {course.freeAccess ? "Free for everyone" : "Enrolled"}
                   </div>
                 )}
               </div>
