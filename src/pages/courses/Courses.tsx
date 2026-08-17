@@ -337,7 +337,7 @@ export default function Courses() {
           return (
             <div
               key={course.id}
-              className="course-card-hover"
+              className={`course-card-hover${course.freeAccess ? " course-card-free" : ""}`}
               style={{
                 position: "relative",
                 overflow: "hidden",
