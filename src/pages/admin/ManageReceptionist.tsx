@@ -114,13 +114,14 @@ export default function ManageReceptionist() {
 
   const timelineStart = customFrom ? dateInputToTimestamp(customFrom) : timelineBounds.min;
   const timelineEnd = customTo ? dateInputToTimestamp(customTo) : timelineBounds.max;
+  const todayInput = timestampToDateInput(new Date().setHours(0, 0, 0, 0));
   const timelineSpan = Math.max(1, timelineBounds.max - timelineBounds.min);
   const selectedLeft = ((timelineStart - timelineBounds.min) / timelineSpan) * 100;
   const selectedWidth = ((timelineEnd - timelineStart) / timelineSpan) * 100;
 
   function openCustomTimeline() {
     const from = timestampToDateInput(timelineBounds.min);
-    const to = timestampToDateInput(timelineBounds.max);
+    const to = todayInput;
     setOverallRange("CUSTOM");
     if (!customFrom || !customTo) {
       setCustomFrom(from);
@@ -146,16 +147,25 @@ export default function ManageReceptionist() {
 
   function updateCustomFrom(value: string) {
     if (!value) return;
-    const clamped = dateInputToTimestamp(value) > timelineEnd ? customTo : value;
-    setCustomFrom(clamped);
-    setAppliedCustomFrom(clamped);
+    setCustomFrom(value);
+    setAppliedCustomFrom(value);
+    if (!customTo || dateInputToTimestamp(value) > dateInputToTimestamp(customTo)) {
+      setCustomTo(value);
+      setAppliedCustomTo(value);
+    }
   }
 
   function updateCustomTo(value: string) {
     if (!value) return;
-    const clamped = dateInputToTimestamp(value) < timelineStart ? customFrom : value;
-    setCustomTo(clamped);
-    setAppliedCustomTo(clamped);
+    const bounded = dateInputToTimestamp(value) > dateInputToTimestamp(todayInput)
+      ? todayInput
+      : value;
+    setCustomTo(bounded);
+    setAppliedCustomTo(bounded);
+    if (!customFrom || dateInputToTimestamp(bounded) < dateInputToTimestamp(customFrom)) {
+      setCustomFrom(bounded);
+      setAppliedCustomFrom(bounded);
+    }
   }
 
   function moveTimelineSelection(clientX: number) {
@@ -308,8 +318,7 @@ export default function ManageReceptionist() {
                   <span>From</span>
                   <input
                     type="date"
-                    min={timestampToDateInput(timelineBounds.min)}
-                    max={customTo || timestampToDateInput(timelineBounds.max)}
+                    max={customTo || todayInput}
                     value={customFrom}
                     onChange={(event) => updateCustomFrom(event.target.value)}
                     style={customDateInputStyle}
@@ -320,7 +329,7 @@ export default function ManageReceptionist() {
                   <input
                     type="date"
                     min={customFrom || timestampToDateInput(timelineBounds.min)}
-                    max={timestampToDateInput(timelineBounds.max)}
+                    max={todayInput}
                     value={customTo}
                     onChange={(event) => updateCustomTo(event.target.value)}
                     style={customDateInputStyle}

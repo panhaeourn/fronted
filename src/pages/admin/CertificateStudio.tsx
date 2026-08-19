@@ -185,6 +185,13 @@ export default function CertificateStudio() {
     issuanceBatchRef.current = createIssuanceBatchId();
   }
 
+  function addCertificatePage() {
+    setRows((current) => [...current, { ...blankPreviewRow }]);
+    setIssuedCertificates([]);
+    issuanceBatchRef.current = createIssuanceBatchId();
+    setError("");
+  }
+
   async function ensureCertificatesIssued() {
     if (rows.length === 0) {
       throw new Error("Select a spreadsheet before issuing certificates.");
@@ -318,6 +325,14 @@ export default function CertificateStudio() {
           </div>
         </div>
         <div className="certificate-hero-actions">
+          <button
+            className="certificate-button certificate-button--secondary"
+            type="button"
+            disabled={Boolean(printStatus) || issuing || publishing}
+            onClick={addCertificatePage}
+          >
+            + Page
+          </button>
           <button className="certificate-button certificate-button--secondary" type="button" onClick={downloadSpreadsheetTemplate}>
             Download template
           </button>
