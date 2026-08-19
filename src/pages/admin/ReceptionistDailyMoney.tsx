@@ -151,6 +151,13 @@ export default function ReceptionistDailyMoney() {
   const yearBuckets = useMemo(() => buildYearBuckets(filteredDays), [filteredDays]);
   const total = filteredDays.reduce((sum, day) => sum + day.total, 0);
   const totalTransactions = filteredDays.reduce((sum, day) => sum + day.count, 0);
+  const timelineMin = dateInputToTimestamp(customMin);
+  const timelineMax = dateInputToTimestamp(todayInput);
+  const timelineStart = isValidDateInput(customFrom) ? dateInputToTimestamp(customFrom) : timelineMin;
+  const timelineEnd = isValidDateInput(customTo) ? dateInputToTimestamp(customTo) : timelineMax;
+  const timelineSpan = Math.max(1, timelineMax - timelineMin);
+  const timelineLeft = ((timelineStart - timelineMin) / timelineSpan) * 100;
+  const timelineWidth = ((timelineEnd - timelineStart) / timelineSpan) * 100;
 
   function customBasePath() {
     return isSelfView ? "/reception/money" : `/admin/receptionists/${user?.id || idNum}/money`;
@@ -177,6 +184,12 @@ export default function ReceptionistDailyMoney() {
     }
     setCustomTo(value);
     navigate(`${customBasePath()}?range=CUSTOM&from=${encodeURIComponent(customFrom)}&to=${encodeURIComponent(value)}`);
+  }
+
+  function updateTimelineRange(nextFrom: string, nextTo: string) {
+    setCustomFrom(nextFrom);
+    setCustomTo(nextTo);
+    navigate(`${customBasePath()}?range=CUSTOM&from=${encodeURIComponent(nextFrom)}&to=${encodeURIComponent(nextTo)}`);
   }
 
   if (!isSelfView && (!userId || Number.isNaN(idNum))) {
@@ -316,6 +329,51 @@ export default function ReceptionistDailyMoney() {
                   </div>
                 )}
               </div>
+              {isValidDateInput(customFrom) && isValidDateInput(customTo) && (
+                <div style={customTimelineStyle}>
+                  <div style={customTimelineHeaderStyle}>
+                    <strong>Date timeline</strong>
+                    <span>{formatShortDate(customFrom)} – {formatShortDate(customTo)}</span>
+                  </div>
+                  <div style={customTimelineTrackWrapStyle}>
+                    <div style={customTimelineTrackStyle} />
+                    <div style={{ ...customTimelineSelectionStyle, left: `${timelineLeft}%`, width: `${timelineWidth}%` }} />
+                    <input
+                      className="income-timeline-range"
+                      type="range"
+                      aria-label="Custom range start date"
+                      min={timelineMin}
+                      max={timelineMax}
+                      step={86_400_000}
+                      value={timelineStart}
+                      style={{ zIndex: timelineStart >= timelineEnd ? 5 : 4 }}
+                      onChange={(event) => {
+                        const value = Math.min(Number(event.target.value), timelineEnd);
+                        updateTimelineRange(timestampToDateInput(value), customTo);
+                      }}
+                    />
+                    <input
+                      className="income-timeline-range"
+                      type="range"
+                      aria-label="Custom range end date"
+                      min={timelineMin}
+                      max={timelineMax}
+                      step={86_400_000}
+                      value={timelineEnd}
+                      style={{ zIndex: 3 }}
+                      onChange={(event) => {
+                        const value = Math.max(Number(event.target.value), timelineStart);
+                        updateTimelineRange(customFrom, timestampToDateInput(value));
+                      }}
+                    />
+                  </div>
+                  <div style={customTimelineFooterStyle}>
+                    <span>{formatShortDate(customMin)}</span>
+                    <span>{countInclusiveDays(timelineStart, timelineEnd)} day period</span>
+                    <span>Today</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1018,6 +1076,39 @@ const filterChipButtonStyle: React.CSSProperties = {
 const customRangePanelStyle: React.CSSProperties = {
   width: "100%",
   paddingTop: 2,
+  display: "grid",
+  gap: 13,
+};
+
+const customTimelineStyle: React.CSSProperties = {
+  display: "grid", gap: 8, padding: "12px 14px 10px", borderRadius: 14,
+  background: "linear-gradient(135deg,rgba(79,124,255,.08),rgba(65,199,244,.04))",
+  border: "1px solid rgba(96,165,250,.2)",
+};
+
+const customTimelineHeaderStyle: React.CSSProperties = {
+  display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10,
+  flexWrap: "wrap", color: "var(--app-muted)", fontSize: 11,
+};
+
+const customTimelineTrackWrapStyle: React.CSSProperties = {
+  position: "relative", height: 42, margin: "0 13px",
+};
+
+const customTimelineTrackStyle: React.CSSProperties = {
+  position: "absolute", top: 18, left: 0, right: 0, height: 7, borderRadius: 999,
+  background: "#17233d", boxShadow: "inset 0 1px 2px rgba(0,0,0,.35)",
+};
+
+const customTimelineSelectionStyle: React.CSSProperties = {
+  position: "absolute", zIndex: 2, top: 14, height: 15, borderRadius: 999,
+  background: "linear-gradient(90deg,#4f7cff,#41c7f4 48%,#22c55e)",
+  boxShadow: "0 4px 13px rgba(59,130,246,.27),0 0 0 3px rgba(65,199,244,.1)",
+};
+
+const customTimelineFooterStyle: React.CSSProperties = {
+  display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 8,
+  color: "var(--app-muted)", fontSize: 10, fontWeight: 700,
 };
 
 const yearFilterStyle: React.CSSProperties = {
@@ -1036,6 +1127,14 @@ function timestampToDateInput(value: number) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function dateInputToTimestamp(value: string) {
+  return new Date(`${value}T00:00:00`).getTime();
+}
+
+function countInclusiveDays(start: number, end: number) {
+  return Math.max(1, Math.round((end - start) / 86_400_000) + 1).toLocaleString();
 }
 
 function startOfMonth(date: Date) {
