@@ -37,9 +37,8 @@ export default function ManageReceptionist() {
   const [customTo, setCustomTo] = useState("");
   const [appliedCustomFrom, setAppliedCustomFrom] = useState("");
   const [appliedCustomTo, setAppliedCustomTo] = useState("");
-  const [timelineDrag, setTimelineDrag] = useState<{
-    clientX: number; start: number; end: number; width: number;
-  } | null>(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
 
   const activeCodes = codes.filter(
     (item) => !item.used && new Date(item.expiresAt) >= new Date()
@@ -112,75 +111,48 @@ export default function ManageReceptionist() {
     };
   }, [appliedCustomFrom, appliedCustomTo, currentReceiptHistoryByReceptionist, overallRange]);
 
-  const timelineStart = customFrom ? dateInputToTimestamp(customFrom) : timelineBounds.min;
-  const timelineEnd = customTo ? dateInputToTimestamp(customTo) : timelineBounds.max;
   const todayInput = timestampToDateInput(new Date().setHours(0, 0, 0, 0));
-  const timelineSpan = Math.max(1, timelineBounds.max - timelineBounds.min);
-  const selectedLeft = ((timelineStart - timelineBounds.min) / timelineSpan) * 100;
-  const selectedWidth = ((timelineEnd - timelineStart) / timelineSpan) * 100;
 
   function openCustomTimeline() {
     const from = timestampToDateInput(timelineBounds.min);
     const to = todayInput;
     setOverallRange("CUSTOM");
-    if (!customFrom || !customTo) {
-      setCustomFrom(from);
-      setCustomTo(to);
-      setAppliedCustomFrom(from);
-      setAppliedCustomTo(to);
+    const selectedFrom = appliedCustomFrom || from;
+    const selectedTo = appliedCustomTo || to;
+    setCustomFrom(selectedFrom);
+    setCustomTo(selectedTo);
+    const selectedMonth = startOfMonth(new Date(`${selectedFrom}T00:00:00`));
+    const latestFirstMonth = addMonths(startOfMonth(new Date()), -1);
+    setCalendarMonth(selectedMonth > latestFirstMonth ? latestFirstMonth : selectedMonth);
+    setCalendarOpen(true);
+  }
+
+  function selectCalendarDate(value: string) {
+    if (!customFrom || customTo) {
+      setCustomFrom(value);
+      setCustomTo("");
+      return;
     }
-  }
-
-  function updateTimelineStart(value: number) {
-    const next = Math.min(value, timelineEnd);
-    const date = timestampToDateInput(next);
-    setCustomFrom(date);
-    setAppliedCustomFrom(date);
-  }
-
-  function updateTimelineEnd(value: number) {
-    const next = Math.max(value, timelineStart);
-    const date = timestampToDateInput(next);
-    setCustomTo(date);
-    setAppliedCustomTo(date);
-  }
-
-  function updateCustomFrom(value: string) {
-    if (!value) return;
-    setCustomFrom(value);
-    setAppliedCustomFrom(value);
-    if (!customTo || dateInputToTimestamp(value) > dateInputToTimestamp(customTo)) {
-      setCustomTo(value);
-      setAppliedCustomTo(value);
+    if (dateInputToTimestamp(value) < dateInputToTimestamp(customFrom)) {
+      setCustomFrom(value);
+      return;
     }
+    setCustomTo(value);
   }
 
-  function updateCustomTo(value: string) {
-    if (!value) return;
-    const bounded = dateInputToTimestamp(value) > dateInputToTimestamp(todayInput)
-      ? todayInput
-      : value;
-    setCustomTo(bounded);
-    setAppliedCustomTo(bounded);
-    if (!customFrom || dateInputToTimestamp(bounded) < dateInputToTimestamp(customFrom)) {
-      setCustomFrom(bounded);
-      setAppliedCustomFrom(bounded);
-    }
+  function cancelCalendar() {
+    setCustomFrom(appliedCustomFrom);
+    setCustomTo(appliedCustomTo);
+    setCalendarOpen(false);
   }
 
-  function moveTimelineSelection(clientX: number) {
-    if (!timelineDrag) return;
-    const day = 86_400_000;
-    const rawDelta = ((clientX - timelineDrag.clientX) / Math.max(1, timelineDrag.width)) * timelineSpan;
-    let delta = Math.round(rawDelta / day) * day;
-    delta = Math.max(delta, timelineBounds.min - timelineDrag.start);
-    delta = Math.min(delta, timelineBounds.max - timelineDrag.end);
-    const from = timestampToDateInput(timelineDrag.start + delta);
-    const to = timestampToDateInput(timelineDrag.end + delta);
-    setCustomFrom(from);
+  function applyCalendar() {
+    if (!customFrom) return;
+    const to = customTo || customFrom;
     setCustomTo(to);
-    setAppliedCustomFrom(from);
+    setAppliedCustomFrom(customFrom);
     setAppliedCustomTo(to);
+    setCalendarOpen(false);
   }
 
   async function loadData() {
@@ -312,90 +284,64 @@ export default function ManageReceptionist() {
             </button>
           </div>
           {overallRange === "CUSTOM" && (
-            <div style={timelineWrapStyle}>
-              <div style={customDatePickerRowStyle}>
-                <label style={customDateLabelStyle}>
-                  <span>From</span>
-                  <input
-                    type="date"
-                    max={customTo || todayInput}
-                    value={customFrom}
-                    onChange={(event) => updateCustomFrom(event.target.value)}
-                    style={customDateInputStyle}
-                  />
-                </label>
-                <label style={customDateLabelStyle}>
-                  <span>To</span>
-                  <input
-                    type="date"
-                    min={customFrom || timestampToDateInput(timelineBounds.min)}
-                    max={todayInput}
-                    value={customTo}
-                    onChange={(event) => updateCustomTo(event.target.value)}
-                    style={customDateInputStyle}
-                  />
-                </label>
-              </div>
-              <div style={timelineHeaderStyle}>
-                <div>
-                  <div style={timelineTitleStyle}>Income timeline</div>
+            <div className="income-date-picker-shell">
+              <button
+                type="button"
+                className="income-date-range-trigger"
+                aria-haspopup="dialog"
+                aria-expanded={calendarOpen}
+                onClick={() => setCalendarOpen((open) => !open)}
+              >
+                <span className="income-date-icon" aria-hidden="true">▣</span>
+                <span>
+                  <small>From</small>
+                  <strong>{formatShortDate(customFrom || appliedCustomFrom)}</strong>
+                </span>
+                <span className="income-date-divider" />
+                <span>
+                  <small>To</small>
+                  <strong>{formatShortDate(customTo || appliedCustomTo)}</strong>
+                </span>
+                <span className="income-date-chevron" aria-hidden="true">⌄</span>
+              </button>
+
+              {calendarOpen && (
+                <div className="income-calendar-popover" role="dialog" aria-label="Choose income date range">
+                  <div className="income-calendar-heading">
+                    <div>
+                      <strong>Select income period</strong>
+                      <span>{customTo ? `${formatShortDate(customFrom)} – ${formatShortDate(customTo)}` : "Choose an end date"}</span>
+                    </div>
+                    <div className="income-calendar-nav">
+                      <button type="button" aria-label="Previous month" onClick={() => setCalendarMonth(addMonths(calendarMonth, -1))}>‹</button>
+                      <button
+                        type="button"
+                        aria-label="Next month"
+                        disabled={isSameOrAfterMonth(addMonths(calendarMonth, 1), new Date())}
+                        onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
+                      >›</button>
+                    </div>
+                  </div>
+                  <div className="income-calendar-months">
+                    {[calendarMonth, addMonths(calendarMonth, 1)].map((month) => (
+                      <CalendarMonth
+                        key={`${month.getFullYear()}-${month.getMonth()}`}
+                        month={month}
+                        from={customFrom}
+                        to={customTo}
+                        min={timestampToDateInput(timelineBounds.min)}
+                        max={todayInput}
+                        onSelect={selectCalendarDate}
+                      />
+                    ))}
+                  </div>
+                  <div className="income-calendar-actions">
+                    <span>{customFrom && customTo ? `${countInclusiveDays(dateInputToTimestamp(customFrom), dateInputToTimestamp(customTo))} days selected` : "Select a start and end date"}</span>
+                    <button type="button" className="income-calendar-cancel" onClick={cancelCalendar}>Cancel</button>
+                    <button type="button" className="income-calendar-apply" disabled={!customFrom} onClick={applyCalendar}>Apply</button>
+                  </div>
                 </div>
-                <div style={timelineLegendStyle}>
-                  <span style={timelineLegendItemStyle}><i style={allTimeDotStyle} />All time</span>
-                  <span style={timelineLegendItemStyle}><i style={selectedDotStyle} />Selected</span>
-                </div>
-              </div>
-              <div style={timelineDateRowStyle}>
-                <span>{formatShortDate(timestampToDateInput(timelineBounds.min))}</span>
-                <strong style={selectedDatePillStyle}>{formatShortDate(customFrom)} {"–"} {formatShortDate(customTo)}</strong>
-                <span style={{ textAlign: "right" }}>{formatShortDate(timestampToDateInput(timelineBounds.max))}</span>
-              </div>
-              <div style={timelineTrackWrapStyle}>
-                <div style={timelineTrackStyle} />
-                <div
-                  style={{ ...timelineSelectionStyle, left: `${selectedLeft}%`, width: `${selectedWidth}%` }}
-                  title="Drag to move the selected duration"
-                  onPointerDown={(event) => {
-                    event.currentTarget.setPointerCapture(event.pointerId);
-                    setTimelineDrag({
-                      clientX: event.clientX,
-                      start: timelineStart,
-                      end: timelineEnd,
-                      width: event.currentTarget.parentElement?.getBoundingClientRect().width || 1,
-                    });
-                  }}
-                  onPointerMove={(event) => moveTimelineSelection(event.clientX)}
-                  onPointerUp={() => setTimelineDrag(null)}
-                  onPointerCancel={() => setTimelineDrag(null)}
-                />
-                <input
-                  className="income-timeline-range"
-                  aria-label="Income range start date"
-                  type="range"
-                  min={timelineBounds.min}
-                  max={timelineBounds.max}
-                  step={86_400_000}
-                  value={timelineStart}
-                  style={{ zIndex: timelineStart >= timelineEnd ? 5 : 4 }}
-                  onChange={(event) => updateTimelineStart(Number(event.target.value))}
-                />
-                <input
-                  className="income-timeline-range"
-                  aria-label="Income range end date"
-                  type="range"
-                  min={timelineBounds.min}
-                  max={timelineBounds.max}
-                  step={86_400_000}
-                  value={timelineEnd}
-                  style={{ zIndex: 3 }}
-                  onChange={(event) => updateTimelineEnd(Number(event.target.value))}
-                />
-              </div>
-              <div style={timelineFooterStyle}>
-                <span>Earliest income</span>
-                <span>{countInclusiveDays(timelineStart, timelineEnd)} day period · drag green bar to move</span>
-                <span style={{ textAlign: "right" }}>Today</span>
-              </div>
+              )}
             </div>
           )}
         </div>
@@ -481,6 +427,51 @@ function OverallMetric({ label, value, accent }: { label: string; value: string;
   );
 }
 
+function CalendarMonth({
+  month, from, to, min, max, onSelect,
+}: {
+  month: Date; from: string; to: string; min: string; max: string; onSelect: (value: string) => void;
+}) {
+  const first = new Date(month.getFullYear(), month.getMonth(), 1);
+  const leadingDays = (first.getDay() + 6) % 7;
+  const totalDays = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  const cells = Array.from({ length: leadingDays + totalDays }, (_, index) => {
+    if (index < leadingDays) return null;
+    return new Date(month.getFullYear(), month.getMonth(), index - leadingDays + 1);
+  });
+
+  return (
+    <section className="income-calendar-month" aria-label={month.toLocaleDateString("en-US", { month: "long", year: "numeric" })}>
+      <h3>{month.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</h3>
+      <div className="income-calendar-weekdays" aria-hidden="true">
+        {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => <span key={day}>{day}</span>)}
+      </div>
+      <div className="income-calendar-grid">
+        {cells.map((date, index) => {
+          if (!date) return <span key={`empty-${index}`} />;
+          const value = timestampToDateInput(date.getTime());
+          const disabled = value < min || value > max;
+          const selected = value === from || value === to;
+          const inRange = Boolean(from && to && value > from && value < to);
+          return (
+            <button
+              key={value}
+              type="button"
+              disabled={disabled}
+              className={`${selected ? "is-selected" : ""} ${inRange ? "is-in-range" : ""}`}
+              aria-label={date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+              aria-pressed={selected}
+              onClick={() => onSelect(value)}
+            >
+              {date.getDate()}
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function startOfWeek(date: Date) {
   const value = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const day = value.getDay();
@@ -512,6 +503,19 @@ function dateInputToTimestamp(value: string) {
   return new Date(`${value}T00:00:00`).getTime();
 }
 
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths(date: Date, amount: number) {
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+}
+
+function isSameOrAfterMonth(date: Date, comparison: Date) {
+  return date.getFullYear() > comparison.getFullYear() ||
+    (date.getFullYear() === comparison.getFullYear() && date.getMonth() >= comparison.getMonth());
+}
+
 function countInclusiveDays(start: number, end: number) {
   return Math.max(1, Math.round((end - start) / 86_400_000) + 1).toLocaleString();
 }
@@ -528,56 +532,6 @@ const durationToolbarStyle: React.CSSProperties = {
 };
 const durationLabelStyle: React.CSSProperties = {
   color: "var(--app-muted)", fontSize: 12, fontWeight: 850, letterSpacing: ".05em", textTransform: "uppercase",
-};
-const timelineWrapStyle: React.CSSProperties = {
-  flexBasis: "100%", display: "grid", gap: 11, padding: "14px 16px 12px", borderRadius: 14,
-  background: "linear-gradient(135deg,rgba(79,124,255,.08),rgba(65,199,244,.04))",
-  border: "1px solid rgba(96,165,250,.2)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.45)",
-};
-const timelineHeaderStyle: React.CSSProperties = {
-  display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap",
-};
-const customDatePickerRowStyle: React.CSSProperties = {
-  display: "flex", alignItems: "end", gap: 12, flexWrap: "wrap",
-};
-const customDateLabelStyle: React.CSSProperties = {
-  display: "grid", gap: 6, color: "var(--app-muted)", fontSize: 11, fontWeight: 800,
-};
-const customDateInputStyle: React.CSSProperties = {
-  minHeight: 40, padding: "8px 11px", borderRadius: 10,
-  border: "1px solid var(--app-border-soft)", background: "var(--app-card-solid-bg)",
-  color: "var(--app-heading)", font: "inherit",
-};
-const timelineTitleStyle: React.CSSProperties = { color: "var(--app-heading)", fontSize: 13, fontWeight: 850 };
-const timelineLegendStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: 12 };
-const timelineLegendItemStyle: React.CSSProperties = {
-  display: "inline-flex", alignItems: "center", gap: 5, color: "var(--app-muted)", fontSize: 10, fontWeight: 750,
-};
-const allTimeDotStyle: React.CSSProperties = { width: 9, height: 4, borderRadius: 99, background: "#172033" };
-const selectedDotStyle: React.CSSProperties = {
-  width: 9, height: 4, borderRadius: 99, background: "linear-gradient(90deg,#4f7cff,#22c55e)",
-};
-const timelineDateRowStyle: React.CSSProperties = {
-  display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "center",
-  color: "var(--app-muted)", fontSize: 11, fontWeight: 750,
-};
-const selectedDatePillStyle: React.CSSProperties = {
-  padding: "6px 11px", borderRadius: 999, color: "#2563eb", background: "rgba(59,130,246,.11)",
-  border: "1px solid rgba(59,130,246,.16)", fontSize: 11, whiteSpace: "nowrap",
-};
-const timelineTrackWrapStyle: React.CSSProperties = { position: "relative", height: 42, margin: "0 13px" };
-const timelineTrackStyle: React.CSSProperties = {
-  position: "absolute", top: 18, left: 0, right: 0, height: 7, borderRadius: 999,
-  background: "repeating-linear-gradient(90deg,#172033 0,#172033 calc(10% - 1px),#334155 calc(10% - 1px),#334155 10%)",
-  boxShadow: "inset 0 1px 2px rgba(0,0,0,.35)",
-};
-const timelineSelectionStyle: React.CSSProperties = {
-  position: "absolute", zIndex: 2, top: 14, height: 15, borderRadius: 999, cursor: "grab", touchAction: "none",
-  background: "linear-gradient(90deg,#4f7cff,#41c7f4 48%,#22c55e)",
-  boxShadow: "0 4px 13px rgba(59,130,246,.27),0 0 0 3px rgba(65,199,244,.1)",
-};
-const timelineFooterStyle: React.CSSProperties = {
-  display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 8, color: "var(--app-muted)", fontSize: 10, fontWeight: 700,
 };
 const overallRangeButtonStyle: React.CSSProperties = {
   minHeight: 38, padding: "8px 14px", borderRadius: 999, cursor: "pointer", fontWeight: 800,
