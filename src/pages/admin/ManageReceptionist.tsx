@@ -134,9 +134,13 @@ export default function ManageReceptionist() {
   }
 
   function openRangeCalendar() {
-    const selectedMonth = customFrom
-      ? new Date(`${customFrom}T00:00:00`)
-      : new Date();
+    const fallbackFrom = timestampToDateInput(timelineBounds.min);
+    const fallbackTo = todayInput;
+    const safeFrom = isValidDateInput(customFrom) ? customFrom : fallbackFrom;
+    const safeTo = isValidDateInput(customTo) ? customTo : fallbackTo;
+    if (safeFrom !== customFrom) setCustomFrom(safeFrom);
+    if (safeTo !== customTo) setCustomTo(safeTo);
+    const selectedMonth = new Date(`${safeFrom}T00:00:00`);
     const latestFirstMonth = addMonths(startOfMonth(new Date()), -1);
     const firstMonth = startOfMonth(selectedMonth);
     setCalendarMonth(firstMonth > latestFirstMonth ? latestFirstMonth : firstMonth);
@@ -563,8 +567,14 @@ function formatCurrency(value: number) {
 }
 
 function formatShortDate(value: string) {
+  if (!isValidDateInput(value)) return "Select date";
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" })
     .format(new Date(`${value}T00:00:00`));
+}
+
+function isValidDateInput(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  return Number.isFinite(new Date(`${value}T00:00:00`).getTime());
 }
 
 function timestampToDateInput(value: number) {
