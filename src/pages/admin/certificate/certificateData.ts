@@ -1,5 +1,4 @@
 import type JSZip from "jszip";
-import * as XLSX from "xlsx";
 import certificateTemplateUrl from "./assets/cito_certificate_upload_template.xlsx?url";
 
 export type CertificateRow = Record<string, string>;
@@ -98,6 +97,7 @@ export function fullDate(
 }
 
 export async function readSpreadsheet(file: File) {
+  const XLSX = await import("xlsx");
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
   const embeddedImages = await extractEmbeddedImages(buffer);

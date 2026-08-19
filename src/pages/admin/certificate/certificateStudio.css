@@ -536,7 +536,7 @@
   height: 210mm;
   margin: 0 auto;
   overflow: hidden;
-  background: #fff url("./assets/certificate-bg-cito.png") center / cover no-repeat;
+  background: #fff url("./assets/certificate-bg-cito.webp") center / cover no-repeat;
   box-shadow: 0 24px 65px rgba(0, 0, 0, 0.34);
   page-break-after: always;
   -webkit-print-color-adjust: exact;

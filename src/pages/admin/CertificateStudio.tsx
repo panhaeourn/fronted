@@ -16,7 +16,7 @@ import {
   recipientName,
   type CertificateRow,
 } from "./certificate/certificateData";
-import citoStampUrl from "./certificate/assets/cito-stamp.png";
+import citoStampUrl from "./certificate/assets/cito-stamp.webp";
 import "./certificate/certificateStudio.css";
 
 type TextField = "name" | "gender" | "birthDate" | "course" | "issueDate";
