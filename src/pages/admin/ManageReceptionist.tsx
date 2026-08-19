@@ -122,25 +122,13 @@ export default function ManageReceptionist() {
   const selectedWidth = ((timelineEnd - timelineStart) / timelineSpan) * 100;
 
   function openCustomTimeline() {
-    const from = timestampToDateInput(timelineBounds.min);
-    const to = todayInput;
     setOverallRange("CUSTOM");
-    if (!customFrom || !customTo) {
-      setCustomFrom(from);
-      setCustomTo(to);
-      setAppliedCustomFrom(from);
-      setAppliedCustomTo(to);
-    }
   }
 
   function openRangeCalendar() {
-    const fallbackFrom = timestampToDateInput(timelineBounds.min);
-    const fallbackTo = todayInput;
-    const safeFrom = isValidDateInput(customFrom) ? customFrom : fallbackFrom;
-    const safeTo = isValidDateInput(customTo) ? customTo : fallbackTo;
-    if (safeFrom !== customFrom) setCustomFrom(safeFrom);
-    if (safeTo !== customTo) setCustomTo(safeTo);
-    const selectedMonth = new Date(`${safeFrom}T00:00:00`);
+    const selectedMonth = isValidDateInput(customFrom)
+      ? new Date(`${customFrom}T00:00:00`)
+      : new Date();
     const latestFirstMonth = addMonths(startOfMonth(new Date()), -1);
     const firstMonth = startOfMonth(selectedMonth);
     setCalendarMonth(firstMonth > latestFirstMonth ? latestFirstMonth : firstMonth);
@@ -336,7 +324,9 @@ export default function ManageReceptionist() {
                     <div className="income-range-popover" role="dialog" aria-label="Select income date range">
                       <div className="income-range-popover-nav">
                         <button type="button" aria-label="Previous month" onClick={() => setCalendarMonth(addMonths(calendarMonth, -1))}>‹</button>
-                        <strong>{customTo ? `${formatShortDate(customFrom)} – ${formatShortDate(customTo)}` : "Select the end date"}</strong>
+                        <strong>{customTo
+                          ? `${formatShortDate(customFrom)} – ${formatShortDate(customTo)}`
+                          : customFrom ? "Select the end date" : "Select the start date"}</strong>
                         <button
                           type="button"
                           aria-label="Next month"
@@ -358,7 +348,9 @@ export default function ManageReceptionist() {
                         ))}
                       </div>
                       <div className="income-range-popover-help">
-                        <span>{customTo ? "Click a date to start a new range" : "Now choose the To date"}</span>
+                        <span>{customTo
+                          ? "Click a date to start a new range"
+                          : customFrom ? "Now choose the To date" : "Choose the From date"}</span>
                         <button type="button" onClick={() => setCalendarOpen(false)}>Close</button>
                       </div>
                     </div>
