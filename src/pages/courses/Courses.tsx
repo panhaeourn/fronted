@@ -540,14 +540,14 @@ export default function Courses() {
                 {hasCourseAccess ? (
                   <button
                     onClick={() => navigate(`/courses/${course.id}`)}
-                    style={primaryActionStyle}
+                    style={openActionStyle}
                   >
                     Open
                   </button>
                 ) : (
                   <button
                     onClick={() => openPayment(course.id, price)}
-                    style={primaryActionStyle}
+                    style={buyActionStyle}
                   >
                     Buy
                   </button>
@@ -693,6 +693,26 @@ const primaryActionStyle: React.CSSProperties = {
   border: "1px solid rgba(139, 190, 255, 0.48)",
   boxShadow:
     "inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 20px rgba(2, 8, 23, 0.2)",
+};
+
+const openActionStyle: React.CSSProperties = {
+  ...actionButtonBaseStyle,
+  background:
+    "linear-gradient(145deg, rgba(16, 185, 129, 0.58), rgba(45, 212, 191, 0.32) 48%, rgba(7, 17, 36, 0.52))",
+  color: "#ffffff",
+  border: "1px solid rgba(110, 231, 183, 0.62)",
+  boxShadow:
+    "inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 10px 24px rgba(5, 150, 105, 0.24), 0 0 20px rgba(45, 212, 191, 0.12)",
+};
+
+const buyActionStyle: React.CSSProperties = {
+  ...actionButtonBaseStyle,
+  background:
+    "linear-gradient(145deg, rgba(245, 158, 11, 0.62), rgba(251, 191, 36, 0.34) 48%, rgba(67, 30, 8, 0.54))",
+  color: "#ffffff",
+  border: "1px solid rgba(253, 211, 77, 0.68)",
+  boxShadow:
+    "inset 0 1px 0 rgba(255, 255, 255, 0.26), 0 10px 24px rgba(217, 119, 6, 0.25), 0 0 20px rgba(251, 191, 36, 0.13)",
 };
 
 const secondaryActionStyle: React.CSSProperties = {
