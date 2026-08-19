@@ -688,7 +688,7 @@ const actionButtonBaseStyle: React.CSSProperties = {
 const primaryActionStyle: React.CSSProperties = {
   ...actionButtonBaseStyle,
   background:
-    "linear-gradient(145deg, rgba(78, 139, 255, 0.34), rgba(73, 184, 239, 0.18) 48%, rgba(7, 17, 36, 0.48))",
+    "linear-gradient(145deg, rgba(70, 132, 255, 0.42), rgba(56, 189, 248, 0.23) 48%, rgba(7, 17, 36, 0.46))",
   color: "#fff",
   border: "1px solid rgba(139, 190, 255, 0.48)",
   boxShadow:
@@ -706,7 +706,7 @@ const secondaryActionStyle: React.CSSProperties = {
 const dangerActionStyle: React.CSSProperties = {
   ...actionButtonBaseStyle,
   background:
-    "linear-gradient(145deg, rgba(225, 76, 108, 0.3), rgba(251, 113, 133, 0.15) 48%, rgba(7, 17, 36, 0.48))",
+    "linear-gradient(145deg, rgba(232, 67, 101, 0.38), rgba(251, 113, 133, 0.2) 48%, rgba(7, 17, 36, 0.46))",
   color: "#fff",
   border: "1px solid rgba(251, 128, 148, 0.46)",
   boxShadow:
@@ -716,7 +716,7 @@ const dangerActionStyle: React.CSSProperties = {
 const updateActionStyle: React.CSSProperties = {
   ...actionButtonBaseStyle,
   background:
-    "linear-gradient(145deg, rgba(145, 87, 238, 0.32), rgba(192, 132, 252, 0.16) 48%, rgba(7, 17, 36, 0.48))",
+    "linear-gradient(145deg, rgba(139, 78, 236, 0.4), rgba(192, 132, 252, 0.21) 48%, rgba(7, 17, 36, 0.46))",
   color: "#ffffff",
   border: "1px solid rgba(196, 146, 255, 0.48)",
   boxShadow:
@@ -726,7 +726,7 @@ const updateActionStyle: React.CSSProperties = {
 const uploadActionStyle: React.CSSProperties = {
   ...actionButtonBaseStyle,
   background:
-    "linear-gradient(145deg, rgba(25, 174, 164, 0.32), rgba(74, 222, 128, 0.15) 48%, rgba(7, 17, 36, 0.48))",
+    "linear-gradient(145deg, rgba(17, 180, 165, 0.4), rgba(74, 222, 128, 0.2) 48%, rgba(7, 17, 36, 0.46))",
   color: "#ffffff",
   border: "1px solid rgba(94, 234, 212, 0.46)",
   boxShadow:
