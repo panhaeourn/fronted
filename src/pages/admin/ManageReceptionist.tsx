@@ -160,7 +160,6 @@ export default function ManageReceptionist() {
     setCustomTo(value);
     setAppliedCustomFrom(customFrom);
     setAppliedCustomTo(value);
-    setCalendarOpen(false);
   }
 
   function updateTimelineStart(value: number) {
