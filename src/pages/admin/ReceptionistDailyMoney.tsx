@@ -17,7 +17,7 @@ type MeUser = {
   role: string;
 };
 
-type RangeView = "DAY" | "WEEK" | "MONTH" | "YEAR";
+type RangeView = "DAY" | "WEEK" | "MONTH" | "YEAR" | "CUSTOM";
 
 type WeekBucket = {
   key: string;
@@ -44,12 +44,17 @@ export default function ReceptionistDailyMoney() {
   const [me, setMe] = useState<MeUser | null>(null);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(true);
+  const [customFrom, setCustomFrom] = useState(() => searchParams.get("from") || "");
+  const [customTo, setCustomTo] = useState(() => searchParams.get("to") || "");
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => addMonths(startOfMonth(new Date()), -1));
 
   const idNum = userId ? Number(userId) : NaN;
   const range = normalizeRange(searchParams.get("range"));
   const currentYear = new Date().getFullYear();
   const selectedYear = normalizeYear(searchParams.get("year"), currentYear);
   const isSelfView = !userId;
+  const todayInput = timestampToDateInput(new Date().setHours(0, 0, 0, 0));
 
   useEffect(() => {
     let cancelled = false;
@@ -125,6 +130,9 @@ export default function ReceptionistDailyMoney() {
         : [],
     [groupedByReceptionist, user]
   );
+  const customMin = allDays.length > 0
+    ? allDays.reduce((earliest, day) => day.dayKey < earliest ? day.dayKey : earliest, allDays[0].dayKey)
+    : `${currentYear}-01-01`;
 
   const availableYears = useMemo(() => {
     const years = new Set([currentYear - 1, currentYear, currentYear + 1]);
@@ -136,13 +144,40 @@ export default function ReceptionistDailyMoney() {
   }, [allDays, currentYear]);
 
   const filteredDays = useMemo(
-    () => filterDaysByRange(allDays, range, selectedYear),
-    [allDays, range, selectedYear]
+    () => filterDaysByRange(allDays, range, selectedYear, searchParams.get("from"), searchParams.get("to")),
+    [allDays, range, searchParams, selectedYear]
   );
   const weekBuckets = useMemo(() => buildWeekBuckets(filteredDays), [filteredDays]);
   const yearBuckets = useMemo(() => buildYearBuckets(filteredDays), [filteredDays]);
   const total = filteredDays.reduce((sum, day) => sum + day.total, 0);
   const totalTransactions = filteredDays.reduce((sum, day) => sum + day.count, 0);
+
+  function customBasePath() {
+    return isSelfView ? "/reception/money" : `/admin/receptionists/${user?.id || idNum}/money`;
+  }
+
+  function openCustomRange() {
+    navigate(`${customBasePath()}?range=CUSTOM`);
+    const selected = isValidDateInput(customFrom) ? new Date(`${customFrom}T00:00:00`) : new Date();
+    const latestFirstMonth = addMonths(startOfMonth(new Date()), -1);
+    const selectedMonth = startOfMonth(selected);
+    setCalendarMonth(selectedMonth > latestFirstMonth ? latestFirstMonth : selectedMonth);
+    setCalendarOpen(true);
+  }
+
+  function selectCustomDate(value: string) {
+    if (!customFrom || customTo) {
+      setCustomFrom(value);
+      setCustomTo("");
+      return;
+    }
+    if (value < customFrom) {
+      setCustomFrom(value);
+      return;
+    }
+    setCustomTo(value);
+    navigate(`${customBasePath()}?range=CUSTOM&from=${encodeURIComponent(customFrom)}&to=${encodeURIComponent(value)}`);
+  }
 
   if (!isSelfView && (!userId || Number.isNaN(idNum))) {
     return (
@@ -204,6 +239,13 @@ export default function ReceptionistDailyMoney() {
                   {formatRangeLabel(item)}
                 </Link>
               ))}
+              <button
+                type="button"
+                onClick={openCustomRange}
+                style={range === "CUSTOM" ? activeFilterChipStyle : filterChipButtonStyle}
+              >
+                Custom
+              </button>
               {range === "YEAR" && (
                 <label style={yearFilterStyle}>
                   <span>Year</span>
@@ -225,6 +267,57 @@ export default function ReceptionistDailyMoney() {
               )}
             </div>
           </div>
+
+          {range === "CUSTOM" && (
+            <div style={customRangePanelStyle}>
+              <div className="income-range-picker">
+                <button type="button" className="income-range-field" onClick={openCustomRange} aria-expanded={calendarOpen}>
+                  <span>From</span>
+                  <strong>{formatShortDate(customFrom)}</strong>
+                </button>
+                <span className="income-range-field-divider" aria-hidden="true" />
+                <button type="button" className="income-range-field" onClick={openCustomRange} aria-expanded={calendarOpen}>
+                  <span>To</span>
+                  <strong>{formatShortDate(customTo)}</strong>
+                </button>
+                {calendarOpen && (
+                  <div className="income-range-popover" role="dialog" aria-label="Select income date range">
+                    <div className="income-range-popover-nav">
+                      <button type="button" aria-label="Previous month" onClick={() => setCalendarMonth(addMonths(calendarMonth, -1))}>
+                        <CalendarChevron direction="back" />
+                      </button>
+                      <strong>{customTo
+                        ? `${formatShortDate(customFrom)} – ${formatShortDate(customTo)}`
+                        : customFrom ? "Select the end date" : "Select the start date"}</strong>
+                      <button
+                        type="button"
+                        aria-label="Next month"
+                        disabled={addMonths(calendarMonth, 1) >= startOfMonth(new Date())}
+                        onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
+                      ><CalendarChevron direction="forward" /></button>
+                    </div>
+                    <div className="income-range-popover-months">
+                      {[calendarMonth, addMonths(calendarMonth, 1)].map((month) => (
+                        <IncomeRangeMonth
+                          key={`${month.getFullYear()}-${month.getMonth()}`}
+                          month={month}
+                          from={customFrom}
+                          to={customTo}
+                          min={customMin}
+                          max={todayInput}
+                          onSelect={selectCustomDate}
+                        />
+                      ))}
+                    </div>
+                    <div className="income-range-popover-help">
+                      <span>{customTo ? "Click a date to start a new range" : customFrom ? "Now choose the To date" : "Choose the From date"}</span>
+                      <button type="button" onClick={() => setCalendarOpen(false)}>Close</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div style={summaryGridStyle}>
             <div style={summaryCardStyle}>
@@ -253,7 +346,7 @@ export default function ReceptionistDailyMoney() {
 
       {user && filteredDays.length > 0 && (
         <div style={{ display: "grid", gap: 14 }}>
-          {range === "DAY" && renderDayTree(filteredDays)}
+          {(range === "DAY" || range === "CUSTOM") && renderDayTree(filteredDays)}
           {range === "WEEK" && <WeekTree weeks={weekBuckets} />}
           {range === "MONTH" && <MonthTree weeks={weekBuckets} />}
           {range === "YEAR" && <YearTree months={yearBuckets} year={selectedYear} />}
@@ -440,6 +533,61 @@ function YearTree({ months, year }: { months: MonthBucket[]; year: number }) {
   );
 }
 
+function IncomeRangeMonth({
+  month, from, to, min, max, onSelect,
+}: {
+  month: Date; from: string; to: string; min: string; max: string; onSelect: (value: string) => void;
+}) {
+  const leading = (new Date(month.getFullYear(), month.getMonth(), 1).getDay() + 6) % 7;
+  const days = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  const cells = Array.from({ length: leading + days }, (_, index) =>
+    index < leading ? null : new Date(month.getFullYear(), month.getMonth(), index - leading + 1)
+  );
+
+  return (
+    <section className="income-range-month">
+      <h3>{month.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</h3>
+      <div className="income-range-weekdays" aria-hidden="true">
+        {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => <span key={day}>{day}</span>)}
+      </div>
+      <div className="income-range-days">
+        {cells.map((date, index) => {
+          if (!date) return <span key={`empty-${index}`} />;
+          const value = timestampToDateInput(date.getTime());
+          const selected = value === from || value === to;
+          const inRange = Boolean(from && to && value > from && value < to);
+          return (
+            <button
+              key={value}
+              type="button"
+              disabled={value < min || value > max}
+              className={`${selected ? "is-selected" : ""}${inRange ? " is-in-range" : ""}`}
+              aria-label={date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+              aria-pressed={selected}
+              onClick={() => onSelect(value)}
+            >{date.getDate()}</button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function CalendarChevron({ direction }: { direction: "back" | "forward" }) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <path
+        d={direction === "back" ? "M15 18l-6-6 6-6" : "M9 6l6 6-6 6"}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function accordionButtonStyle(base: React.CSSProperties): React.CSSProperties {
   return {
     ...base,
@@ -455,7 +603,7 @@ function accordionButtonStyle(base: React.CSSProperties): React.CSSProperties {
 
 function normalizeRange(value: string | null): RangeView {
   const normalized = (value || "DAY").toUpperCase();
-  if (normalized === "WEEK" || normalized === "MONTH" || normalized === "YEAR") {
+  if (normalized === "WEEK" || normalized === "MONTH" || normalized === "YEAR" || normalized === "CUSTOM") {
     return normalized;
   }
   return "DAY";
@@ -485,7 +633,13 @@ function endOfWeek(date: Date) {
   return value;
 }
 
-function filterDaysByRange(days: ReceptionistDayEntry[], range: RangeView, selectedYear: number) {
+function filterDaysByRange(
+  days: ReceptionistDayEntry[],
+  range: RangeView,
+  selectedYear: number,
+  customFrom: string | null,
+  customTo: string | null
+) {
   const now = new Date();
   const today = startOfToday();
   const weekStart = startOfWeek(now);
@@ -500,6 +654,10 @@ function filterDaysByRange(days: ReceptionistDayEntry[], range: RangeView, selec
     if (range === "DAY") return entryDate.getTime() === today.getTime();
     if (range === "WEEK") return entryDate >= weekStart && entryDate <= now;
     if (range === "MONTH") return entryDate >= monthStart && entryDate <= now;
+    if (range === "CUSTOM") {
+      if (!isValidDateInput(customFrom || "") || !isValidDateInput(customTo || "")) return false;
+      return entry.dayKey >= customFrom! && entry.dayKey <= customTo!;
+    }
     return entryDate >= yearStart && entryDate <= yearEnd;
   });
 }
@@ -603,6 +761,8 @@ function getPageTitle(range: RangeView) {
       return "Monthly Income";
     case "YEAR":
       return "Yearly Income";
+    case "CUSTOM":
+      return "Custom Income";
   }
 }
 
@@ -616,6 +776,8 @@ function getPageDescription(range: RangeView) {
       return "See this month's paid income grouped by week, then by day.";
     case "YEAR":
       return "";
+    case "CUSTOM":
+      return "Select a custom date range to review paid income.";
   }
 }
 
@@ -629,6 +791,8 @@ function getBucketLabel(range: RangeView) {
       return "Weeks This Month";
     case "YEAR":
       return "Months This Year";
+    case "CUSTOM":
+      return "Active Days";
   }
 }
 
@@ -641,6 +805,7 @@ function getBucketCount(
   if (range === "DAY") return days.length;
   if (range === "WEEK") return days.length;
   if (range === "MONTH") return weeks.length;
+  if (range === "CUSTOM") return days.length;
   return months.length;
 }
 
@@ -845,6 +1010,16 @@ const activeFilterChipStyle: React.CSSProperties = {
   border: "1px solid rgba(191, 219, 254, 0.28)",
 };
 
+const filterChipButtonStyle: React.CSSProperties = {
+  ...filterChipStyle,
+  fontFamily: "inherit",
+};
+
+const customRangePanelStyle: React.CSSProperties = {
+  width: "100%",
+  paddingTop: 2,
+};
+
 const yearFilterStyle: React.CSSProperties = {
   display: "inline-flex", alignItems: "center", gap: 8, marginLeft: 4,
   color: "var(--app-muted)", fontSize: 12, fontWeight: 800,
@@ -855,6 +1030,32 @@ const yearSelectStyle: React.CSSProperties = {
   border: "1px solid var(--app-border-soft)", background: "var(--app-card-solid-bg)",
   color: "var(--app-heading)", fontWeight: 800, cursor: "pointer",
 };
+
+function timestampToDateInput(value: number) {
+  const date = new Date(value);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths(date: Date, amount: number) {
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+}
+
+function isValidDateInput(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  return Number.isFinite(new Date(`${value}T00:00:00`).getTime());
+}
+
+function formatShortDate(value: string) {
+  if (!isValidDateInput(value)) return "Select date";
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" })
+    .format(new Date(`${value}T00:00:00`));
+}
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("en-US", {
