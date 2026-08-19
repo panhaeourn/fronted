@@ -66,3 +66,58 @@ body {
   cursor: ew-resize;
   pointer-events: auto;
 }
+
+.income-range-picker { position: relative; display: grid; grid-template-columns: minmax(130px, 1fr) 1px minmax(130px, 1fr); }
+.income-range-field {
+  min-height: 52px; padding: 8px 13px; border: 1px solid var(--app-border-soft); color: var(--app-heading);
+  background: var(--app-card-solid-bg); cursor: pointer; text-align: left;
+}
+.income-range-field:first-child { border-radius: 11px 0 0 11px; border-right: 0; }
+.income-range-field:nth-of-type(2) { border-radius: 0 11px 11px 0; border-left: 0; }
+.income-range-field:hover,
+.income-range-field[aria-expanded="true"] { border-color: #4f7cff; background: rgba(79, 124, 255, .06); }
+.income-range-field span { display: block; color: var(--app-muted); font-size: 10px; font-weight: 850; text-transform: uppercase; letter-spacing: .06em; }
+.income-range-field strong { display: block; margin-top: 4px; font-size: 13px; }
+.income-range-field-divider { width: 1px; height: 34px; align-self: center; background: var(--app-border-soft); }
+
+.income-range-popover {
+  position: absolute; z-index: 50; top: calc(100% + 8px); left: 0;
+  width: min(680px, calc(100vw - 54px)); padding: 17px; border: 1px solid var(--app-border-soft);
+  border-radius: 15px; color: var(--app-heading); background: var(--app-card-solid-bg);
+  box-shadow: 0 26px 70px rgba(2, 8, 23, .3);
+}
+.income-range-popover-nav { display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; gap: 10px; text-align: center; }
+.income-range-popover-nav strong { color: var(--app-muted); font-size: 12px; }
+.income-range-popover-nav button {
+  width: 38px; height: 38px; border: 1px solid var(--app-border-soft); border-radius: 9px;
+  color: #4f7cff; background: var(--app-secondary-bg); cursor: pointer; font-size: 25px;
+}
+.income-range-popover-nav button:disabled { opacity: .3; cursor: not-allowed; }
+.income-range-popover-months { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; margin-top: 12px; }
+.income-range-month h3 { margin: 0 0 9px; text-align: center; font-size: 15px; }
+.income-range-weekdays,
+.income-range-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.income-range-weekdays span { padding: 7px 0; color: var(--app-muted); text-align: center; font-size: 11px; font-weight: 800; }
+.income-range-days > span,
+.income-range-days button { min-width: 0; height: 38px; }
+.income-range-days button {
+  border: 0; border-radius: 0; color: var(--app-heading); background: transparent;
+  cursor: pointer; font: inherit; font-size: 12px; font-weight: 700;
+}
+.income-range-days button:hover:not(:disabled) { border-radius: 50%; background: rgba(79, 124, 255, .13); }
+.income-range-days button.is-in-range { color: #7da7ff; background: rgba(79, 124, 255, .17); }
+.income-range-days button.is-selected {
+  position: relative; z-index: 1; color: #fff; border-radius: 50%; background: #4f7cff;
+  box-shadow: 0 7px 16px rgba(79, 124, 255, .34);
+}
+.income-range-days button:disabled { color: var(--app-muted); opacity: .28; cursor: not-allowed; }
+.income-range-popover-help { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--app-border-soft); }
+.income-range-popover-help span { color: var(--app-muted); font-size: 11px; }
+.income-range-popover-help button { padding: 7px 13px; border: 1px solid var(--app-border-soft); border-radius: 8px; color: var(--app-heading); background: var(--app-secondary-bg); cursor: pointer; font-weight: 750; }
+
+@media (max-width: 680px) {
+  .income-range-picker { width: 100%; }
+  .income-range-popover { position: fixed; inset: auto 10px 10px; width: auto; max-height: calc(100vh - 20px); overflow: auto; }
+  .income-range-popover-months { grid-template-columns: 1fr; }
+  .income-range-month:nth-child(2) { display: none; }
+}

@@ -40,6 +40,8 @@ export default function ManageReceptionist() {
   const [timelineDrag, setTimelineDrag] = useState<{
     clientX: number; start: number; end: number; width: number;
   } | null>(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1));
 
   const activeCodes = codes.filter(
     (item) => !item.used && new Date(item.expiresAt) >= new Date()
@@ -131,6 +133,32 @@ export default function ManageReceptionist() {
     }
   }
 
+  function openRangeCalendar() {
+    const selectedMonth = customFrom
+      ? new Date(`${customFrom}T00:00:00`)
+      : new Date();
+    const latestFirstMonth = addMonths(startOfMonth(new Date()), -1);
+    const firstMonth = startOfMonth(selectedMonth);
+    setCalendarMonth(firstMonth > latestFirstMonth ? latestFirstMonth : firstMonth);
+    setCalendarOpen(true);
+  }
+
+  function selectCalendarDate(value: string) {
+    if (!customFrom || customTo) {
+      setCustomFrom(value);
+      setCustomTo("");
+      return;
+    }
+    if (dateInputToTimestamp(value) < dateInputToTimestamp(customFrom)) {
+      setCustomFrom(value);
+      return;
+    }
+    setCustomTo(value);
+    setAppliedCustomFrom(customFrom);
+    setAppliedCustomTo(value);
+    setCalendarOpen(false);
+  }
+
   function updateTimelineStart(value: number) {
     const next = Math.min(value, timelineEnd);
     const date = timestampToDateInput(next);
@@ -143,29 +171,6 @@ export default function ManageReceptionist() {
     const date = timestampToDateInput(next);
     setCustomTo(date);
     setAppliedCustomTo(date);
-  }
-
-  function updateCustomFrom(value: string) {
-    if (!value) return;
-    setCustomFrom(value);
-    setAppliedCustomFrom(value);
-    if (!customTo || dateInputToTimestamp(value) > dateInputToTimestamp(customTo)) {
-      setCustomTo(value);
-      setAppliedCustomTo(value);
-    }
-  }
-
-  function updateCustomTo(value: string) {
-    if (!value) return;
-    const bounded = dateInputToTimestamp(value) > dateInputToTimestamp(todayInput)
-      ? todayInput
-      : value;
-    setCustomTo(bounded);
-    setAppliedCustomTo(bounded);
-    if (!customFrom || dateInputToTimestamp(bounded) < dateInputToTimestamp(customFrom)) {
-      setCustomFrom(bounded);
-      setAppliedCustomFrom(bounded);
-    }
   }
 
   function moveTimelineSelection(clientX: number) {
@@ -314,27 +319,48 @@ export default function ManageReceptionist() {
           {overallRange === "CUSTOM" && (
             <div style={timelineWrapStyle}>
               <div style={customDatePickerRowStyle}>
-                <label style={customDateLabelStyle}>
-                  <span>From</span>
-                  <input
-                    type="date"
-                    max={customTo || todayInput}
-                    value={customFrom}
-                    onChange={(event) => updateCustomFrom(event.target.value)}
-                    style={customDateInputStyle}
-                  />
-                </label>
-                <label style={customDateLabelStyle}>
-                  <span>To</span>
-                  <input
-                    type="date"
-                    min={customFrom || timestampToDateInput(timelineBounds.min)}
-                    max={todayInput}
-                    value={customTo}
-                    onChange={(event) => updateCustomTo(event.target.value)}
-                    style={customDateInputStyle}
-                  />
-                </label>
+                <div className="income-range-picker">
+                  <button type="button" className="income-range-field" onClick={openRangeCalendar} aria-expanded={calendarOpen}>
+                    <span>From</span>
+                    <strong>{formatShortDate(customFrom)}</strong>
+                  </button>
+                  <span className="income-range-field-divider" aria-hidden="true" />
+                  <button type="button" className="income-range-field" onClick={openRangeCalendar} aria-expanded={calendarOpen}>
+                    <span>To</span>
+                    <strong>{customTo ? formatShortDate(customTo) : "Select date"}</strong>
+                  </button>
+                  {calendarOpen && (
+                    <div className="income-range-popover" role="dialog" aria-label="Select income date range">
+                      <div className="income-range-popover-nav">
+                        <button type="button" aria-label="Previous month" onClick={() => setCalendarMonth(addMonths(calendarMonth, -1))}>‹</button>
+                        <strong>{customTo ? `${formatShortDate(customFrom)} – ${formatShortDate(customTo)}` : "Select the end date"}</strong>
+                        <button
+                          type="button"
+                          aria-label="Next month"
+                          disabled={addMonths(calendarMonth, 1) >= startOfMonth(new Date())}
+                          onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
+                        >›</button>
+                      </div>
+                      <div className="income-range-popover-months">
+                        {[calendarMonth, addMonths(calendarMonth, 1)].map((month) => (
+                          <IncomeRangeMonth
+                            key={`${month.getFullYear()}-${month.getMonth()}`}
+                            month={month}
+                            from={customFrom}
+                            to={customTo}
+                            min={timestampToDateInput(timelineBounds.min)}
+                            max={todayInput}
+                            onSelect={selectCalendarDate}
+                          />
+                        ))}
+                      </div>
+                      <div className="income-range-popover-help">
+                        <span>{customTo ? "Click a date to start a new range" : "Now choose the To date"}</span>
+                        <button type="button" onClick={() => setCalendarOpen(false)}>Close</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               <div style={timelineHeaderStyle}>
                 <div>
@@ -481,6 +507,46 @@ function OverallMetric({ label, value, accent }: { label: string; value: string;
   );
 }
 
+function IncomeRangeMonth({
+  month, from, to, min, max, onSelect,
+}: {
+  month: Date; from: string; to: string; min: string; max: string; onSelect: (value: string) => void;
+}) {
+  const leading = (new Date(month.getFullYear(), month.getMonth(), 1).getDay() + 6) % 7;
+  const days = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  const cells = Array.from({ length: leading + days }, (_, index) =>
+    index < leading ? null : new Date(month.getFullYear(), month.getMonth(), index - leading + 1)
+  );
+
+  return (
+    <section className="income-range-month">
+      <h3>{month.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</h3>
+      <div className="income-range-weekdays" aria-hidden="true">
+        {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => <span key={day}>{day}</span>)}
+      </div>
+      <div className="income-range-days">
+        {cells.map((date, index) => {
+          if (!date) return <span key={`empty-${index}`} />;
+          const value = timestampToDateInput(date.getTime());
+          const selected = value === from || value === to;
+          const inRange = Boolean(from && to && value > from && value < to);
+          return (
+            <button
+              key={value}
+              type="button"
+              disabled={value < min || value > max}
+              className={`${selected ? "is-selected" : ""}${inRange ? " is-in-range" : ""}`}
+              aria-label={date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+              aria-pressed={selected}
+              onClick={() => onSelect(value)}
+            >{date.getDate()}</button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function startOfWeek(date: Date) {
   const value = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const day = value.getDay();
@@ -512,6 +578,14 @@ function dateInputToTimestamp(value: string) {
   return new Date(`${value}T00:00:00`).getTime();
 }
 
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths(date: Date, amount: number) {
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+}
+
 function countInclusiveDays(start: number, end: number) {
   return Math.max(1, Math.round((end - start) / 86_400_000) + 1).toLocaleString();
 }
@@ -539,14 +613,6 @@ const timelineHeaderStyle: React.CSSProperties = {
 };
 const customDatePickerRowStyle: React.CSSProperties = {
   display: "flex", alignItems: "end", gap: 12, flexWrap: "wrap",
-};
-const customDateLabelStyle: React.CSSProperties = {
-  display: "grid", gap: 6, color: "var(--app-muted)", fontSize: 11, fontWeight: 800,
-};
-const customDateInputStyle: React.CSSProperties = {
-  minHeight: 40, padding: "8px 11px", borderRadius: 10,
-  border: "1px solid var(--app-border-soft)", background: "var(--app-card-solid-bg)",
-  color: "var(--app-heading)", font: "inherit",
 };
 const timelineTitleStyle: React.CSSProperties = { color: "var(--app-heading)", fontSize: 13, fontWeight: 850 };
 const timelineLegendStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: 12 };
