@@ -144,6 +144,20 @@ export default function ManageReceptionist() {
     setAppliedCustomTo(date);
   }
 
+  function updateCustomFrom(value: string) {
+    if (!value) return;
+    const clamped = dateInputToTimestamp(value) > timelineEnd ? customTo : value;
+    setCustomFrom(clamped);
+    setAppliedCustomFrom(clamped);
+  }
+
+  function updateCustomTo(value: string) {
+    if (!value) return;
+    const clamped = dateInputToTimestamp(value) < timelineStart ? customFrom : value;
+    setCustomTo(clamped);
+    setAppliedCustomTo(clamped);
+  }
+
   function moveTimelineSelection(clientX: number) {
     if (!timelineDrag) return;
     const day = 86_400_000;
@@ -289,6 +303,30 @@ export default function ManageReceptionist() {
           </div>
           {overallRange === "CUSTOM" && (
             <div style={timelineWrapStyle}>
+              <div style={customDatePickerRowStyle}>
+                <label style={customDateLabelStyle}>
+                  <span>From</span>
+                  <input
+                    type="date"
+                    min={timestampToDateInput(timelineBounds.min)}
+                    max={customTo || timestampToDateInput(timelineBounds.max)}
+                    value={customFrom}
+                    onChange={(event) => updateCustomFrom(event.target.value)}
+                    style={customDateInputStyle}
+                  />
+                </label>
+                <label style={customDateLabelStyle}>
+                  <span>To</span>
+                  <input
+                    type="date"
+                    min={customFrom || timestampToDateInput(timelineBounds.min)}
+                    max={timestampToDateInput(timelineBounds.max)}
+                    value={customTo}
+                    onChange={(event) => updateCustomTo(event.target.value)}
+                    style={customDateInputStyle}
+                  />
+                </label>
+              </div>
               <div style={timelineHeaderStyle}>
                 <div>
                   <div style={timelineTitleStyle}>Income timeline</div>
@@ -489,6 +527,17 @@ const timelineWrapStyle: React.CSSProperties = {
 };
 const timelineHeaderStyle: React.CSSProperties = {
   display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap",
+};
+const customDatePickerRowStyle: React.CSSProperties = {
+  display: "flex", alignItems: "end", gap: 12, flexWrap: "wrap",
+};
+const customDateLabelStyle: React.CSSProperties = {
+  display: "grid", gap: 6, color: "var(--app-muted)", fontSize: 11, fontWeight: 800,
+};
+const customDateInputStyle: React.CSSProperties = {
+  minHeight: 40, padding: "8px 11px", borderRadius: 10,
+  border: "1px solid var(--app-border-soft)", background: "var(--app-card-solid-bg)",
+  color: "var(--app-heading)", font: "inherit",
 };
 const timelineTitleStyle: React.CSSProperties = { color: "var(--app-heading)", fontSize: 13, fontWeight: 850 };
 const timelineLegendStyle: React.CSSProperties = { display: "flex", alignItems: "center", gap: 12 };

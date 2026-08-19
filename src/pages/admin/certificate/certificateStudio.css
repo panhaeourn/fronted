@@ -566,6 +566,12 @@
   background: rgba(186, 230, 253, 0.3);
 }
 
+.certificate-fill[contenteditable="true"]:focus {
+  outline: 1.5px dashed #2563eb;
+  outline-offset: 2px;
+  background: rgba(219, 234, 254, .35);
+}
+
 .certificate-fill[data-position="name-khmer"] { left: 16.45%; top: 42.35%; width: 6.35%; padding-inline: .3%; }
 .certificate-fill[data-position="gender"] { left: 25%; top: 42.35%; width: 3.4%; text-align: center; }
 .certificate-fill[data-position="birth-day-khmer"] { left: 37.25%; top: 42.35%; width: 3.2%; }
@@ -589,6 +595,21 @@
   height: 24.8%;
   object-fit: cover;
   background: #fff;
+}
+
+.certificate-official-stamp {
+  position: absolute;
+  z-index: 4;
+  left: 77.2%;
+  top: 66.5%;
+  width: 11.5%;
+  height: auto;
+  object-fit: contain;
+  opacity: .82;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .certificate-publish-notice {
@@ -636,6 +657,12 @@
 }
 
 .certificate-pdf-exporting .certificate-fill.is-selected {
+  outline: 0;
+  background: transparent;
+}
+
+.certificate-pdf-exporting .certificate-fill[contenteditable="true"],
+.certificate-native-print-root .certificate-fill[contenteditable="true"] {
   outline: 0;
   background: transparent;
 }

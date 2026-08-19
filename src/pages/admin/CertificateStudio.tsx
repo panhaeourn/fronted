@@ -16,6 +16,7 @@ import {
   recipientName,
   type CertificateRow,
 } from "./certificate/certificateData";
+import citoStampUrl from "./certificate/assets/cito-stamp.png";
 import "./certificate/certificateStudio.css";
 
 type TextField = "name" | "gender" | "birthDate" | "course" | "issueDate";
@@ -167,6 +168,21 @@ export default function CertificateStudio() {
     await Promise.all(images.map(waitForImage));
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     return certificates;
+  }
+
+  function updateCertificateText(rowIndex: number, position: string, value: string) {
+    const rowKey = certificateRowKey(position);
+    if (!rowKey) return;
+
+    setRows((current) => {
+      const nextRows = current.length > 0
+        ? current.map((row) => ({ ...row }))
+        : [{ ...blankPreviewRow }];
+      nextRows[rowIndex] = { ...nextRows[rowIndex], [rowKey]: value.trim() };
+      return nextRows;
+    });
+    setIssuedCertificates([]);
+    issuanceBatchRef.current = createIssuanceBatchId();
   }
 
   async function ensureCertificatesIssued() {
@@ -410,6 +426,7 @@ export default function CertificateStudio() {
                   selectedField={selectedField}
                   fieldSettings={fieldSettings}
                   onSelectField={setSelectedField}
+                  onEditText={(position, value) => updateCertificateText(index, position, value)}
                 />
               ))}
             </div>
@@ -428,6 +445,7 @@ function CitoCertificate({
   selectedField,
   fieldSettings,
   onSelectField,
+  onEditText,
 }: {
   row: CertificateRow;
   scale: number;
@@ -436,6 +454,7 @@ function CitoCertificate({
   selectedField: TextField | null;
   fieldSettings: FieldSettings;
   onSelectField: (field: TextField) => void;
+  onEditText: (position: string, value: string) => void;
 }) {
   const birth = dateParts(row, "birthDate", "birthDay", "birthMonth", "birthYear");
   const issue = dateParts(row, "issueDate", "issueDay", "issueMonth", "issueYear");
@@ -443,10 +462,16 @@ function CitoCertificate({
     fontFamily: fieldSettings[field].font || undefined,
     fontSize: fieldSettings[field].size ? `${fieldSettings[field].size}px` : undefined,
   });
-  const textProps = (field: TextField) => ({
+  const textProps = (field: TextField, position: string) => ({
     className: `certificate-fill${selectedField === field ? " is-selected" : ""}`,
     style: textStyle(field),
     onClick: () => onSelectField(field),
+    contentEditable: true,
+    suppressContentEditableWarning: true,
+    role: "textbox",
+    tabIndex: 0,
+    onBlur: (event: React.FocusEvent<HTMLDivElement>) =>
+      onEditText(position, event.currentTarget.textContent || ""),
   });
 
   return (
@@ -455,20 +480,21 @@ function CitoCertificate({
       aria-label={`CITO certificate for ${recipientName(row, "english") || recipientName(row, "khmer") || "student"}`}
       style={{ zoom: scale }}
     >
-      <div {...textProps("name")} data-position="name-khmer">{recipientName(row, "khmer")}</div>
-      <div {...textProps("gender")} data-position="gender">{fieldValue(row, "gender")}</div>
-      <div {...textProps("birthDate")} data-position="birth-day-khmer">{birth.day}</div>
-      <div {...textProps("birthDate")} data-position="birth-month-khmer">{birth.month}</div>
-      <div {...textProps("birthDate")} data-position="birth-year-khmer">{birth.year}</div>
-      <div {...textProps("course")} data-position="course-khmer">{fieldValue(row, "course")}</div>
-      <div {...textProps("issueDate")} data-position="issue-day-khmer">{issue.day}</div>
-      <div {...textProps("issueDate")} data-position="issue-month-khmer">{issue.month}</div>
-      <div {...textProps("issueDate")} data-position="issue-year-khmer">{issue.year}</div>
-      <div {...textProps("name")} data-position="name-english">{recipientName(row, "english")}</div>
-      <div {...textProps("birthDate")} data-position="birth-date-english">{fullDate(row, "birthDate", birth)}</div>
-      <div {...textProps("course")} data-position="course-english">{fieldValue(row, "course")}</div>
-      <div {...textProps("issueDate")} data-position="issue-date-english">{fullDate(row, "issueDate", issue)}</div>
+      <div {...textProps("name", "name-khmer")} data-position="name-khmer">{recipientName(row, "khmer")}</div>
+      <div {...textProps("gender", "gender")} data-position="gender">{fieldValue(row, "gender")}</div>
+      <div {...textProps("birthDate", "birth-day-khmer")} data-position="birth-day-khmer">{birth.day}</div>
+      <div {...textProps("birthDate", "birth-month-khmer")} data-position="birth-month-khmer">{birth.month}</div>
+      <div {...textProps("birthDate", "birth-year-khmer")} data-position="birth-year-khmer">{birth.year}</div>
+      <div {...textProps("course", "course-khmer")} data-position="course-khmer">{fieldValue(row, "course")}</div>
+      <div {...textProps("issueDate", "issue-day-khmer")} data-position="issue-day-khmer">{issue.day}</div>
+      <div {...textProps("issueDate", "issue-month-khmer")} data-position="issue-month-khmer">{issue.month}</div>
+      <div {...textProps("issueDate", "issue-year-khmer")} data-position="issue-year-khmer">{issue.year}</div>
+      <div {...textProps("name", "name-english")} data-position="name-english">{recipientName(row, "english")}</div>
+      <div {...textProps("birthDate", "birth-date-english")} data-position="birth-date-english">{fullDate(row, "birthDate", birth)}</div>
+      <div {...textProps("course", "course-english")} data-position="course-english">{fieldValue(row, "course")}</div>
+      <div {...textProps("issueDate", "issue-date-english")} data-position="issue-date-english">{fullDate(row, "issueDate", issue)}</div>
       {photo && <img className="certificate-student-photo" src={photo} alt="" />}
+      <img className="certificate-official-stamp" src={citoStampUrl} alt="Official CITO stamp" draggable={false} />
       {verification && (
         <div
           className="certificate-verification-block"
@@ -569,6 +595,25 @@ function waitForImage(image: HTMLImageElement) {
     image.addEventListener("load", finish, { once: true });
     image.addEventListener("error", finish, { once: true });
   });
+}
+
+function certificateRowKey(position: string) {
+  const keys: Record<string, string> = {
+    "name-khmer": "name_khmer",
+    gender: "sex",
+    "birth-day-khmer": "birth_day",
+    "birth-month-khmer": "birth_month",
+    "birth-year-khmer": "birth_year",
+    "course-khmer": "course",
+    "issue-day-khmer": "issue_day",
+    "issue-month-khmer": "issue_month",
+    "issue-year-khmer": "issue_year",
+    "name-english": "name_english",
+    "birth-date-english": "birth_date",
+    "course-english": "course",
+    "issue-date-english": "issue_date",
+  };
+  return keys[position] || "";
 }
 
 async function waitForQrCodes(expectedCount: number) {
