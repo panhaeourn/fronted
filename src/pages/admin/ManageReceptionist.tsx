@@ -323,7 +323,9 @@ export default function ManageReceptionist() {
                   {calendarOpen && (
                     <div className="income-range-popover" role="dialog" aria-label="Select income date range">
                       <div className="income-range-popover-nav">
-                        <button type="button" aria-label="Previous month" onClick={() => setCalendarMonth(addMonths(calendarMonth, -1))}>‹</button>
+                        <button type="button" aria-label="Previous month" onClick={() => setCalendarMonth(addMonths(calendarMonth, -1))}>
+                          <CalendarChevron direction="back" />
+                        </button>
                         <strong>{customTo
                           ? `${formatShortDate(customFrom)} – ${formatShortDate(customTo)}`
                           : customFrom ? "Select the end date" : "Select the start date"}</strong>
@@ -332,7 +334,7 @@ export default function ManageReceptionist() {
                           aria-label="Next month"
                           disabled={addMonths(calendarMonth, 1) >= startOfMonth(new Date())}
                           onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
-                        >›</button>
+                        ><CalendarChevron direction="forward" /></button>
                       </div>
                       <div className="income-range-popover-months">
                         {[calendarMonth, addMonths(calendarMonth, 1)].map((month) => (
@@ -539,6 +541,21 @@ function IncomeRangeMonth({
         })}
       </div>
     </section>
+  );
+}
+
+function CalendarChevron({ direction }: { direction: "back" | "forward" }) {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <path
+        d={direction === "back" ? "M15 18l-6-6 6-6" : "M9 6l6 6-6 6"}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

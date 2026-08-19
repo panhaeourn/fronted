@@ -101,11 +101,24 @@ body {
 .income-range-popover-nav { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; gap: 12px; text-align: center; }
 .income-range-popover-nav strong { color: #c7d7f5; font-size: 12px; letter-spacing: .01em; }
 .income-range-popover-nav button {
-  width: 40px; height: 40px; border: 1px solid rgba(112, 145, 210, .35); border-radius: 10px;
-  color: #8ab1ff; background: #152242; cursor: pointer; font-size: 25px;
+  width: 42px; height: 42px; display: inline-grid; place-items: center; padding: 0;
+  border: 1px solid rgba(112, 145, 210, .42); border-radius: 50%;
+  color: #a9c4ff; background: linear-gradient(145deg, #1b2b50, #111d39);
+  cursor: pointer; box-shadow: 0 7px 18px rgba(0, 0, 0, .24), inset 0 1px 0 rgba(255, 255, 255, .07);
+  transition: transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
 }
-.income-range-popover-nav button:hover:not(:disabled) { border-color: #6592ef; background: #1b2e58; }
-.income-range-popover-nav button:disabled { opacity: .3; cursor: not-allowed; }
+.income-range-popover-nav button svg { display: block; }
+.income-range-popover-nav button:hover:not(:disabled) {
+  transform: translateY(-1px); border-color: #76a1ff; color: #fff;
+  background: linear-gradient(145deg, #315cae, #234581);
+  box-shadow: 0 10px 24px rgba(36, 78, 155, .36), inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+.income-range-popover-nav button:active:not(:disabled) { transform: translateY(0) scale(.96); }
+.income-range-popover-nav button:focus-visible { outline: 3px solid rgba(79, 124, 255, .35); outline-offset: 3px; }
+.income-range-popover-nav button:disabled {
+  color: #52617e; border-color: rgba(112, 145, 210, .14); background: #101a31;
+  box-shadow: none; opacity: .62; cursor: not-allowed;
+}
 .income-range-popover-months { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 34px; margin-top: 18px; }
 .income-range-month h3 { margin: 0 0 11px; color: #fff; text-align: center; font-size: 16px; }
 .income-range-weekdays,
