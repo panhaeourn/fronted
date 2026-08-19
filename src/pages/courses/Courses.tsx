@@ -555,7 +555,7 @@ export default function Courses() {
 
                   {isAdmin && (
                     <>
-                      <button onClick={() => handleUpdate(course.id)} style={secondaryActionStyle}>
+                      <button onClick={() => handleUpdate(course.id)} style={updateActionStyle}>
                         Update
                       </button>
 
@@ -565,7 +565,7 @@ export default function Courses() {
 
                       <button
                         onClick={() => handleUploadVideo(course.id)}
-                        style={secondaryActionStyle}
+                        style={uploadActionStyle}
                       >
                         Upload
                       </button>
@@ -677,6 +677,10 @@ const actionButtonBaseStyle: React.CSSProperties = {
   fontSize: 16,
   lineHeight: 1.2,
   textAlign: "center",
+  letterSpacing: "0.01em",
+  cursor: "pointer",
+  textShadow: "0 1px 2px rgba(0, 0, 0, 0.28)",
+  transition: "transform 180ms ease, filter 180ms ease, box-shadow 180ms ease",
 };
 
 const primaryActionStyle: React.CSSProperties = {
@@ -686,7 +690,7 @@ const primaryActionStyle: React.CSSProperties = {
   color: "#fff",
   border: "1px solid rgba(191, 219, 254, 0.28)",
   boxShadow:
-    "0 14px 30px rgba(33, 126, 255, 0.22), 0 0 28px rgba(96, 165, 250, 0.24)",
+    "inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 14px 30px rgba(33, 126, 255, 0.25), 0 0 28px rgba(96, 165, 250, 0.2)",
 };
 
 const secondaryActionStyle: React.CSSProperties = {
@@ -700,11 +704,31 @@ const secondaryActionStyle: React.CSSProperties = {
 const dangerActionStyle: React.CSSProperties = {
   ...actionButtonBaseStyle,
   background:
-    "linear-gradient(135deg, rgba(123, 31, 55, 0.96), rgba(175, 62, 84, 0.92))",
+    "linear-gradient(135deg, rgba(153, 27, 55, 0.98), rgba(220, 62, 91, 0.94))",
   color: "#fff",
-  border: "1px solid rgba(251, 146, 146, 0.28)",
+  border: "1px solid rgba(253, 164, 175, 0.38)",
   boxShadow:
-    "0 14px 28px rgba(127, 29, 29, 0.24), 0 0 24px rgba(248, 113, 113, 0.16)",
+    "inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 14px 28px rgba(127, 29, 29, 0.3), 0 0 24px rgba(248, 113, 113, 0.18)",
+};
+
+const updateActionStyle: React.CSSProperties = {
+  ...actionButtonBaseStyle,
+  background:
+    "linear-gradient(135deg, rgba(109, 40, 217, 0.98), rgba(168, 85, 247, 0.94))",
+  color: "#ffffff",
+  border: "1px solid rgba(216, 180, 254, 0.38)",
+  boxShadow:
+    "inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 14px 28px rgba(88, 28, 135, 0.3), 0 0 24px rgba(168, 85, 247, 0.18)",
+};
+
+const uploadActionStyle: React.CSSProperties = {
+  ...actionButtonBaseStyle,
+  background:
+    "linear-gradient(135deg, rgba(8, 145, 178, 0.98), rgba(16, 185, 129, 0.94))",
+  color: "#ffffff",
+  border: "1px solid rgba(110, 231, 183, 0.38)",
+  boxShadow:
+    "inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 14px 28px rgba(6, 95, 111, 0.3), 0 0 24px rgba(45, 212, 191, 0.18)",
 };
 
 const refreshButtonStyle: React.CSSProperties = {
