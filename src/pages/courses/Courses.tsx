@@ -688,11 +688,11 @@ const actionButtonBaseStyle: React.CSSProperties = {
 const primaryActionStyle: React.CSSProperties = {
   ...actionButtonBaseStyle,
   background:
-    "linear-gradient(145deg, rgba(55, 88, 145, 0.58), rgba(9, 23, 48, 0.68))",
+    "linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(7, 17, 36, 0.52))",
   color: "#fff",
-  border: "1px solid rgba(125, 180, 255, 0.72)",
+  border: "1px solid rgba(139, 190, 255, 0.48)",
   boxShadow:
-    "inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 9px 22px rgba(4, 12, 28, 0.28), 0 0 18px rgba(59, 130, 246, 0.1)",
+    "inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 20px rgba(2, 8, 23, 0.2)",
 };
 
 const secondaryActionStyle: React.CSSProperties = {
@@ -706,31 +706,31 @@ const secondaryActionStyle: React.CSSProperties = {
 const dangerActionStyle: React.CSSProperties = {
   ...actionButtonBaseStyle,
   background:
-    "linear-gradient(145deg, rgba(92, 48, 68, 0.58), rgba(9, 23, 48, 0.68))",
+    "linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(7, 17, 36, 0.52))",
   color: "#fff",
-  border: "1px solid rgba(251, 128, 148, 0.64)",
+  border: "1px solid rgba(251, 128, 148, 0.46)",
   boxShadow:
-    "inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 9px 22px rgba(4, 12, 28, 0.28), 0 0 16px rgba(244, 63, 94, 0.08)",
+    "inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 20px rgba(2, 8, 23, 0.2)",
 };
 
 const updateActionStyle: React.CSSProperties = {
   ...actionButtonBaseStyle,
   background:
-    "linear-gradient(145deg, rgba(81, 56, 108, 0.58), rgba(9, 23, 48, 0.68))",
+    "linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(7, 17, 36, 0.52))",
   color: "#ffffff",
-  border: "1px solid rgba(196, 146, 255, 0.66)",
+  border: "1px solid rgba(196, 146, 255, 0.48)",
   boxShadow:
-    "inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 9px 22px rgba(4, 12, 28, 0.28), 0 0 16px rgba(168, 85, 247, 0.08)",
+    "inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 20px rgba(2, 8, 23, 0.2)",
 };
 
 const uploadActionStyle: React.CSSProperties = {
   ...actionButtonBaseStyle,
   background:
-    "linear-gradient(145deg, rgba(42, 90, 91, 0.58), rgba(9, 23, 48, 0.68))",
+    "linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(7, 17, 36, 0.52))",
   color: "#ffffff",
-  border: "1px solid rgba(94, 234, 212, 0.62)",
+  border: "1px solid rgba(94, 234, 212, 0.46)",
   boxShadow:
-    "inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 9px 22px rgba(4, 12, 28, 0.28), 0 0 16px rgba(45, 212, 191, 0.08)",
+    "inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 20px rgba(2, 8, 23, 0.2)",
 };
 
 const refreshButtonStyle: React.CSSProperties = {
