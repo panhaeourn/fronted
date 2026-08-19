@@ -40,6 +40,7 @@ export default function ManageReceptionist() {
   const [timelineDrag, setTimelineDrag] = useState<{
     clientX: number; start: number; end: number; width: number;
   } | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1));
 
   const activeCodes = codes.filter(
     (item) => !item.used && new Date(item.expiresAt) >= new Date()
@@ -129,6 +130,22 @@ export default function ManageReceptionist() {
       setAppliedCustomFrom(from);
       setAppliedCustomTo(to);
     }
+    setCalendarMonth(new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1));
+  }
+
+  function selectCalendarDate(value: string) {
+    if (!customFrom || customTo) {
+      setCustomFrom(value);
+      setCustomTo("");
+      return;
+    }
+    if (dateInputToTimestamp(value) < dateInputToTimestamp(customFrom)) {
+      setCustomFrom(value);
+      return;
+    }
+    setCustomTo(value);
+    setAppliedCustomFrom(customFrom);
+    setAppliedCustomTo(value);
   }
 
   function updateTimelineStart(value: number) {
@@ -313,6 +330,31 @@ export default function ManageReceptionist() {
           </div>
           {overallRange === "CUSTOM" && (
             <div style={timelineWrapStyle}>
+              <div className="income-range-calendar" role="group" aria-label="Select custom income date range">
+                <div className="income-range-calendar-nav">
+                  <button type="button" aria-label="Previous month" onClick={() => setCalendarMonth(addMonths(calendarMonth, -1))}>‹</button>
+                  <strong>{customTo ? `${formatShortDate(customFrom)} – ${formatShortDate(customTo)}` : `Select an end date after ${formatShortDate(customFrom)}`}</strong>
+                  <button
+                    type="button"
+                    aria-label="Next month"
+                    disabled={addMonths(calendarMonth, 1) >= startOfMonth(new Date())}
+                    onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
+                  >›</button>
+                </div>
+                <div className="income-range-calendar-months">
+                  {[calendarMonth, addMonths(calendarMonth, 1)].map((month) => (
+                    <IncomeCalendarMonth
+                      key={`${month.getFullYear()}-${month.getMonth()}`}
+                      month={month}
+                      from={customFrom}
+                      to={customTo}
+                      min={timestampToDateInput(timelineBounds.min)}
+                      max={todayInput}
+                      onSelect={selectCalendarDate}
+                    />
+                  ))}
+                </div>
+              </div>
               <div style={customDatePickerRowStyle}>
                 <label style={customDateLabelStyle}>
                   <span>From</span>
@@ -481,6 +523,46 @@ function OverallMetric({ label, value, accent }: { label: string; value: string;
   );
 }
 
+function IncomeCalendarMonth({
+  month, from, to, min, max, onSelect,
+}: {
+  month: Date; from: string; to: string; min: string; max: string; onSelect: (value: string) => void;
+}) {
+  const leading = (new Date(month.getFullYear(), month.getMonth(), 1).getDay() + 6) % 7;
+  const days = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  const cells = Array.from({ length: leading + days }, (_, index) =>
+    index < leading ? null : new Date(month.getFullYear(), month.getMonth(), index - leading + 1)
+  );
+
+  return (
+    <section className="income-range-calendar-month">
+      <h3>{month.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</h3>
+      <div className="income-range-calendar-weekdays" aria-hidden="true">
+        {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => <span key={day}>{day}</span>)}
+      </div>
+      <div className="income-range-calendar-grid">
+        {cells.map((date, index) => {
+          if (!date) return <span key={`empty-${index}`} />;
+          const value = timestampToDateInput(date.getTime());
+          const selected = value === from || value === to;
+          const inRange = Boolean(from && to && value > from && value < to);
+          return (
+            <button
+              key={value}
+              type="button"
+              disabled={value < min || value > max}
+              className={`${selected ? "is-selected" : ""}${inRange ? " is-in-range" : ""}`}
+              aria-label={date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+              aria-pressed={selected}
+              onClick={() => onSelect(value)}
+            >{date.getDate()}</button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function startOfWeek(date: Date) {
   const value = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const day = value.getDay();
@@ -510,6 +592,14 @@ function timestampToDateInput(value: number) {
 
 function dateInputToTimestamp(value: string) {
   return new Date(`${value}T00:00:00`).getTime();
+}
+
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths(date: Date, amount: number) {
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
 }
 
 function countInclusiveDays(start: number, end: number) {
