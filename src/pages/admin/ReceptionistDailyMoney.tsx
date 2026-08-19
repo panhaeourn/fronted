@@ -46,7 +46,9 @@ export default function ReceptionistDailyMoney() {
   const [loading, setLoading] = useState(true);
   const [customFrom, setCustomFrom] = useState(() => searchParams.get("from") || "");
   const [customTo, setCustomTo] = useState(() => searchParams.get("to") || "");
-  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(
+    () => normalizeRange(searchParams.get("range")) === "CUSTOM"
+  );
   const [calendarMonth, setCalendarMonth] = useState(() => addMonths(startOfMonth(new Date()), -1));
 
   const idNum = userId ? Number(userId) : NaN;
@@ -55,6 +57,14 @@ export default function ReceptionistDailyMoney() {
   const selectedYear = normalizeYear(searchParams.get("year"), currentYear);
   const isSelfView = !userId;
   const todayInput = timestampToDateInput(new Date().setHours(0, 0, 0, 0));
+
+  useEffect(() => {
+    if (range === "CUSTOM") {
+      setCalendarOpen(true);
+    } else {
+      setCalendarOpen(false);
+    }
+  }, [range]);
 
   useEffect(() => {
     let cancelled = false;
@@ -153,8 +163,10 @@ export default function ReceptionistDailyMoney() {
   const totalTransactions = filteredDays.reduce((sum, day) => sum + day.count, 0);
   const timelineMin = dateInputToTimestamp(customMin);
   const timelineMax = dateInputToTimestamp(todayInput);
-  const timelineStart = isValidDateInput(customFrom) ? dateInputToTimestamp(customFrom) : timelineMin;
-  const timelineEnd = isValidDateInput(customTo) ? dateInputToTimestamp(customTo) : timelineMax;
+  const timelineFromInput = isValidDateInput(customFrom) ? customFrom : customMin;
+  const timelineToInput = isValidDateInput(customTo) ? customTo : todayInput;
+  const timelineStart = Math.min(timelineMax, Math.max(timelineMin, dateInputToTimestamp(timelineFromInput)));
+  const timelineEnd = Math.min(timelineMax, Math.max(timelineStart, dateInputToTimestamp(timelineToInput)));
   const timelineSpan = Math.max(1, timelineMax - timelineMin);
   const timelineLeft = ((timelineStart - timelineMin) / timelineSpan) * 100;
   const timelineWidth = ((timelineEnd - timelineStart) / timelineSpan) * 100;
@@ -329,13 +341,26 @@ export default function ReceptionistDailyMoney() {
                   </div>
                 )}
               </div>
-              {isValidDateInput(customFrom) && isValidDateInput(customTo) && (
-                <div style={customTimelineStyle}>
+              <div style={customTimelineStyle}>
                   <div style={customTimelineHeaderStyle}>
                     <strong>Date timeline</strong>
-                    <span>{formatShortDate(customFrom)} – {formatShortDate(customTo)}</span>
+                    <span>{formatShortDate(timelineFromInput)} – {formatShortDate(timelineToInput)}</span>
                   </div>
-                  <div style={customTimelineTrackWrapStyle}>
+                  <div
+                    style={customTimelineTrackWrapStyle}
+                    onPointerDown={(event) => {
+                      if (event.target instanceof HTMLInputElement) return;
+                      const bounds = event.currentTarget.getBoundingClientRect();
+                      const ratio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+                      const dayMs = 86_400_000;
+                      const value = timelineMin + Math.round((ratio * timelineSpan) / dayMs) * dayMs;
+                      if (Math.abs(value - timelineStart) <= Math.abs(value - timelineEnd)) {
+                        updateTimelineRange(timestampToDateInput(Math.min(value, timelineEnd)), timelineToInput);
+                      } else {
+                        updateTimelineRange(timelineFromInput, timestampToDateInput(Math.max(value, timelineStart)));
+                      }
+                    }}
+                  >
                     <div style={customTimelineTrackStyle} />
                     <div style={{ ...customTimelineSelectionStyle, left: `${timelineLeft}%`, width: `${timelineWidth}%` }} />
                     <input
@@ -349,7 +374,7 @@ export default function ReceptionistDailyMoney() {
                       style={{ zIndex: timelineStart >= timelineEnd ? 5 : 4 }}
                       onChange={(event) => {
                         const value = Math.min(Number(event.target.value), timelineEnd);
-                        updateTimelineRange(timestampToDateInput(value), customTo);
+                        updateTimelineRange(timestampToDateInput(value), timelineToInput);
                       }}
                     />
                     <input
@@ -363,7 +388,7 @@ export default function ReceptionistDailyMoney() {
                       style={{ zIndex: 3 }}
                       onChange={(event) => {
                         const value = Math.max(Number(event.target.value), timelineStart);
-                        updateTimelineRange(customFrom, timestampToDateInput(value));
+                        updateTimelineRange(timelineFromInput, timestampToDateInput(value));
                       }}
                     />
                   </div>
@@ -373,7 +398,6 @@ export default function ReceptionistDailyMoney() {
                     <span>Today</span>
                   </div>
                 </div>
-              )}
             </div>
           )}
 
@@ -1092,7 +1116,7 @@ const customTimelineHeaderStyle: React.CSSProperties = {
 };
 
 const customTimelineTrackWrapStyle: React.CSSProperties = {
-  position: "relative", height: 42, margin: "0 13px",
+  position: "relative", height: 42, margin: "0 13px", cursor: "pointer", touchAction: "pan-y",
 };
 
 const customTimelineTrackStyle: React.CSSProperties = {
