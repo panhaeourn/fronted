@@ -218,6 +218,7 @@ export default function CourseDetail() {
   if (loading) return <div style={loadingStyle}>Loading course...</div>;
   if (err) return <div style={errorStyle}>{err}</div>;
   if (!course) return <div style={loadingStyle}>Course not found</div>;
+  const hasCourseAccess = isAdmin || Boolean(course.enrolled);
 
   return (
     <div className="course-detail-page" style={pageStyleWide}>
@@ -243,8 +244,8 @@ export default function CourseDetail() {
         />
         <InfoCard
           label="Status"
-          value={course.freeAccess ? "Free Access" : course.enrolled ? "Enrolled" : "Locked"}
-          accent={course.enrolled ? "#34d399" : "#f87171"}
+          value={course.freeAccess ? "Free Access" : isAdmin ? "Admin Access" : course.enrolled ? "Enrolled" : "Locked"}
+          accent={hasCourseAccess ? "#34d399" : "#f87171"}
         />
         <InfoCard
           label="Lessons"
@@ -253,19 +254,19 @@ export default function CourseDetail() {
         />
       </div>
 
-      {!course.enrolled && (
+      {!hasCourseAccess && (
         <div style={noticeStyle}>
           Buy this course first to access the content.
         </div>
       )}
 
-      {course.enrolled && videos.length === 0 && (
+      {hasCourseAccess && videos.length === 0 && (
         <div style={noticeStyle}>
-          You are enrolled. No videos uploaded yet.
+          {isAdmin ? "No videos uploaded yet." : "You are enrolled. No videos uploaded yet."}
         </div>
       )}
 
-      {course.enrolled && videos.length > 0 && selectedVideo && (
+      {hasCourseAccess && videos.length > 0 && selectedVideo && (
         <div className="course-detail-content" style={contentGridStyle}>
           <section className="course-detail-player-panel" style={panelStyle}>
             <div className="course-detail-video-frame" style={videoFrameStyle}>

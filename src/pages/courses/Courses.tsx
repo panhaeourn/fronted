@@ -333,6 +333,7 @@ export default function Courses() {
         {courses.map((course) => {
           const price = typeof course.price === "number" ? course.price : 5;
           const teacherPhoto = teacherPhotos[course.id];
+          const hasCourseAccess = isAdmin || Boolean(course.enrolled);
 
           return (
             <div
@@ -457,7 +458,7 @@ export default function Courses() {
                     marginBottom: 14,
                   }}
                 >
-                  {course.freeAccess ? "Free Access" : course.enrolled ? "Unlocked" : "Available"}
+                  {course.freeAccess ? "Free Access" : isAdmin ? "Admin Access" : course.enrolled ? "Unlocked" : "Available"}
                 </div>
 
                 <div
@@ -520,9 +521,9 @@ export default function Courses() {
                   {"\u00A0"}
                 </div>
 
-                {course.enrolled && (
+                {hasCourseAccess && (
                   <div style={{ marginTop: 10, color: "#34d399", fontWeight: 700 }}>
-                    {course.freeAccess ? "Free for everyone" : "Enrolled"}
+                    {course.freeAccess ? "Free for everyone" : isAdmin ? "Available to admin" : "Enrolled"}
                   </div>
                 )}
               </div>
@@ -536,7 +537,7 @@ export default function Courses() {
                   alignItems: "stretch",
                 }}
               >
-                {course.enrolled ? (
+                {hasCourseAccess ? (
                   <button
                     onClick={() => navigate(`/courses/${course.id}`)}
                     style={primaryActionStyle}
