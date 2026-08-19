@@ -50,6 +50,9 @@ export default function ReceptionistDailyMoney() {
     () => normalizeRange(searchParams.get("range")) === "CUSTOM"
   );
   const [calendarMonth, setCalendarMonth] = useState(() => addMonths(startOfMonth(new Date()), -1));
+  const [timelineDrag, setTimelineDrag] = useState<{
+    clientX: number; start: number; end: number; width: number;
+  } | null>(null);
 
   const idNum = userId ? Number(userId) : NaN;
   const range = normalizeRange(searchParams.get("range"));
@@ -204,6 +207,23 @@ export default function ReceptionistDailyMoney() {
     navigate(`${customBasePath()}?range=CUSTOM&from=${encodeURIComponent(nextFrom)}&to=${encodeURIComponent(nextTo)}`);
   }
 
+  function moveTimelineSelection(clientX: number) {
+    if (!timelineDrag) return;
+    const dayMs = 86_400_000;
+    const rawDelta = ((clientX - timelineDrag.clientX) / Math.max(1, timelineDrag.width)) * timelineSpan;
+    let delta = Math.round(rawDelta / dayMs) * dayMs;
+    delta = Math.max(delta, timelineMin - timelineDrag.start);
+    delta = Math.min(delta, timelineMax - timelineDrag.end);
+    const nextFrom = timestampToDateInput(timelineDrag.start + delta);
+    const nextTo = timestampToDateInput(timelineDrag.end + delta);
+    setCustomFrom(nextFrom);
+    setCustomTo(nextTo);
+    navigate(
+      `${customBasePath()}?range=CUSTOM&from=${encodeURIComponent(nextFrom)}&to=${encodeURIComponent(nextTo)}`,
+      { replace: true }
+    );
+  }
+
   if (!isSelfView && (!userId || Number.isNaN(idNum))) {
     return (
       <div style={{ padding: 20 }}>
@@ -346,23 +366,24 @@ export default function ReceptionistDailyMoney() {
                     <strong>Date timeline</strong>
                     <span>{formatShortDate(timelineFromInput)} – {formatShortDate(timelineToInput)}</span>
                   </div>
-                  <div
-                    style={customTimelineTrackWrapStyle}
-                    onPointerDown={(event) => {
-                      if (event.target instanceof HTMLInputElement) return;
-                      const bounds = event.currentTarget.getBoundingClientRect();
-                      const ratio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
-                      const dayMs = 86_400_000;
-                      const value = timelineMin + Math.round((ratio * timelineSpan) / dayMs) * dayMs;
-                      if (Math.abs(value - timelineStart) <= Math.abs(value - timelineEnd)) {
-                        updateTimelineRange(timestampToDateInput(Math.min(value, timelineEnd)), timelineToInput);
-                      } else {
-                        updateTimelineRange(timelineFromInput, timestampToDateInput(Math.max(value, timelineStart)));
-                      }
-                    }}
-                  >
+                  <div style={customTimelineTrackWrapStyle}>
                     <div style={customTimelineTrackStyle} />
-                    <div style={{ ...customTimelineSelectionStyle, left: `${timelineLeft}%`, width: `${timelineWidth}%` }} />
+                    <div
+                      style={{ ...customTimelineSelectionStyle, left: `${timelineLeft}%`, width: `${timelineWidth}%` }}
+                      title="Drag to move the selected duration"
+                      onPointerDown={(event) => {
+                        event.currentTarget.setPointerCapture(event.pointerId);
+                        setTimelineDrag({
+                          clientX: event.clientX,
+                          start: timelineStart,
+                          end: timelineEnd,
+                          width: event.currentTarget.parentElement?.getBoundingClientRect().width || 1,
+                        });
+                      }}
+                      onPointerMove={(event) => moveTimelineSelection(event.clientX)}
+                      onPointerUp={() => setTimelineDrag(null)}
+                      onPointerCancel={() => setTimelineDrag(null)}
+                    />
                     <input
                       className="income-timeline-range"
                       type="range"
@@ -394,7 +415,7 @@ export default function ReceptionistDailyMoney() {
                   </div>
                   <div style={customTimelineFooterStyle}>
                     <span>{formatShortDate(customMin)}</span>
-                    <span>{countInclusiveDays(timelineStart, timelineEnd)} day period</span>
+                    <span>{countInclusiveDays(timelineStart, timelineEnd)} day period · drag colored bar to move</span>
                     <span>Today</span>
                   </div>
                 </div>
@@ -1116,7 +1137,7 @@ const customTimelineHeaderStyle: React.CSSProperties = {
 };
 
 const customTimelineTrackWrapStyle: React.CSSProperties = {
-  position: "relative", height: 42, margin: "0 13px", cursor: "pointer", touchAction: "pan-y",
+  position: "relative", height: 42, margin: "0 13px",
 };
 
 const customTimelineTrackStyle: React.CSSProperties = {
@@ -1126,6 +1147,7 @@ const customTimelineTrackStyle: React.CSSProperties = {
 
 const customTimelineSelectionStyle: React.CSSProperties = {
   position: "absolute", zIndex: 2, top: 14, height: 15, borderRadius: 999,
+  cursor: "grab", touchAction: "none",
   background: "linear-gradient(90deg,#4f7cff,#41c7f4 48%,#22c55e)",
   boxShadow: "0 4px 13px rgba(59,130,246,.27),0 0 0 3px rgba(65,199,244,.1)",
 };
