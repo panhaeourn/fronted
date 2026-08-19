@@ -54,6 +54,17 @@ function formatCoursePrice(value: number) {
   return coursePriceFormatter.format(value || 0);
 }
 
+function resolveVideoSource(video: CourseVideo) {
+  if (video.videoUrl) {
+    const rawUrl = video.videoUrl.startsWith("http")
+      ? video.videoUrl
+      : `${API_BASE}${video.videoUrl}`;
+    return encodeURI(rawUrl);
+  }
+
+  return video.fileName ? encodeURI(`${API_BASE}/files/${video.fileName}`) : "";
+}
+
 export default function CourseDetail() {
   const { id } = useParams();
   const { isAdmin } = useAuth();
@@ -117,19 +128,7 @@ export default function CourseDetail() {
 
   const selectedVideoSrc = useMemo(() => {
     if (!selectedVideo) return "";
-
-    if (selectedVideo.videoUrl) {
-      const rawUrl = selectedVideo.videoUrl.startsWith("http")
-        ? selectedVideo.videoUrl
-        : `${API_BASE}${selectedVideo.videoUrl}`;
-      return encodeURI(rawUrl);
-    }
-
-    if (selectedVideo.fileName) {
-      return encodeURI(`${API_BASE}/files/${selectedVideo.fileName}`);
-    }
-
-    return "";
+    return resolveVideoSource(selectedVideo);
   }, [selectedVideo]);
 
   useEffect(() => {
@@ -319,6 +318,7 @@ export default function CourseDetail() {
               {videos.map((video, index) => {
                 const active = selectedVideo.id === video.id;
                 const stats = playlistStats[video.id];
+                const thumbnailSource = resolveVideoSource(video);
 
                 return (
                   <div key={video.id} style={playlistItemWrapStyle}>
@@ -347,16 +347,26 @@ export default function CourseDetail() {
                       }}
                     >
                     <div className="course-detail-playlist-thumb" style={playlistThumbStyle}>
-                      <div
-                        style={{
-                          ...playlistThumbFallbackStyle,
-                          background: active
-                            ? "linear-gradient(180deg, rgba(30, 41, 59, 0.96), rgba(37, 99, 235, 0.92))"
-                            : playlistThumbFallbackStyle.background,
-                        }}
-                      >
-                        {active ? "Now Playing" : "Video"}
-                      </div>
+                      {thumbnailSource ? (
+                        <video
+                          src={thumbnailSource}
+                          preload="metadata"
+                          muted
+                          playsInline
+                          aria-hidden="true"
+                          tabIndex={-1}
+                          onLoadedMetadata={(event) => {
+                            const preview = event.currentTarget;
+                            if (Number.isFinite(preview.duration) && preview.duration > 0.15) {
+                              preview.currentTime = Math.min(0.2, preview.duration / 2);
+                            }
+                          }}
+                          style={playlistThumbnailVideoStyle}
+                        />
+                      ) : (
+                        <div style={playlistThumbFallbackStyle}>Video</div>
+                      )}
+                      {active && <div style={playlistNowPlayingStyle}>Now Playing</div>}
                     </div>
 
                     <div
@@ -648,6 +658,7 @@ const playlistTextWrapStyle: React.CSSProperties = {
 };
 
 const playlistThumbStyle: React.CSSProperties = {
+  position: "relative",
   background: "#000",
   borderRadius: 12,
   overflow: "hidden",
@@ -679,6 +690,31 @@ const playlistVideoTitleStyle: React.CSSProperties = {
   lineHeight: 1.4,
   fontSize: 15,
   wordBreak: "break-word",
+};
+
+const playlistThumbnailVideoStyle: React.CSSProperties = {
+  width: "100%",
+  height: "100%",
+  display: "block",
+  objectFit: "cover",
+  background: "#020617",
+  pointerEvents: "none",
+};
+
+const playlistNowPlayingStyle: React.CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  display: "grid",
+  placeItems: "center",
+  padding: 8,
+  color: "#dbeafe",
+  background: "linear-gradient(180deg, rgba(15, 23, 42, 0.38), rgba(37, 99, 235, 0.78))",
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: "0.04em",
+  textAlign: "center",
+  textTransform: "uppercase",
+  pointerEvents: "none",
 };
 
 const playlistViewsStyle: React.CSSProperties = {
