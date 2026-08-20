@@ -46,6 +46,7 @@ export default function CitoReceiptForm() {
     monthlyPeriod: buildDefaultMonthlyPeriod(),
     studentNameEnglish: "",
     studentNameKhmer: "",
+    birthDate: "",
     gender: "",
     phone: "",
     contactInfo: "",
@@ -350,6 +351,7 @@ export default function CitoReceiptForm() {
         studentName: form.studentNameEnglish.trim(),
         studentNameEnglish: form.studentNameEnglish.trim(),
         studentNameKhmer: form.studentNameKhmer.trim(),
+        birthDate: form.birthDate || null,
         gender: form.gender,
         phone: form.contactInfo.trim(),
         contactInfo: form.contactInfo.trim(),
@@ -579,6 +581,17 @@ export default function CitoReceiptForm() {
                 name="contactInfo"
                 placeholder="Phone, Telegram, or email"
                 value={form.contactInfo}
+                onChange={handleChange}
+                style={inputStyle}
+              />
+            </div>
+
+            <div style={fieldBlockStyle}>
+              <label style={labelStyle}>Date of Birth</label>
+              <input
+                name="birthDate"
+                type="date"
+                value={form.birthDate}
                 onChange={handleChange}
                 style={inputStyle}
               />

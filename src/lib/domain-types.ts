@@ -29,6 +29,7 @@ export type ReceiptRecord = {
   studentName: string;
   studentNameEnglish?: string;
   studentNameKhmer?: string;
+  birthDate?: string;
   gender?: string;
   phone?: string;
   contactInfo?: string;

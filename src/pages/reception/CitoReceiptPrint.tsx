@@ -176,6 +176,7 @@ export default function CitoReceiptPrint() {
               <Info label="Student Name in English" value={data.studentNameEnglish || data.studentName} />
               <Info label="Student Name in Khmer" value={data.studentNameKhmer || data.studentName} />
               <Info label="Student ID" value={displayStudentId} />
+              <Info label="Date of Birth" value={data.birthDate || "-"} />
               <Info label="Gender" value={data.gender || "-"} />
               <Info label="Contact Information" value={data.contactInfo || data.phone || data.email || "-"} />
               <Info label="Email" value={data.email || "-"} />
