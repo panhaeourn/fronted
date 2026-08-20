@@ -62,7 +62,7 @@ export default function ReceiptList() {
   const [payingId, setPayingId] = useState<number | null>(null);
   const [searchName, setSearchName] = useState("");
   const [searchId, setSearchId] = useState("CITO");
-  const [activeTypeFilter, setActiveTypeFilter] = useState<"ALL" | "COURSE" | "MONTHLY">("ALL");
+  const [activeTypeFilter, setActiveTypeFilter] = useState<"ALL" | "COURSE" | "MONTHLY" | "CERTIFICATE_REQUESTS">("ALL");
   const [selectedCourseFilter, setSelectedCourseFilter] = useState("ALL");
   const [selectedMonthlyReceipt, setSelectedMonthlyReceipt] = useState<ReceiptRecord | null>(null);
   const [receiptToDelete, setReceiptToDelete] = useState<number | null>(null);
@@ -228,6 +228,9 @@ export default function ReceiptList() {
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
+      if (activeTypeFilter === "CERTIFICATE_REQUESTS") {
+        return item.completionStatus !== "APPROVED";
+      }
       const matchesType = activeTypeFilter === "ALL"
         || normalizeReceiptType(item.receiptType) === activeTypeFilter;
       const matchesCourse = selectedCourseFilter === "ALL"
@@ -286,6 +289,12 @@ export default function ReceiptList() {
             style={activeTypeFilter === "MONTHLY" ? activeSegmentButtonStyle : segmentButtonStyle}
           >
             Monthly
+          </button>
+          <button
+            onClick={() => setActiveTypeFilter("CERTIFICATE_REQUESTS")}
+            style={activeTypeFilter === "CERTIFICATE_REQUESTS" ? activeSegmentButtonStyle : segmentButtonStyle}
+          >
+            Certificate Requests
           </button>
         </div>
 
