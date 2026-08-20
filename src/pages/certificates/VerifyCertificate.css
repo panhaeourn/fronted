@@ -413,8 +413,8 @@
   white-space: nowrap;
 }
 
-.verified-online-name { left: 32%; top: 46%; width: 20%; min-height: 3.2%; font-size: 16px; transform: translate(-50%, -50%); }
-.verified-online-course { left: 64%; top: 46%; width: 27%; min-height: 3.2%; font-size: 16px; transform: translate(-50%, -50%); }
-.verified-online-date { left: 41%; top: 48.5%; width: 15%; min-height: 3%; }
+.verified-online-name { left: 32%; top: 46%; width: 20%; min-height: 3.2%; font-size: 12px; transform: translate(-50%, -50%); }
+.verified-online-course { left: 64%; top: 46%; width: 27%; min-height: 3.2%; font-size: 12px; transform: translate(-50%, -50%); }
+.verified-online-date { left: 45%; top: 48.5%; width: 15%; min-height: 3%; font-size: 12px; }
 .verified-online-stamp { position: absolute; z-index: 3; left: 77.2%; top: 66.5%; width: 11.5%; }
 .verified-online-qr { position: absolute; z-index: 3; left: 8%; top: 70%; width: 10%; height: auto; }
