@@ -634,6 +634,19 @@
   width: 10% !important;
 }
 
+.online-certificate-verification-link {
+  pointer-events: auto;
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  color: #071737;
+  font-size: 7px;
+  line-height: 1.1;
+  text-decoration: underline;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .certificate-student-photo {
   position: absolute;
   z-index: 3;

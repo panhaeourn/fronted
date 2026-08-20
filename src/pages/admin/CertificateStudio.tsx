@@ -625,6 +625,15 @@ function OnlineCertificate({
             fgColor="#071737"
             title={`Verify certificate ${verification.certificateNumber}`}
           />
+          <a
+            className="online-certificate-verification-link"
+            href={certificateVerificationUrl(verification.verificationCode)}
+            target="_blank"
+            rel="noreferrer"
+            title={certificateVerificationUrl(verification.verificationCode)}
+          >
+            Verify online certificate
+          </a>
         </div>
       )}
     </article>
