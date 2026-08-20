@@ -618,27 +618,6 @@
   font-size: 14px;
 }
 
-.online-certificate-signature {
-  position: absolute;
-  z-index: 4;
-  left: 67%;
-  top: 76%;
-  width: 15%;
-  text-align: center;
-}
-
-.online-certificate-signature-line {
-  height: 28px;
-  margin-bottom: 6px;
-  border-bottom: 1px solid #111827;
-}
-
-.online-certificate-signature-label {
-  color: #374151;
-  font-size: 13px;
-  font-weight: 600;
-}
-
 .online-certificate-stamp {
   position: absolute;
   z-index: 4;
@@ -650,8 +629,8 @@
 }
 
 .online-certificate-qr {
-  left: 7.3% !important;
-  top: 70% !important;
+  left: 7.5% !important;
+  top: 72% !important;
   width: 12.2% !important;
 }
 
