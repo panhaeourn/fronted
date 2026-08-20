@@ -129,6 +129,7 @@ export default function CertificateStudio() {
     const issueYear = String(issue.getFullYear());
     const nextRows = courseReceipts
       .filter((receipt) => receipt.courseName.trim() === courseName)
+      .filter((receipt) => receipt.completionStatus === "APPROVED")
       .filter((receipt) => {
         const key = receipt.studentId || receipt.studentCode || `${receipt.studentNameEnglish}-${receipt.studentNameKhmer}`;
         if (seen.has(key)) return false;

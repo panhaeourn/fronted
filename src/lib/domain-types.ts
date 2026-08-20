@@ -30,6 +30,7 @@ export type ReceiptRecord = {
   studentNameEnglish?: string;
   studentNameKhmer?: string;
   birthDate?: string;
+  completionStatus?: "PENDING" | "APPROVED";
   gender?: string;
   phone?: string;
   contactInfo?: string;

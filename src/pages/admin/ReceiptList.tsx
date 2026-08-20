@@ -182,6 +182,17 @@ export default function ReceiptList() {
     }
   }
 
+  async function handleCompletionStatus(id: number, status: "PENDING" | "APPROVED") {
+    try {
+      const updated = await apiFetch<ReceiptRecord>(`/api/reception/receipts/${id}/completion-status`, {
+        method: "PATCH", body: JSON.stringify({ status }),
+      });
+      setItems((current) => current.map((item) => item.id === id ? updated : item));
+    } catch (error: unknown) {
+      setErr(getErrorMessage(error, "Failed to update completion approval"));
+    }
+  }
+
   const summary = useMemo(() => {
     const paid = items.filter(
       (item) => isReceiptPaid(item)
@@ -345,6 +356,9 @@ export default function ReceiptList() {
                       <div style={subCellStyle}>
                         {normalizeDisplayId(receipt.studentId || receipt.studentCode)}
                       </div>
+                      <div style={{ ...subCellStyle, color: receipt.completionStatus === "APPROVED" ? "#22c55e" : "#f59e0b" }}>
+                        {receipt.completionStatus === "APPROVED" ? "Completed / Approved" : "Completion pending"}
+                      </div>
                     </td>
                     <td style={tdStyle}>
                       <span
@@ -472,6 +486,13 @@ export default function ReceiptList() {
                                 : "Mark Paid"}
                           </button>
                         )}
+
+                        <button
+                          onClick={() => void handleCompletionStatus(receipt.id, receipt.completionStatus === "APPROVED" ? "PENDING" : "APPROVED")}
+                          style={receipt.completionStatus === "APPROVED" ? secondaryButtonStyle : successButtonStyle}
+                        >
+                          {receipt.completionStatus === "APPROVED" ? "Re-request" : "Approve completion"}
+                        </button>
 
                         <button
                           onClick={() => setReceiptToDelete(receipt.id)}
