@@ -584,6 +584,7 @@ function OnlineCertificate({
   onSelectField: (field: TextField) => void;
   onEditText: (position: string, value: string) => void;
 }) {
+  const issue = dateParts(row, "issueDate", "issueDay", "issueMonth", "issueYear");
   const textStyle = (field: TextField): CSSProperties => ({
     fontFamily: fieldSettings[field].font || undefined,
     fontSize: fieldSettings[field].size ? `${fieldSettings[field].size}px` : undefined,
@@ -608,6 +609,9 @@ function OnlineCertificate({
     >
       <div {...textProps("name", "online-name")} data-position="online-name">{recipientName(row, "english")}</div>
       <div {...textProps("course", "online-course")} data-position="online-course">{fieldValue(row, "course")}</div>
+      <div {...textProps("issueDate", "online-issue-date")} data-position="online-issue-date">{fullDate(row, "issueDate", issue)}</div>
+      <div className="online-certificate-signature" aria-label="Authorized signature">CITO</div>
+      <img className="online-certificate-stamp" src={citoStampUrl} alt="Official CITO stamp" draggable={false} />
       {verification && (
         <div
           className="certificate-verification-block online-certificate-qr"

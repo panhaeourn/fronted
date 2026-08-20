@@ -589,19 +589,52 @@
 /* The online certificate uses the supplied PDF artwork as a fixed web background.
    Only the learner name and course are editable on this certificate type. */
 .online-certificate-fill[data-position="online-name"] {
-  left: 38.5%;
-  top: 44.2%;
-  width: 15%;
+  left: 29.5%;
+  top: 43.3%;
+  width: 13.5%;
   min-height: 3.2%;
   font-size: 16px;
 }
 
 .online-certificate-fill[data-position="online-course"] {
-  left: 48.5%;
-  top: 44.2%;
-  width: 18%;
+  left: 49.5%;
+  top: 43.3%;
+  width: 17%;
   min-height: 3.2%;
   font-size: 16px;
+}
+
+.online-certificate-fill[data-position="online-issue-date"] {
+  left: 32.5%;
+  top: 48.1%;
+  width: 17%;
+  min-height: 3%;
+  font-size: 14px;
+}
+
+.online-certificate-signature {
+  position: absolute;
+  z-index: 4;
+  left: 66.5%;
+  top: 70.2%;
+  width: 15%;
+  color: #172554;
+  border-bottom: 1px solid #172554;
+  font-family: "Brush Script MT", "Segoe Script", cursive;
+  font-size: 24px;
+  font-style: italic;
+  line-height: 1;
+  text-align: center;
+}
+
+.online-certificate-stamp {
+  position: absolute;
+  z-index: 4;
+  left: 76%;
+  top: 61.5%;
+  width: 11%;
+  height: auto;
+  opacity: .82;
 }
 
 .online-certificate-qr {
