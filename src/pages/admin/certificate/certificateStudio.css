@@ -635,16 +635,18 @@
 }
 
 .online-certificate-verification-link {
+  position: absolute;
+  left: 110%;
+  top: 25%;
+  width: 300%;
   pointer-events: auto;
   display: block;
   margin-top: 2px;
-  overflow: hidden;
+  overflow-wrap: anywhere;
   color: #071737;
-  font-size: 7px;
+  font-size: 8px;
   line-height: 1.1;
   text-decoration: underline;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .certificate-student-photo {

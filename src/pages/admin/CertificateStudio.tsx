@@ -632,7 +632,7 @@ function OnlineCertificate({
             rel="noreferrer"
             title={certificateVerificationUrl(verification.verificationCode)}
           >
-            Verify online certificate
+            {certificateVerificationUrl(verification.verificationCode)}
           </a>
         </div>
       )}
