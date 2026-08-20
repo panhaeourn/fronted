@@ -7,6 +7,7 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import { apiFetch } from "../../api";
 import { getErrorMessage } from "../../lib/errors";
+import type { ReceiptRecord } from "../../lib/domain-types";
 import {
   dateParts,
   downloadSpreadsheetTemplate,
@@ -89,6 +90,8 @@ export default function CertificateStudio() {
   const [busy, setBusy] = useState(false);
   const [printStatus, setPrintStatus] = useState("");
   const [previewOnly, setPreviewOnly] = useState(false);
+  const [courseReceipts, setCourseReceipts] = useState<ReceiptRecord[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState("");
   const [previewScale, setPreviewScale] = useState(1);
   const [issuedCertificates, setIssuedCertificates] = useState<IssuedCertificate[]>([]);
   const [issuing, setIssuing] = useState(false);
@@ -102,6 +105,55 @@ export default function CertificateStudio() {
       embeddedUrlsRef.current.forEach(URL.revokeObjectURL);
     };
   }, []);
+
+  useEffect(() => {
+    apiFetch<ReceiptRecord[]>("/api/reception/receipts")
+      .then((receipts) => setCourseReceipts(receipts || []))
+      .catch(() => setCourseReceipts([]));
+  }, []);
+
+  async function loadCourseStudents(courseName: string) {
+    setSelectedCourse(courseName);
+    setError("");
+    setIssuedCertificates([]);
+    issuanceBatchRef.current = createIssuanceBatchId();
+    if (!courseName) {
+      setRows([]);
+      setSheetName("No course selected");
+      return;
+    }
+    const seen = new Set<string>();
+    const issue = new Date();
+    const issueDay = String(issue.getDate()).padStart(2, "0");
+    const issueMonth = String(issue.getMonth() + 1).padStart(2, "0");
+    const issueYear = String(issue.getFullYear());
+    const nextRows = courseReceipts
+      .filter((receipt) => receipt.courseName.trim() === courseName)
+      .filter((receipt) => {
+        const key = receipt.studentId || receipt.studentCode || `${receipt.studentNameEnglish}-${receipt.studentNameKhmer}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((receipt) => {
+        const [birthYear = "", birthMonth = "", birthDay = ""] = (receipt.birthDate || "").split("-");
+        return {
+          name_khmer: receipt.studentNameKhmer || receipt.studentName || "",
+          name_english: receipt.studentNameEnglish || receipt.studentName || "",
+          sex: receipt.gender || "",
+          birth_day: birthDay,
+          birth_month: birthMonth,
+          birth_year: birthYear,
+          course: receipt.courseName,
+          issue_day: issueDay,
+          issue_month: issueMonth,
+          issue_year: issueYear,
+        };
+      });
+    setRows(nextRows);
+    setSheetName(`${nextRows.length} students from ${courseName}`);
+    if (nextRows.length === 0) setError("No students found for this course.");
+  }
 
   useEffect(() => {
     const previewScroll = previewScrollRef.current;
@@ -368,6 +420,19 @@ export default function CertificateStudio() {
       <div className="certificate-studio-workspace">
         <aside className="certificate-control-panel">
           <ControlSection>
+            <label className="certificate-form-field">
+              <span>Load students from course</span>
+              <select
+                value={selectedCourse}
+                disabled={busy || issuing || publishing}
+                onChange={(event) => void loadCourseStudents(event.target.value)}
+              >
+                <option value="">Select a course</option>
+                {[...new Set(courseReceipts.map((receipt) => receipt.courseName.trim()).filter(Boolean))]
+                  .sort((a, b) => a.localeCompare(b))
+                  .map((course) => <option key={course} value={course}>{course}</option>)}
+              </select>
+            </label>
             <UploadCard
               title="Spreadsheet"
               status={sheetName}
