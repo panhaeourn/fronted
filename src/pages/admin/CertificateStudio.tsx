@@ -7,7 +7,7 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import { apiFetch } from "../../api";
 import { getErrorMessage } from "../../lib/errors";
-import type { ReceiptRecord } from "../../lib/domain-types";
+import type { PaymentHistoryRecord, ReceiptRecord } from "../../lib/domain-types";
 import {
   dateParts,
   downloadSpreadsheetTemplate,
@@ -92,6 +92,7 @@ export default function CertificateStudio() {
   const [previewOnly, setPreviewOnly] = useState(false);
   const [courseReceipts, setCourseReceipts] = useState<ReceiptRecord[]>([]);
   const [selectedCourse, setSelectedCourse] = useState("");
+  const [onlinePayments, setOnlinePayments] = useState<PaymentHistoryRecord[]>([]);
   const [previewScale, setPreviewScale] = useState(1);
   const [issuedCertificates, setIssuedCertificates] = useState<IssuedCertificate[]>([]);
   const [issuing, setIssuing] = useState(false);
@@ -105,6 +106,34 @@ export default function CertificateStudio() {
       embeddedUrlsRef.current.forEach(URL.revokeObjectURL);
     };
   }, []);
+
+  useEffect(() => {
+    apiFetch<PaymentHistoryRecord[]>("/api/admin/payment-history")
+      .then((payments) => setOnlinePayments((payments || []).filter((payment) =>
+        String(payment.paymentType || "").toUpperCase().includes("COURSE") &&
+        String(payment.status || "").toLowerCase() === "paid"
+      )))
+      .catch(() => setOnlinePayments([]));
+  }, []);
+
+  function loadOnlineStudents() {
+    const issue = new Date();
+    const issueDay = String(issue.getDate()).padStart(2, "0");
+    const issueMonth = String(issue.getMonth() + 1).padStart(2, "0");
+    const issueYear = String(issue.getFullYear());
+    const seen = new Set<string>();
+    const nextRows = onlinePayments.filter((payment) => {
+      const key = `${payment.studentId || payment.studentName || ""}|${payment.courseName || ""}`;
+      if (!key || seen.has(key)) return false;
+      seen.add(key); return true;
+    }).map((payment) => ({
+      name_english: payment.studentName || "",
+      course: payment.courseName || "",
+      issue_day: issueDay, issue_month: issueMonth, issue_year: issueYear,
+    }));
+    setRows(nextRows); setSelectedCourse(""); setSheetName(`${nextRows.length} paid online students`);
+    setIssuedCertificates([]); issuanceBatchRef.current = createIssuanceBatchId();
+  }
 
   useEffect(() => {
     apiFetch<ReceiptRecord[]>("/api/reception/receipts")
@@ -434,6 +463,9 @@ export default function CertificateStudio() {
                   .map((course) => <option key={course} value={course}>{course}</option>)}
               </select>
             </label>
+            <button className="certificate-button certificate-button--secondary" type="button" onClick={loadOnlineStudents} disabled={onlinePayments.length === 0 || issuing || publishing}>
+              Load paid online students
+            </button>
             <UploadCard
               title="Spreadsheet"
               status={sheetName}
