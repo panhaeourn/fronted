@@ -112,7 +112,7 @@ export default function CertificateStudio() {
     apiFetch<PaymentHistoryRecord[]>("/api/admin/payment-history")
       .then((payments) => setOnlinePayments((payments || []).filter((payment) =>
         String(payment.paymentType || "").toUpperCase().includes("COURSE") &&
-        String(payment.status || "").toLowerCase() === "paid" && payment.completionStatus === "APPROVED"
+        String(payment.status || "").toLowerCase() === "paid"
       )))
       .catch(() => setOnlinePayments([]));
   }, []);
@@ -123,7 +123,7 @@ export default function CertificateStudio() {
     const issueMonth = String(issue.getMonth() + 1).padStart(2, "0");
     const issueYear = String(issue.getFullYear());
     const seen = new Set<string>();
-    const nextRows = onlinePayments.filter((payment) => !courseFilter || payment.courseName === courseFilter).filter((payment) => {
+    const nextRows = onlinePayments.filter((payment) => payment.completionStatus === "APPROVED").filter((payment) => !courseFilter || payment.courseName === courseFilter).filter((payment) => {
       const key = `${payment.studentId || payment.studentName || ""}|${payment.courseName || ""}`;
       if (!key || seen.has(key)) return false;
       seen.add(key); return true;
