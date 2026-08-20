@@ -228,14 +228,13 @@ export default function ReceiptList() {
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
-      if (activeTypeFilter === "CERTIFICATE_REQUESTS") {
-        return item.completionStatus !== "APPROVED";
-      }
-      const matchesType = activeTypeFilter === "ALL"
+      const isCertificateRequest = activeTypeFilter !== "CERTIFICATE_REQUESTS"
+        || item.completionStatus !== "APPROVED";
+      const matchesType = activeTypeFilter === "ALL" || activeTypeFilter === "CERTIFICATE_REQUESTS"
         || normalizeReceiptType(item.receiptType) === activeTypeFilter;
       const matchesCourse = selectedCourseFilter === "ALL"
         || item.courseName.trim() === selectedCourseFilter;
-      return matchesType && matchesCourse;
+      return isCertificateRequest && matchesType && matchesCourse;
     });
   }, [activeTypeFilter, items, selectedCourseFilter]);
 
