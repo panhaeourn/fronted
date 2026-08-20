@@ -411,7 +411,7 @@ export default function CertificateStudio() {
           <button
             className="certificate-button certificate-button--secondary"
             type="button"
-            onClick={loadOnlineStudents}
+            onClick={() => loadOnlineStudents()}
             disabled={onlinePayments.length === 0 || issuing || publishing}
             title="Load paid online course students"
           >
@@ -482,7 +482,7 @@ export default function CertificateStudio() {
                   .map((course) => <option key={course} value={course}>{course}</option>)}
               </select>
             </label>
-            <button className="certificate-button certificate-button--secondary" type="button" onClick={loadOnlineStudents} disabled={onlinePayments.length === 0 || issuing || publishing}>
+              <button className="certificate-button certificate-button--secondary" type="button" onClick={() => loadOnlineStudents()} disabled={onlinePayments.length === 0 || issuing || publishing}>
               Load paid online students
             </button>
             <UploadCard
