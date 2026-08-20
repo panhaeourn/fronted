@@ -589,7 +589,7 @@
 /* The online certificate uses the supplied PDF artwork as a fixed web background.
    Only the learner name and course are editable on this certificate type. */
 .online-certificate-fill[data-position="online-name"] {
-  left: 31%;
+  left: 32%;
   top: 46%;
   width: 20%;
   min-height: 3.2%;
@@ -612,7 +612,7 @@
 
 .online-certificate-fill[data-position="online-issue-date"] {
   left: 35.5%;
-  top: 51.2%;
+  top: 54%;
   width: 15%;
   min-height: 3%;
   font-size: 14px;
