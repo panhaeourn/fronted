@@ -138,7 +138,7 @@ export default function VerifyCertificate() {
                   <dd>{certificate.certificateNumber}</dd>
                 </div>
                 <div className="certificate-detail--recipient">
-                  <dt>Recipient</dt>
+                  <dt>Student</dt>
                   <dd>{certificate.recipientNameEnglish || certificate.recipientNameKhmer}</dd>
                   {certificate.recipientNameKhmer && certificate.recipientNameEnglish && (
                     <small>{certificate.recipientNameKhmer}</small>
