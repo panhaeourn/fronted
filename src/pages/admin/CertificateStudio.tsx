@@ -481,6 +481,21 @@ export default function CertificateStudio() {
               disabled={busy}
               onChange={(files) => void handleSpreadsheet(files?.[0])}
             />
+            {certificateSource === "ONLINE" && issuedCertificates.length > 0 && (
+              <div className="online-verification-links" aria-label="Online certificate verification links">
+                <span className="online-verification-links-title">Public certificate links</span>
+                {issuedCertificates.map((certificate, index) => {
+                  const url = certificateVerificationUrl(certificate.verificationCode);
+                  return (
+                    <div className="online-verification-link-row" key={`${certificate.verificationCode}-${index}`}>
+                      <span>{certificate.recipientNameEnglish || `Certificate ${index + 1}`}</span>
+                      <input value={url} readOnly aria-label={`Verification URL for ${certificate.recipientNameEnglish || "certificate"}`} />
+                      <button type="button" className="certificate-button certificate-button--secondary" onClick={() => void navigator.clipboard?.writeText(url)}>Copy</button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </ControlSection>
 
           <ControlSection step="01" title="Style selected text">
@@ -625,15 +640,6 @@ function OnlineCertificate({
             fgColor="#071737"
             title={`Verify certificate ${verification.certificateNumber}`}
           />
-          <a
-            className="online-certificate-verification-link"
-            href={certificateVerificationUrl(verification.verificationCode)}
-            target="_blank"
-            rel="noreferrer"
-            title={certificateVerificationUrl(verification.verificationCode)}
-          >
-            {certificateVerificationUrl(verification.verificationCode)}
-          </a>
         </div>
       )}
     </article>
