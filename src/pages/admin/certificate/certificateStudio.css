@@ -586,6 +586,30 @@
 .certificate-fill[data-position="course-english"] { left: 71.15%; top: 45.65%; width: 10.65%; min-height: 2.8%; padding-inline: .25%; font-size: 12px; }
 .certificate-fill[data-position="issue-date-english"] { left: 67.55%; top: 49.7%; width: 11.7%; min-height: 2.8%; padding-inline: .2%; font-size: 12px; }
 
+/* The online certificate uses the supplied PDF artwork as a fixed web background.
+   Only the learner name and course are editable on this certificate type. */
+.online-certificate-fill[data-position="online-name"] {
+  left: 38.5%;
+  top: 44.2%;
+  width: 15%;
+  min-height: 3.2%;
+  font-size: 16px;
+}
+
+.online-certificate-fill[data-position="online-course"] {
+  left: 48.5%;
+  top: 44.2%;
+  width: 18%;
+  min-height: 3.2%;
+  font-size: 16px;
+}
+
+.online-certificate-qr {
+  left: 44.1% !important;
+  top: 63.4% !important;
+  width: 12.6% !important;
+}
+
 .certificate-student-photo {
   position: absolute;
   z-index: 3;

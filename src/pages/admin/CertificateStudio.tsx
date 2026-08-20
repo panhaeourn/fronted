@@ -18,6 +18,7 @@ import {
   type CertificateRow,
 } from "./certificate/certificateData";
 import citoStampUrl from "./certificate/assets/cito-stamp.webp";
+import onlineCertificateBackgroundUrl from "./certificate/assets/online-certificate-bg.png";
 import "./certificate/certificateStudio.css";
 
 type TextField = "name" | "gender" | "birthDate" | "course" | "issueDate";
@@ -537,7 +538,16 @@ export default function CertificateStudio() {
           <div className="certificate-preview-scroll" ref={previewScrollRef}>
             <div className="certificate-list">
               {previewRows.map((row, index) => (
-                <CitoCertificate
+                certificateSource === "ONLINE" ? <OnlineCertificate
+                  key={`${recipientName(row, "english") || "online-preview"}-${index}`}
+                  row={row}
+                  scale={previewScale}
+                  verification={issuedCertificates[index]}
+                  selectedField={selectedField}
+                  fieldSettings={fieldSettings}
+                  onSelectField={setSelectedField}
+                  onEditText={(position, value) => updateCertificateText(index, position, value)}
+                /> : <CitoCertificate
                   key={`${recipientName(row, "english") || recipientName(row, "khmer") || "preview"}-${index}`}
                   row={row}
                   scale={previewScale}
@@ -554,6 +564,67 @@ export default function CertificateStudio() {
         </section>
       </div>
     </div>
+  );
+}
+
+function OnlineCertificate({
+  row,
+  scale,
+  verification,
+  selectedField,
+  fieldSettings,
+  onSelectField,
+  onEditText,
+}: {
+  row: CertificateRow;
+  scale: number;
+  verification?: IssuedCertificate;
+  selectedField: TextField | null;
+  fieldSettings: FieldSettings;
+  onSelectField: (field: TextField) => void;
+  onEditText: (position: string, value: string) => void;
+}) {
+  const textStyle = (field: TextField): CSSProperties => ({
+    fontFamily: fieldSettings[field].font || undefined,
+    fontSize: fieldSettings[field].size ? `${fieldSettings[field].size}px` : undefined,
+  });
+  const textProps = (field: TextField, position: string) => ({
+    className: `certificate-fill online-certificate-fill${selectedField === field ? " is-selected" : ""}`,
+    style: textStyle(field),
+    onClick: () => onSelectField(field),
+    contentEditable: true,
+    suppressContentEditableWarning: true,
+    role: "textbox",
+    tabIndex: 0,
+    onBlur: (event: React.FocusEvent<HTMLDivElement>) =>
+      onEditText(position, event.currentTarget.textContent || ""),
+  });
+
+  return (
+    <article
+      className="cito-certificate-sheet online-certificate-sheet"
+      aria-label={`Online CITO certificate for ${recipientName(row, "english") || "student"}`}
+      style={{ zoom: scale, backgroundImage: `url(${onlineCertificateBackgroundUrl})` }}
+    >
+      <div {...textProps("name", "online-name")} data-position="online-name">{recipientName(row, "english")}</div>
+      <div {...textProps("course", "online-course")} data-position="online-course">{fieldValue(row, "course")}</div>
+      {verification && (
+        <div
+          className="certificate-verification-block online-certificate-qr"
+          aria-label="Official certificate verification QR code"
+          style={{ left: `${fixedQr.x}%`, top: `${fixedQr.y}%`, width: `${fixedQr.width}%` }}
+        >
+          <QRCodeSVG
+            className="certificate-verification-qr"
+            value={certificateVerificationUrl(verification.verificationCode)}
+            level="M"
+            bgColor="#ffffff"
+            fgColor="#071737"
+            title={`Verify certificate ${verification.certificateNumber}`}
+          />
+        </div>
+      )}
+    </article>
   );
 }
 
