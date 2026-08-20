@@ -63,6 +63,7 @@ export default function ReceiptList() {
   const [searchName, setSearchName] = useState("");
   const [searchId, setSearchId] = useState("CITO");
   const [activeTypeFilter, setActiveTypeFilter] = useState<"ALL" | "COURSE" | "MONTHLY">("ALL");
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState("ALL");
   const [selectedMonthlyReceipt, setSelectedMonthlyReceipt] = useState<ReceiptRecord | null>(null);
   const [receiptToDelete, setReceiptToDelete] = useState<number | null>(null);
   const [receiptToMarkPaid, setReceiptToMarkPaid] = useState<number | null>(null);
@@ -121,6 +122,7 @@ export default function ReceiptList() {
       setErr("");
       setSearchName("");
       setSearchId("CITO");
+      setSelectedCourseFilter("ALL");
       const res = await apiFetch<ReceiptRecord[]>("/api/reception/receipts");
       setItems(res || []);
     } catch (error: unknown) {
@@ -214,14 +216,20 @@ export default function ReceiptList() {
   }, [items]);
 
   const filteredItems = useMemo(() => {
-    if (activeTypeFilter === "ALL") {
-      return items;
-    }
+    return items.filter((item) => {
+      const matchesType = activeTypeFilter === "ALL"
+        || normalizeReceiptType(item.receiptType) === activeTypeFilter;
+      const matchesCourse = selectedCourseFilter === "ALL"
+        || item.courseName.trim() === selectedCourseFilter;
+      return matchesType && matchesCourse;
+    });
+  }, [activeTypeFilter, items, selectedCourseFilter]);
 
-    return items.filter(
-      (item) => normalizeReceiptType(item.receiptType) === activeTypeFilter
-    );
-  }, [activeTypeFilter, items]);
+  const courseFilterOptions = useMemo(
+    () => [...new Set(items.map((item) => item.courseName.trim()).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b)),
+    [items]
+  );
 
   if (loading) {
     return <div style={loadingStyle}>Loading receipts...</div>;
@@ -286,6 +294,18 @@ export default function ReceiptList() {
             onChange={(e) => setSearchId(e.target.value)}
             style={searchInputStyle}
           />
+
+          <select
+            aria-label="Filter students by course"
+            value={selectedCourseFilter}
+            onChange={(e) => setSelectedCourseFilter(e.target.value)}
+            style={searchInputStyle}
+          >
+            <option value="ALL">All courses</option>
+            {courseFilterOptions.map((course) => (
+              <option key={course} value={course}>{course}</option>
+            ))}
+          </select>
 
           <button onClick={() => void handleSearch()} style={primaryButtonStyle}>
             Search
