@@ -228,8 +228,7 @@ export default function ReceiptList() {
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
-      const isCertificateRequest = activeTypeFilter !== "CERTIFICATE_REQUESTS"
-        || item.completionStatus !== "APPROVED";
+      const isCertificateRequest = true;
       const matchesType = activeTypeFilter === "ALL" || activeTypeFilter === "CERTIFICATE_REQUESTS"
         || normalizeReceiptType(item.receiptType) === activeTypeFilter;
       const matchesCourse = selectedCourseFilter === "ALL"
@@ -365,8 +364,8 @@ export default function ReceiptList() {
                         {normalizeDisplayId(receipt.studentId || receipt.studentCode)}
                       </div>
                       {activeTypeFilter === "CERTIFICATE_REQUESTS" && (
-                        <div style={{ ...subCellStyle, color: "#f59e0b" }}>
-                          Completion pending
+                        <div style={{ ...subCellStyle, color: receipt.completionStatus === "APPROVED" ? "#22c55e" : "#f59e0b" }}>
+                          {receipt.completionStatus === "APPROVED" ? "Completed / Approved" : "Completion requested"}
                         </div>
                       )}
                     </td>
@@ -499,10 +498,10 @@ export default function ReceiptList() {
 
                         {activeTypeFilter === "CERTIFICATE_REQUESTS" && (
                           <button
-                            onClick={() => void handleCompletionStatus(receipt.id, "APPROVED")}
-                            style={successButtonStyle}
+                            onClick={() => void handleCompletionStatus(receipt.id, receipt.completionStatus === "APPROVED" ? "PENDING" : "APPROVED")}
+                            style={receipt.completionStatus === "APPROVED" ? secondaryButtonStyle : successButtonStyle}
                           >
-                            Approve completion
+                            {receipt.completionStatus === "APPROVED" ? "Re-request" : "Approve completion"}
                           </button>
                         )}
 
