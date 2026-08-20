@@ -410,6 +410,15 @@ export default function CertificateStudio() {
           <button
             className="certificate-button certificate-button--secondary"
             type="button"
+            onClick={loadOnlineStudents}
+            disabled={onlinePayments.length === 0 || issuing || publishing}
+            title="Load paid online course students"
+          >
+            Online certificates
+          </button>
+          <button
+            className="certificate-button certificate-button--secondary"
+            type="button"
             disabled={Boolean(printStatus) || issuing || publishing}
             onClick={addCertificatePage}
           >
