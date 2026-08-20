@@ -579,6 +579,7 @@ type StudentEditValues = {
   studentName: string;
   studentNameEnglish: string;
   studentNameKhmer: string;
+  birthDate: string;
   gender: string;
   phone: string;
   contactInfo: string;
@@ -601,6 +602,7 @@ function StudentEditModal({
     studentName: receipt.studentName || "",
     studentNameEnglish: receipt.studentNameEnglish || "",
     studentNameKhmer: receipt.studentNameKhmer || "",
+    birthDate: receipt.birthDate || "",
     gender: receipt.gender || "",
     phone: receipt.phone || "",
     contactInfo: receipt.contactInfo || "",
@@ -657,6 +659,7 @@ function StudentEditModal({
           <EditField label="Student name *" value={values.studentName} onChange={(value) => update("studentName", value)} style={inputStyle} />
           <EditField label="English name" value={values.studentNameEnglish} onChange={(value) => update("studentNameEnglish", value)} style={inputStyle} />
           <EditField label="Khmer name" value={values.studentNameKhmer} onChange={(value) => update("studentNameKhmer", value)} style={inputStyle} />
+          <EditField label="Date of birth" type="date" value={values.birthDate} onChange={(value) => update("birthDate", value)} style={inputStyle} />
           <label style={{ display: "grid", gap: 7, color: "var(--app-text)" }}>
             <span style={{ fontWeight: 700, fontSize: 13 }}>Gender</span>
             <select value={values.gender} onChange={(event) => update("gender", event.target.value)} style={inputStyle}>
