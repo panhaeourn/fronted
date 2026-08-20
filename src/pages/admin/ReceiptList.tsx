@@ -365,9 +365,11 @@ export default function ReceiptList() {
                       <div style={subCellStyle}>
                         {normalizeDisplayId(receipt.studentId || receipt.studentCode)}
                       </div>
-                      <div style={{ ...subCellStyle, color: receipt.completionStatus === "APPROVED" ? "#22c55e" : "#f59e0b" }}>
-                        {receipt.completionStatus === "APPROVED" ? "Completed / Approved" : "Completion pending"}
-                      </div>
+                      {activeTypeFilter === "CERTIFICATE_REQUESTS" && (
+                        <div style={{ ...subCellStyle, color: "#f59e0b" }}>
+                          Completion pending
+                        </div>
+                      )}
                     </td>
                     <td style={tdStyle}>
                       <span
@@ -496,12 +498,14 @@ export default function ReceiptList() {
                           </button>
                         )}
 
-                        <button
-                          onClick={() => void handleCompletionStatus(receipt.id, receipt.completionStatus === "APPROVED" ? "PENDING" : "APPROVED")}
-                          style={receipt.completionStatus === "APPROVED" ? secondaryButtonStyle : successButtonStyle}
-                        >
-                          {receipt.completionStatus === "APPROVED" ? "Re-request" : "Approve completion"}
-                        </button>
+                        {activeTypeFilter === "CERTIFICATE_REQUESTS" && (
+                          <button
+                            onClick={() => void handleCompletionStatus(receipt.id, "APPROVED")}
+                            style={successButtonStyle}
+                          >
+                            Approve completion
+                          </button>
+                        )}
 
                         <button
                           onClick={() => setReceiptToDelete(receipt.id)}
