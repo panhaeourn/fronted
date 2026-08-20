@@ -93,6 +93,7 @@ export default function CertificateStudio() {
   const [courseReceipts, setCourseReceipts] = useState<ReceiptRecord[]>([]);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [onlinePayments, setOnlinePayments] = useState<PaymentHistoryRecord[]>([]);
+  const [certificateSource, setCertificateSource] = useState<"RECEPTION" | "ONLINE">("RECEPTION");
   const [previewScale, setPreviewScale] = useState(1);
   const [issuedCertificates, setIssuedCertificates] = useState<IssuedCertificate[]>([]);
   const [issuing, setIssuing] = useState(false);
@@ -459,6 +460,13 @@ export default function CertificateStudio() {
       <div className="certificate-studio-workspace">
         <aside className="certificate-control-panel">
           <ControlSection>
+            <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
+              <span style={{ color: "var(--app-muted)", fontSize: 12, fontWeight: 800 }}>Certificate source</span>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <button type="button" className={`certificate-button ${certificateSource === "RECEPTION" ? "certificate-button--primary" : "certificate-button--secondary"}`} onClick={() => setCertificateSource("RECEPTION")}>Reception students</button>
+                <button type="button" className={`certificate-button ${certificateSource === "ONLINE" ? "certificate-button--primary" : "certificate-button--secondary"}`} onClick={() => { setCertificateSource("ONLINE"); loadOnlineStudents(); }}>Online students</button>
+              </div>
+            </div>
             <label className="certificate-form-field">
               <span>Load students from course</span>
               <select
