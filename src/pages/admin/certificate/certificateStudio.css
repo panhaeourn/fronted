@@ -624,13 +624,19 @@
   left: 67%;
   top: 76%;
   width: 15%;
-  color: #172554;
-  border-bottom: 1px solid #172554;
-  font-family: "Brush Script MT", "Segoe Script", cursive;
-  font-size: 24px;
-  font-style: italic;
-  line-height: 1;
   text-align: center;
+}
+
+.online-certificate-signature-line {
+  height: 28px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #111827;
+}
+
+.online-certificate-signature-label {
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .online-certificate-stamp {
@@ -644,8 +650,8 @@
 }
 
 .online-certificate-qr {
-  left: 7.1% !important;
-  top: 72% !important;
+  left: 7.3% !important;
+  top: 70% !important;
   width: 12.2% !important;
 }
 
