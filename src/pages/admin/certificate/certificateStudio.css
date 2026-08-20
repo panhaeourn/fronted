@@ -630,17 +630,17 @@
 .online-certificate-stamp {
   position: absolute;
   z-index: 4;
-  left: 77%;
-  top: 69.5%;
-  width: 11%;
+  left: 77.2%;
+  top: 66.5%;
+  width: 11.5%;
   height: auto;
   opacity: .82;
 }
 
 .online-certificate-qr {
-  left: 44.1% !important;
-  top: 63.4% !important;
-  width: 12.6% !important;
+  left: 7.1% !important;
+  top: 72% !important;
+  width: 12.2% !important;
 }
 
 .certificate-student-photo {
