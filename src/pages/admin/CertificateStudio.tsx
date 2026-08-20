@@ -295,7 +295,7 @@ export default function CertificateStudio() {
               issuanceKey: `${issuanceBatchRef.current}-${index}`,
               recipientNameKhmer: recipientName(row, "khmer"),
               recipientNameEnglish: recipientName(row, "english"),
-              birthDate: fullDate(row, "birthDate", birth),
+              birthDate: certificateSource === "ONLINE" ? "N/A" : fullDate(row, "birthDate", birth),
               courseName: fieldValue(row, "course"),
               issueDate: fullDate(row, "issueDate", issue),
             };
