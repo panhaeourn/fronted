@@ -112,7 +112,7 @@ export default function CertificateStudio() {
     apiFetch<PaymentHistoryRecord[]>("/api/admin/payment-history")
       .then((payments) => setOnlinePayments((payments || []).filter((payment) =>
         String(payment.paymentType || "").toUpperCase().includes("COURSE") &&
-        String(payment.status || "").toLowerCase() === "paid"
+        String(payment.status || "").toLowerCase() === "paid" && payment.completionStatus === "APPROVED"
       )))
       .catch(() => setOnlinePayments([]));
   }, []);

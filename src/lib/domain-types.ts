@@ -68,6 +68,7 @@ export type PaymentHistoryRecord = {
   paidAt?: string;
   checkedBy?: string;
   note?: string;
+  completionStatus?: "PENDING" | "APPROVED";
 };
 
 export type ClaimCode = {

@@ -47,6 +47,11 @@ export default function AdminPaymentHistory() {
     }
   }
 
+  async function updateCompletion(row: PaymentHistoryRecord) {
+    const updated = await apiFetch<PaymentHistoryRecord>(`/api/admin/payment-history/${row.id}/completion-status`, { method: "PATCH", body: JSON.stringify({ status: row.completionStatus === "APPROVED" ? "PENDING" : "APPROVED" }) });
+    setRows((current) => current.map((item) => item.id === row.id ? updated : item));
+  }
+
   const courseOptions = useMemo(() => {
     const counts = new Map<string, { id: string; name: string; count: number }>();
     rows.forEach((row) => {
@@ -262,6 +267,7 @@ export default function AdminPaymentHistory() {
                     </td>
                     <td style={tdStyle}>{formatDate(row.createdAt)}</td>
                     <td style={tdStyle}>{formatDate(row.paidAt)}</td>
+                    {scope === "online" && <td style={tdStyle}><button type="button" onClick={() => void updateCompletion(row)} style={primaryButtonStyle}>{row.completionStatus === "APPROVED" ? "Re-request" : "Approve completion"}</button></td>}
                   </tr>
                 ))
               )}
