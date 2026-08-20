@@ -117,13 +117,13 @@ export default function CertificateStudio() {
       .catch(() => setOnlinePayments([]));
   }, []);
 
-  function loadOnlineStudents() {
+  function loadOnlineStudents(courseFilter = "") {
     const issue = new Date();
     const issueDay = String(issue.getDate()).padStart(2, "0");
     const issueMonth = String(issue.getMonth() + 1).padStart(2, "0");
     const issueYear = String(issue.getFullYear());
     const seen = new Set<string>();
-    const nextRows = onlinePayments.filter((payment) => {
+    const nextRows = onlinePayments.filter((payment) => !courseFilter || payment.courseName === courseFilter).filter((payment) => {
       const key = `${payment.studentId || payment.studentName || ""}|${payment.courseName || ""}`;
       if (!key || seen.has(key)) return false;
       seen.add(key); return true;
@@ -472,10 +472,12 @@ export default function CertificateStudio() {
               <select
                 value={selectedCourse}
                 disabled={busy || issuing || publishing}
-                onChange={(event) => void loadCourseStudents(event.target.value)}
+                onChange={(event) => certificateSource === "ONLINE"
+                  ? void loadOnlineStudents(event.target.value)
+                  : void loadCourseStudents(event.target.value)}
               >
                 <option value="">Select a course</option>
-                {[...new Set(courseReceipts.map((receipt) => receipt.courseName.trim()).filter(Boolean))]
+                {[...new Set((certificateSource === "ONLINE" ? onlinePayments.map((payment) => payment.courseName || "") : courseReceipts.map((receipt) => receipt.courseName.trim())).filter(Boolean))]
                   .sort((a, b) => a.localeCompare(b))
                   .map((course) => <option key={course} value={course}>{course}</option>)}
               </select>
