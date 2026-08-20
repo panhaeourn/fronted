@@ -267,7 +267,7 @@ export default function AdminPaymentHistory() {
                     </td>
                     <td style={tdStyle}>{formatDate(row.createdAt)}</td>
                     <td style={tdStyle}>{formatDate(row.paidAt)}</td>
-                    {scope === "online" && <td style={tdStyle}><button type="button" onClick={() => void updateCompletion(row)} style={primaryButtonStyle}>{row.completionStatus === "APPROVED" ? "Re-request" : "Approve completion"}</button></td>}
+                    {scope === "online" && <td style={tdStyle}><button type="button" onClick={row.completionStatus === "APPROVED" ? undefined : () => void updateCompletion(row)} disabled={row.completionStatus === "APPROVED"} style={primaryButtonStyle}>{row.completionStatus === "APPROVED" ? "Approved" : "Approve completion"}</button></td>}
                   </tr>
                 ))
               )}
