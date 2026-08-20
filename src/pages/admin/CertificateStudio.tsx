@@ -411,15 +411,6 @@ export default function CertificateStudio() {
           <button
             className="certificate-button certificate-button--secondary"
             type="button"
-            onClick={() => loadOnlineStudents()}
-            disabled={onlinePayments.length === 0 || issuing || publishing}
-            title="Load paid online course students"
-          >
-            Online certificates
-          </button>
-          <button
-            className="certificate-button certificate-button--secondary"
-            type="button"
             disabled={Boolean(printStatus) || issuing || publishing}
             onClick={addCertificatePage}
           >
@@ -482,9 +473,6 @@ export default function CertificateStudio() {
                   .map((course) => <option key={course} value={course}>{course}</option>)}
               </select>
             </label>
-              <button className="certificate-button certificate-button--secondary" type="button" onClick={() => loadOnlineStudents()} disabled={onlinePayments.length === 0 || issuing || publishing}>
-              Load paid online students
-            </button>
             <UploadCard
               title="Spreadsheet"
               status={sheetName}
