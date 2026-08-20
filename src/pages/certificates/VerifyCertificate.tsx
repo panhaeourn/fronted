@@ -2,6 +2,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../../api";
 import citoLogo from "../../assets/CITO.svg";
+import { QRCodeSVG } from "qrcode.react";
+import citoStamp from "../admin/certificate/assets/cito-stamp.webp";
 import { getErrorMessage } from "../../lib/errors";
 import "./VerifyCertificate.css";
 
@@ -160,6 +162,22 @@ export default function VerifyCertificate() {
                 <OfficialMarkIcon />
                 Confirm that the recipient, date of birth, course, and issue date match the printed certificate.
               </p>
+              {certificate.birthDate === "N/A" && (
+                <div className="verified-online-paper" aria-label="Verified online certificate">
+                  <div className="verified-online-name">{certificate.recipientNameEnglish || certificate.recipientNameKhmer}</div>
+                  <div className="verified-online-course">{certificate.courseName}</div>
+                  <div className="verified-online-date">{certificate.issueDate}</div>
+                  <img className="verified-online-stamp" src={citoStamp} alt="CITO official stamp" />
+                  <QRCodeSVG
+                    className="verified-online-qr"
+                    value={`${window.location.origin}/#/verify-certificate/${encodeURIComponent(certificate.verificationCode)}`}
+                    level="M"
+                    bgColor="#ffffff"
+                    fgColor="#071737"
+                    title="Verify this certificate"
+                  />
+                </div>
+              )}
             </>
           ) : (
             <ResultHeader icon={<VerificationStatusIcon valid={false} neutral={!error} />}>

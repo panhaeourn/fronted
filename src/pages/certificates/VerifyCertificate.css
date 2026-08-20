@@ -389,3 +389,30 @@
   .certificate-verify-search button { min-height: 44px; }
   .certificate-verify-footer { align-items: flex-start; flex-direction: column; }
 }
+.verified-online-paper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 297 / 210;
+  margin-top: 22px;
+  overflow: hidden;
+  background: #fff url("../admin/certificate/assets/online-certificate-bg.png") center / cover no-repeat;
+  color: #111827;
+  box-shadow: 0 14px 30px rgba(3, 12, 35, .22);
+}
+
+.verified-online-name,
+.verified-online-course,
+.verified-online-date {
+  position: absolute;
+  z-index: 2;
+  text-align: center;
+  font-family: "Times New Roman", serif;
+  font-size: clamp(9px, 1.2vw, 18px);
+  white-space: nowrap;
+}
+
+.verified-online-name { left: 22%; top: 42%; width: 18%; }
+.verified-online-course { left: 51%; top: 42%; width: 24%; }
+.verified-online-date { left: 32%; top: 48%; width: 18%; }
+.verified-online-stamp { position: absolute; z-index: 3; left: 77.2%; top: 66.5%; width: 11.5%; }
+.verified-online-qr { position: absolute; z-index: 3; left: 8%; top: 70%; width: 10%; height: auto; }
