@@ -31,26 +31,26 @@
   <!-- enrollment and payments -->
   <rect class="entity" x="335" y="430" width="180" height="80"/><text class="text" x="425" y="478">Enrollment</text>
   <polygon class="relationship" points="730,425 810,470 730,515 650,470"/><text class="text small" x="730" y="475">Enrolls</text>
-  <rect class="entity" x="930" y="430" width="180" height="80"/><text class="text" x="1020" y="478">Payment</text>
+  <rect class="entity" x="930" y="430" width="180" height="80"/><text class="text" x="1020" y="478">Payment Transaction</text>
   <polygon class="relationship" points="1370,425 1450,470 1370,515 1290,470"/><text class="text small" x="1370" y="475">Produces</text>
   <rect class="entity" x="1450" y="430" width="190" height="80"/><text class="text" x="1545" y="478">Certificate</text>
   <ellipse class="attribute" cx="425" cy="600" rx="105" ry="38"/><text class="text" x="425" y="606">Status</text>
-  <ellipse class="attribute" cx="1020" cy="600" rx="105" ry="38"/><text class="text" x="1020" y="606">Paid at</text>
+  <ellipse class="attribute" cx="1020" cy="600" rx="105" ry="38"/><text class="text" x="1020" y="606">Amount / status</text>
   <ellipse class="attribute" cx="1545" cy="600" rx="115" ry="38"/><text class="text" x="1545" y="606">Verification code</text>
 
   <!-- reception flow -->
   <rect class="entity" x="335" y="735" width="180" height="80"/><text class="text" x="425" y="783">CITO Receipt</text>
   <polygon class="relationship" points="680,730 760,775 680,820 600,775"/><text class="text small" x="680" y="780">Records</text>
-  <rect class="entity" x="760" y="735" width="160" height="80"/><text class="text" x="840" y="783">Student</text>
-  <polygon class="relationship" points="1160,730 1240,775 1160,820 1080,775"/><text class="text small" x="1160" y="780">Requests</text>
+  <rect class="entity" x="760" y="735" width="190" height="80"/><text class="text" x="855" y="783">Payment History</text>
+  <polygon class="relationship" points="1170,730 1250,775 1170,820 1090,775"/><text class="text small" x="1170" y="780">Requests</text>
   <rect class="entity" x="1390" y="735" width="190" height="80"/><text class="text" x="1485" y="783">Certificate Record</text>
   <ellipse class="attribute" cx="425" cy="930" rx="105" ry="38"/><text class="text" x="425" y="936">Birth date</text>
-  <ellipse class="attribute" cx="840" cy="930" rx="95" ry="38"/><text class="text" x="840" y="936">Name</text>
+  <ellipse class="attribute" cx="855" cy="930" rx="105" ry="38"/><text class="text" x="855" y="936">Student name</text>
   <ellipse class="attribute" cx="1485" cy="930" rx="105" ry="38"/><text class="text" x="1485" y="936">Published at</text>
 
   <!-- support relationships -->
-  <polygon class="relationship" points="1070,930 1150,975 1070,1020 990,975"/><text class="text small" x="1070" y="980">Chats</text>
-  <rect class="entity" x="1200" y="935" width="170" height="80"/><text class="text" x="1285" y="983">AI Message</text>
-  <path class="line" d="M920 775 H990 V975"/>
-  <text class="title" x="70" y="1050" style="font-size:16px">Entities are cyan rectangles · relationships are blue diamonds · attributes are red ovals</text>
+  <polygon class="relationship" points="1070,930 1150,975 1070,1020 990,975"/><text class="text small" x="1070" y="980">Creates</text>
+  <rect class="entity" x="1200" y="935" width="170" height="80"/><text class="text" x="1285" y="983">AI Chat Message</text>
+  <path class="line" d="M245 265 V975 H990"/>
+  <text class="title" x="70" y="1050" style="font-size:16px">Cyan rectangles are actual project tables · workflow references connect receipts/payments to certificate records</text>
 </svg>
