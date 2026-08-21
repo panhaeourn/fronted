@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1250" viewBox="0 0 1800 1250" role="img" aria-labelledby="title desc">
+  <title id="title">CITO Study Entity Relationship Diagram</title>
+  <desc id="desc">Entity relationship diagram for the CITO Study learning, payment, reception and certificate data model.</desc>
+  <defs>
+    <style>
+      .bg{fill:#07152f}.title{fill:#fff;font:700 30px Arial}.subtitle{fill:#9fc3ef;font:16px Arial}.entity{fill:#102a50;stroke:#5eb9e8;stroke-width:2}.entity-head{fill:#1d78a6}.entity-title{fill:#fff;font:700 17px Arial}.field{fill:#dbeafe;font:14px Consolas,monospace}.pk{fill:#fde68a;font-weight:700}.line{stroke:#8ba8c5;stroke-width:2;fill:none}.label{fill:#a9c6e7;font:13px Arial}.legend{fill:#12325a;stroke:#477da7;stroke-width:1}.legend-text{fill:#dbeafe;font:14px Arial}
+    </style>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#8ba8c5"/></marker>
+  </defs>
+  <rect class="bg" width="1800" height="1250"/>
+  <text class="title" x="70" y="65">CITO Study — Entity Relationship Diagram</text>
+  <text class="subtitle" x="70" y="95">Learning platform, online enrollment, reception payment, certificate verification and administration</text>
+
+  <!-- relationships behind entities -->
+  <path class="line" marker-end="url(#arrow)" d="M330 225 H500"/><text class="label" x="380" y="212">owns</text>
+  <path class="line" marker-end="url(#arrow)" d="M650 225 H810"/><text class="label" x="700" y="212">contains</text>
+  <path class="line" marker-end="url(#arrow)" d="M960 225 H1110"/><text class="label" x="1005" y="212">has</text>
+  <path class="line" marker-end="url(#arrow)" d="M650 465 H810"/><text class="label" x="700" y="452">enrolls</text>
+  <path class="line" marker-end="url(#arrow)" d="M330 465 H500"/><text class="label" x="375" y="452">creates</text>
+  <path class="line" marker-end="url(#arrow)" d="M330 705 H500"/><text class="label" x="380" y="692">records</text>
+  <path class="line" marker-end="url(#arrow)" d="M650 705 H810"/><text class="label" x="700" y="692">pays</text>
+  <path class="line" marker-end="url(#arrow)" d="M960 705 H1110"/><text class="label" x="1000" y="692">issues</text>
+  <path class="line" marker-end="url(#arrow)" d="M1260 705 H1410"/><text class="label" x="1295" y="692">verifies</text>
+  <path class="line" marker-end="url(#arrow)" d="M960 465 V555 H1410 V625"/><text class="label" x="1120" y="545">views</text>
+  <path class="line" marker-end="url(#arrow)" d="M1260 465 V405 H1410 V385"/><text class="label" x="1280" y="393">messages</text>
+
+  <!-- row 1 -->
+  <g transform="translate(70 145)"><rect class="entity" width="260" height="155" rx="8"/><rect class="entity-head" width="260" height="38" rx="8"/><text class="entity-title" x="16" y="25">users</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">email : varchar</text><text class="field" x="16" y="110">role : varchar</text><text class="field" x="16" y="134">display_name : varchar</text></g>
+  <g transform="translate(500 145)"><rect class="entity" width="310" height="155" rx="8"/><rect class="entity-head" width="310" height="38" rx="8"/><text class="entity-title" x="16" y="25">courses</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">FK user_id : bigint</text><text class="field" x="16" y="110">title : varchar</text><text class="field" x="16" y="134">price, published</text></g>
+  <g transform="translate(810 145)"><rect class="entity" width="310" height="155" rx="8"/><rect class="entity-head" width="310" height="38" rx="8"/><text class="entity-title" x="16" y="25">course_videos</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">FK course_id : bigint</text><text class="field" x="16" y="110">title, storage_key</text><text class="field" x="16" y="134">sort_order</text></g>
+  <g transform="translate(1110 145)"><rect class="entity" width="310" height="155" rx="8"/><rect class="entity-head" width="310" height="38" rx="8"/><text class="entity-title" x="16" y="25">enrollments</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">FK user_id : bigint</text><text class="field" x="16" y="110">FK course_id : bigint</text><text class="field" x="16" y="134">status, enrolled_at</text></g>
+
+  <!-- row 2 -->
+  <g transform="translate(70 385)"><rect class="entity" width="260" height="155" rx="8"/><rect class="entity-head" width="260" height="38" rx="8"/><text class="entity-title" x="16" y="25">payment_history</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">student, course</text><text class="field" x="16" y="110">status, completion_status</text><text class="field" x="16" y="134">paid_at</text></g>
+  <g transform="translate(500 385)"><rect class="entity" width="310" height="155" rx="8"/><rect class="entity-head" width="310" height="38" rx="8"/><text class="entity-title" x="16" y="25">payment_transactions</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">FK user_id : bigint</text><text class="field" x="16" y="110">amount, currency</text><text class="field" x="16" y="134">status, reference</text></g>
+  <g transform="translate(810 385)"><rect class="entity" width="310" height="155" rx="8"/><rect class="entity-head" width="310" height="38" rx="8"/><text class="entity-title" x="16" y="25">video_views</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">FK video_id : bigint</text><text class="field" x="16" y="110">FK user_id : bigint</text><text class="field" x="16" y="134">watched_seconds</text></g>
+  <g transform="translate(1110 385)"><rect class="entity" width="310" height="155" rx="8"/><rect class="entity-head" width="310" height="38" rx="8"/><text class="entity-title" x="16" y="25">ai_chat_messages</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">FK user_id : bigint</text><text class="field" x="16" y="110">role : varchar</text><text class="field" x="16" y="134">content, created_at</text></g>
+
+  <!-- row 3 -->
+  <g transform="translate(70 625)"><rect class="entity" width="260" height="155" rx="8"/><rect class="entity-head" width="260" height="38" rx="8"/><text class="entity-title" x="16" y="25">cito_receipts</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">student, course</text><text class="field" x="16" y="110">birth_date</text><text class="field" x="16" y="134">completion_status</text></g>
+  <g transform="translate(500 625)"><rect class="entity" width="310" height="155" rx="8"/><rect class="entity-head" width="310" height="38" rx="8"/><text class="entity-title" x="16" y="25">certificate_records</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">verification_code</text><text class="field" x="16" y="110">certificate_number</text><text class="field" x="16" y="134">published_at, revoked_at</text></g>
+  <g transform="translate(810 625)"><rect class="entity" width="310" height="155" rx="8"/><rect class="entity-head" width="310" height="38" rx="8"/><text class="entity-title" x="16" y="25">password_reset_tokens</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">FK user_id : bigint</text><text class="field" x="16" y="110">token_hash</text><text class="field" x="16" y="134">expires_at, used_at</text></g>
+  <g transform="translate(1110 625)"><rect class="entity" width="310" height="155" rx="8"/><rect class="entity-head" width="310" height="38" rx="8"/><text class="entity-title" x="16" y="25">receptionist_claim_code</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">code_hash</text><text class="field" x="16" y="110">claimed_by_user_id</text><text class="field" x="16" y="134">expires_at</text></g>
+
+  <!-- row 4 -->
+  <g transform="translate(70 865)"><rect class="entity" width="260" height="155" rx="8"/><rect class="entity-head" width="260" height="38" rx="8"/><text class="entity-title" x="16" y="25">r2_cleanup_jobs</text><text class="field pk" x="16" y="62">PK id : bigint</text><text class="field" x="16" y="86">object_key : varchar</text><text class="field" x="16" y="110">status : varchar</text><text class="field" x="16" y="134">attempts, deleted_at</text></g>
+  <g transform="translate(500 865)"><rect class="legend" width="920" height="155" rx="8"/><text class="entity-title" x="22" y="32">Relationship notes</text><text class="legend-text" x="22" y="68">users 1—N courses, enrollments, payments, video views, AI messages and reset tokens</text><text class="legend-text" x="22" y="96">courses 1—N course_videos and enrollments; course_videos 1—N video_views</text><text class="legend-text" x="22" y="124">Reception payments and online payments produce certificate records after completion approval and publication</text></g>
+  <text class="subtitle" x="70" y="1130">PK = primary key · FK = foreign key · Diagram reflects the application entity model and certificate workflow.</text>
+</svg>
