@@ -355,6 +355,9 @@ export default function CertificateStudio() {
     setError("");
     setPrintStatus("Securing certificates...");
     document.body.classList.add("certificate-pdf-exporting");
+    if (certificateSource === "RECEPTION") {
+      document.body.classList.add("certificate-reception-pdf-exporting");
+    }
     let printRoot: HTMLDivElement | null = null;
 
     try {
@@ -377,6 +380,7 @@ export default function CertificateStudio() {
     } finally {
       printRoot?.remove();
       document.body.classList.remove("certificate-pdf-exporting");
+      document.body.classList.remove("certificate-reception-pdf-exporting");
       setPrintStatus("");
     }
   }

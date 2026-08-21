@@ -740,6 +740,16 @@
   box-shadow: none;
 }
 
+/* Reception exports are field overlays for an externally supplied form. */
+body.certificate-reception-pdf-exporting .cito-certificate-sheet {
+  background: transparent !important;
+}
+
+body.certificate-reception-pdf-exporting .certificate-student-photo,
+body.certificate-reception-pdf-exporting .certificate-official-stamp {
+  display: none !important;
+}
+
 .certificate-pdf-exporting .certificate-fill.is-selected {
   outline: 0;
   background: transparent;
