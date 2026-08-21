@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100" role="img" aria-labelledby="title desc">
+  <title id="title">CITO Study Chen Entity Relationship Diagram</title>
+  <desc id="desc">Chen notation ERD for CITO Study users, courses, enrollments, payments, receipts and certificates.</desc>
+  <style>
+    .entity{fill:#55b3c5}.relationship{fill:#24547c}.attribute{fill:#b72b52}.text{fill:#fff;font:16px Arial;text-anchor:middle}.small{font-size:13px}.line{stroke:#707070;stroke-width:2;fill:none}.title{fill:#163b5c;font:700 28px Arial}
+  </style>
+  <rect width="1800" height="1100" fill="#fff"/>
+  <text class="title" x="900" y="50" text-anchor="middle">CITO Study — Entity Relationship Diagram</text>
+
+  <!-- connectors -->
+  <path class="line" d="M245 265 H340 M520 265 H635 M815 265 H935 M1115 265 H1235"/>
+  <path class="line" d="M425 320 V430 M515 470 H650 M810 470 H930 M1110 470 H1290"/>
+  <path class="line" d="M425 620 V735 M595 775 H760 M920 775 H1080 M1240 775 H1390"/>
+  <path class="line" d="M1390 320 V430 M1450 470 V585 M1560 620 V735"/>
+  <path class="line" d="M130 225 V135 H425 V180 M425 135 H720 V180 M720 135 H1010 V180"/>
+
+  <!-- top learning flow -->
+  <rect class="entity" x="80" y="225" width="165" height="80"/><text class="text" x="162" y="273">User</text>
+  <polygon class="relationship" points="430,220 520,265 430,310 340,265"/><text class="text small" x="430" y="270">Creates</text>
+  <rect class="entity" x="635" y="225" width="180" height="80"/><text class="text" x="725" y="273">Course</text>
+  <polygon class="relationship" points="1025,220 1115,265 1025,310 935,265"/><text class="text small" x="1025" y="270">Contains</text>
+  <rect class="entity" x="1235" y="225" width="200" height="80"/><text class="text" x="1335" y="273">Course Video</text>
+  <polygon class="relationship" points="1525,220 1615,265 1525,310 1435,265"/><text class="text small" x="1525" y="270">Views</text>
+  <rect class="entity" x="1615" y="225" width="150" height="80"/><text class="text" x="1690" y="273">Video View</text>
+
+  <!-- learning attributes -->
+  <ellipse class="attribute" cx="425" cy="105" rx="85" ry="38"/><text class="text" x="425" y="111">Email</text>
+  <ellipse class="attribute" cx="720" cy="105" rx="85" ry="38"/><text class="text" x="720" y="111">Title</text>
+  <ellipse class="attribute" cx="1010" cy="105" rx="95" ry="38"/><text class="text" x="1010" y="111">Storage key</text>
+
+  <!-- enrollment and payments -->
+  <rect class="entity" x="335" y="430" width="180" height="80"/><text class="text" x="425" y="478">Enrollment</text>
+  <polygon class="relationship" points="730,425 810,470 730,515 650,470"/><text class="text small" x="730" y="475">Enrolls</text>
+  <rect class="entity" x="930" y="430" width="180" height="80"/><text class="text" x="1020" y="478">Payment</text>
+  <polygon class="relationship" points="1370,425 1450,470 1370,515 1290,470"/><text class="text small" x="1370" y="475">Produces</text>
+  <rect class="entity" x="1450" y="430" width="190" height="80"/><text class="text" x="1545" y="478">Certificate</text>
+  <ellipse class="attribute" cx="425" cy="600" rx="105" ry="38"/><text class="text" x="425" y="606">Status</text>
+  <ellipse class="attribute" cx="1020" cy="600" rx="105" ry="38"/><text class="text" x="1020" y="606">Paid at</text>
+  <ellipse class="attribute" cx="1545" cy="600" rx="115" ry="38"/><text class="text" x="1545" y="606">Verification code</text>
+
+  <!-- reception flow -->
+  <rect class="entity" x="335" y="735" width="180" height="80"/><text class="text" x="425" y="783">CITO Receipt</text>
+  <polygon class="relationship" points="680,730 760,775 680,820 600,775"/><text class="text small" x="680" y="780">Records</text>
+  <rect class="entity" x="760" y="735" width="160" height="80"/><text class="text" x="840" y="783">Student</text>
+  <polygon class="relationship" points="1160,730 1240,775 1160,820 1080,775"/><text class="text small" x="1160" y="780">Requests</text>
+  <rect class="entity" x="1390" y="735" width="190" height="80"/><text class="text" x="1485" y="783">Certificate Record</text>
+  <ellipse class="attribute" cx="425" cy="930" rx="105" ry="38"/><text class="text" x="425" y="936">Birth date</text>
+  <ellipse class="attribute" cx="840" cy="930" rx="95" ry="38"/><text class="text" x="840" y="936">Name</text>
+  <ellipse class="attribute" cx="1485" cy="930" rx="105" ry="38"/><text class="text" x="1485" y="936">Published at</text>
+
+  <!-- support relationships -->
+  <polygon class="relationship" points="1070,930 1150,975 1070,1020 990,975"/><text class="text small" x="1070" y="980">Chats</text>
+  <rect class="entity" x="1200" y="935" width="170" height="80"/><text class="text" x="1285" y="983">AI Message</text>
+  <path class="line" d="M920 775 H990 V975"/>
+  <text class="title" x="70" y="1050" style="font-size:16px">Entities are cyan rectangles · relationships are blue diamonds · attributes are red ovals</text>
+</svg>
