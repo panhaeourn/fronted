@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../../api";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import { useAuth } from "../../lib/auth-context";
 import type { ReceiptRecord } from "../../lib/domain-types";
 import { getErrorMessage } from "../../lib/errors";
 import { SummaryGlowCard } from "../../lib/uiCards";
@@ -55,6 +56,7 @@ import {
 } from "./receiptListSupport";
 
 export default function ReceiptList() {
+  const { isAdmin } = useAuth();
   const [items, setItems] = useState<ReceiptRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -288,12 +290,14 @@ export default function ReceiptList() {
           >
             Monthly
           </button>
-          <button
-            onClick={() => setActiveTypeFilter("CERTIFICATE_REQUESTS")}
-            style={activeTypeFilter === "CERTIFICATE_REQUESTS" ? activeSegmentButtonStyle : segmentButtonStyle}
-          >
-            Certificate Requests
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setActiveTypeFilter("CERTIFICATE_REQUESTS")}
+              style={activeTypeFilter === "CERTIFICATE_REQUESTS" ? activeSegmentButtonStyle : segmentButtonStyle}
+            >
+              Certificate Requests
+            </button>
+          )}
         </div>
 
         <div style={filtersStyle}>
