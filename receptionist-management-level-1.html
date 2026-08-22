@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data Flow Diagram Level 1 - Receptionist Management</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #e9eef5; color: #172033; font-family: Arial, Helvetica, sans-serif; }
+    .page { width: min(1600px, calc(100vw - 32px)); margin: 16px auto; padding: 24px; background: #fff; box-shadow: 0 8px 28px rgba(15, 23, 42, .16); }
+    h1 { margin: 0 0 4px; text-align: center; font-size: 28px; }
+    p { margin: 0 0 18px; text-align: center; color: #52627a; }
+    svg { display: block; width: 100%; height: auto; }
+    .actor { fill: #fff2ec; stroke: #ff6e3d; stroke-width: 2.5; rx: 8; }
+    .process { fill: #eef8e9; stroke: #4f8c4a; stroke-width: 2.5; }
+    .store { fill: #eef5ff; stroke: #3578b8; stroke-width: 2.5; }
+    .flow { fill: none; stroke: #334155; stroke-width: 2; marker-end: url(#arrow); }
+    .node-title { fill: #172033; font-size: 17px; font-weight: 700; text-anchor: middle; }
+    .node-sub { fill: #42526a; font-size: 13px; text-anchor: middle; }
+    .flow-label { fill: #172033; font-size: 12px; font-weight: 600; text-anchor: middle; paint-order: stroke; stroke: #fff; stroke-width: 5px; stroke-linejoin: round; }
+    .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin-top: 12px; color: #52627a; font-size: 13px; }
+    .key { display: inline-flex; align-items: center; gap: 7px; }
+    .swatch { width: 28px; height: 18px; display: inline-block; }
+    .swatch.actor { border-radius: 4px; }
+    .swatch.process { border-radius: 50%; }
+    @media print { body { background: #fff; } .page { width: 100%; margin: 0; padding: 12mm; box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <h1>Data Flow Diagram Level 1 of Receptionist Management</h1>
+    <p>CITO Study - based on the implemented claim-code, user-role, receipt and payment workflow</p>
+    <svg viewBox="0 0 1750 1120" role="img" aria-labelledby="dfd-title dfd-desc">
+      <title id="dfd-title">Level 1 Receptionist Management Data Flow Diagram</title>
+      <desc id="dfd-desc">Admin generates claim codes, manages receptionist roles and views receptionist activity. A registered user claims the role using a valid code.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 9 4.5 0 9Z" fill="#334155"/></marker>
+      </defs>
+
+      <!-- External entities -->
+      <rect class="actor" x="45" y="220" width="200" height="90"/>
+      <text class="node-title" x="145" y="254">Admin</text><text class="node-sub" x="145" y="280">System manager</text>
+      <rect class="actor" x="45" y="900" width="215" height="90"/>
+      <text class="node-title" x="152" y="934">Registered User</text><text class="node-sub" x="152" y="960">Receptionist candidate</text>
+      <rect class="actor" x="1500" y="900" width="205" height="90"/>
+      <text class="node-title" x="1602" y="934">Receptionist</text><text class="node-sub" x="1602" y="960">Staff account</text>
+
+      <!-- Processes -->
+      <circle class="process" cx="430" cy="155" r="82"/>
+      <text class="node-title" x="430" y="137">7.1</text><text class="node-sub" x="430" y="160">Retrieve</text><text class="node-sub" x="430" y="181">Receptionist List</text>
+      <circle class="process" cx="430" cy="410" r="82"/>
+      <text class="node-title" x="430" y="392">7.2</text><text class="node-sub" x="430" y="415">Generate</text><text class="node-sub" x="430" y="436">Claim Code</text>
+      <circle class="process" cx="430" cy="945" r="82"/>
+      <text class="node-title" x="430" y="927">7.3</text><text class="node-sub" x="430" y="950">Validate</text><text class="node-sub" x="430" y="971">Claim Code</text>
+      <circle class="process" cx="810" cy="945" r="82"/>
+      <text class="node-title" x="810" y="927">7.4</text><text class="node-sub" x="810" y="950">Assign</text><text class="node-sub" x="810" y="971">Receptionist Role</text>
+      <circle class="process" cx="430" cy="665" r="82"/>
+      <text class="node-title" x="430" y="647">7.5</text><text class="node-sub" x="430" y="670">Remove</text><text class="node-sub" x="430" y="691">Receptionist Role</text>
+      <circle class="process" cx="1390" cy="310" r="86"/>
+      <text class="node-title" x="1390" y="292">7.6</text><text class="node-sub" x="1390" y="315">View Activity</text><text class="node-sub" x="1390" y="336">and Income</text>
+
+      <!-- Data stores -->
+      <g>
+        <rect class="store" x="745" y="105" width="310" height="100"/>
+        <line x1="772" y1="105" x2="772" y2="205" stroke="#3578b8" stroke-width="2.5"/>
+        <text class="node-title" x="913" y="144">D1 Users</text><text class="node-sub" x="913" y="171">Accounts and roles</text>
+      </g>
+      <g>
+        <rect class="store" x="745" y="360" width="310" height="100"/>
+        <line x1="772" y1="360" x2="772" y2="460" stroke="#3578b8" stroke-width="2.5"/>
+        <text class="node-title" x="913" y="399">D7 Claim Codes</text><text class="node-sub" x="913" y="426">Email, expiry and used status</text>
+      </g>
+      <g>
+        <rect class="store" x="1225" y="515" width="330" height="100"/>
+        <line x1="1252" y1="515" x2="1252" y2="615" stroke="#3578b8" stroke-width="2.5"/>
+        <text class="node-title" x="1402" y="554">D6 CITO Receipts</text><text class="node-sub" x="1402" y="581">Receptionist-created receipts</text>
+      </g>
+      <g>
+        <rect class="store" x="1225" y="690" width="330" height="100"/>
+        <line x1="1252" y1="690" x2="1252" y2="790" stroke="#3578b8" stroke-width="2.5"/>
+        <text class="node-title" x="1402" y="729">D4 Payment History</text><text class="node-sub" x="1402" y="756">Paid and pending activity</text>
+      </g>
+
+      <!-- 7.1: retrieve receptionist list -->
+      <path class="flow" d="M245 240 H300 V140 H348"/><text class="flow-label" x="294" y="128">List request</text>
+      <path class="flow" d="M348 178 H290 V275 H245"/><text class="flow-label" x="292" y="294">Receptionist list</text>
+      <path class="flow" d="M512 137 H745"/><text class="flow-label" x="628" y="125">Read receptionist users</text>
+      <path class="flow" d="M745 177 H512"/><text class="flow-label" x="628" y="198">Receptionist accounts</text>
+
+      <!-- 7.2: generate claim code -->
+      <path class="flow" d="M245 265 H305 V410 H348"/><text class="flow-label" x="304" y="397">Target email</text>
+      <path class="flow" d="M512 410 H745"/><text class="flow-label" x="628" y="398">New claim code</text>
+      <path class="flow" d="M400 490 V535 H145 V310"/><text class="flow-label" x="270" y="523">Code and expiry</text>
+
+      <!-- 7.3: validate the candidate's claim -->
+      <path class="flow" d="M260 945 H348"/><text class="flow-label" x="304" y="933">Email and claim code</text>
+      <path class="flow" d="M780 460 V770 H405 V863"/><text class="flow-label" x="596" y="758">Claim-code record</text>
+      <path class="flow" d="M745 165 H650 V810 H455 V865"/><text class="flow-label" x="552" y="798">User account</text>
+      <path class="flow" d="M512 945 H728"/><text class="flow-label" x="620" y="933">Validated claim</text>
+
+      <!-- 7.4: assign the role and consume the code -->
+      <path class="flow" d="M850 871 H1120 V185 H1055"/><text class="flow-label" x="985" y="858">Set role = RECEPTIONIST</text>
+      <path class="flow" d="M875 900 H1150 V410 H1055"/><text class="flow-label" x="1010" y="889">Mark claim code used</text>
+      <path class="flow" d="M892 945 H1500"/><text class="flow-label" x="1195" y="933">Role and access result</text>
+
+      <!-- 7.5: remove the receptionist role -->
+      <path class="flow" d="M245 290 H285 V665 H348"/><text class="flow-label" x="286" y="649">Remove-role request</text>
+      <path class="flow" d="M512 640 H1090 V155 H1055"/><text class="flow-label" x="800" y="628">Read user / set role = USER</text>
+      <path class="flow" d="M348 690 H270 V300 H245"/><text class="flow-label" x="269" y="709">Removal result</text>
+      <path class="flow" d="M512 680 H1175 V1060 H1602 V990"/><text class="flow-label" x="1310" y="1048">Updated account status</text>
+
+      <!-- 7.6: view receptionist activity and income -->
+      <path class="flow" d="M105 220 V45 H1390 V224"/><text class="flow-label" x="1040" y="34">Date range and activity request</text>
+      <path class="flow" d="M1304 285 H1180 V75 H185 V220"/><text class="flow-label" x="735" y="64">Receptionist activity and income report</text>
+      <path class="flow" d="M1355 515 V395"/><text class="flow-label" x="1308" y="461">Receipt activity</text>
+      <path class="flow" d="M1555 740 H1660 V310 H1476"/><text class="flow-label" x="1645" y="525">Payment activity</text>
+    </svg>
+    <div class="legend">
+      <span class="key"><span class="swatch actor"></span>External entity</span>
+      <span class="key"><span class="swatch process"></span>Process</span>
+      <span class="key"><span class="swatch store"></span>Data store</span>
+      <span class="key">Arrow = named data flow</span>
+    </div>
+  </main>
+</body>
+</html>
